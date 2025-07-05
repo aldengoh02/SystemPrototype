@@ -1,3 +1,4 @@
+/* Currently commented out 
 public class TestDB {
     public static void main(String[] args) {
         BookDatabase bookDb = new BookDatabase();
@@ -23,4 +24,5 @@ public class TestDB {
             System.out.println("Failed to connect to database.");
         }
     }
-}
+} 
+*/

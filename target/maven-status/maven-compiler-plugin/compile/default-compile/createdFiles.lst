@@ -1,0 +1,3 @@
+com/bookstore/db/BookDatabase.class
+com/bookstore/db/BookRecords.class
+com/bookstore/web/BookServlet.class

@@ -1,3 +1,5 @@
+package com.bookstore.db;
+
 import java.sql.*;
 import java.util.*;
 
@@ -17,7 +19,8 @@ public class BookDatabase {
     //Connect to DB
     public boolean connectDb() {
         try {
-            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/BookStore", "root", "K55$durai"); // updated schema name
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            connection = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/BookStore?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true", "root", "password");
             connected = true;
         } catch (Exception e) {
             System.out.println("Connection failed: " + e.getMessage());
@@ -36,6 +39,11 @@ public class BookDatabase {
             return false;
         }
         return true;
+    }
+
+    // Getter for connection
+    public static Connection getConnection() {
+        return connection;
     }
 
     //Getter and setter for results
