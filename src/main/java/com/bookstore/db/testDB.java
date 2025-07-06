@@ -1,4 +1,5 @@
-/* Currently commented out 
+package com.bookstore.db;
+
 public class TestDB {
     public static void main(String[] args) {
         BookDatabase bookDb = new BookDatabase();
@@ -11,9 +12,15 @@ public class TestDB {
             String result = bookDb.loadResults();
             System.out.println(result);
             for (BookRecords book : bookDb.getResults()) {
+                String status;
+                if (book.isComingSoon()) {
+                    status = " (Coming Soon)";
+                } else {
+                    status = " (Available)";
+                }
                 System.out.println(
                         book.getId() + ": " + book.getTitle() + " by " + book.getAuthor() +
-                                " - $" + book.getSellingPrice() + " [" + book.getCategory() + "]"
+                                " - $" + book.getSellingPrice() + " [" + book.getCategory() + "]" + status
                 );
             }
 
@@ -25,4 +32,4 @@ public class TestDB {
         }
     }
 } 
-*/
+
