@@ -2,6 +2,9 @@ package com.bookstore.db;
 
 import java.sql.*;
 import java.util.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+
 
 public class BookDatabase {
 
@@ -20,7 +23,7 @@ public class BookDatabase {
     public boolean connectDb() {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            connection = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/BookStore?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true", "root", "");
+            connection = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/BookStore?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true", "root", "K55$durai");
             connected = true;
         } catch (Exception e) {
             System.out.println("Connection failed: " + e.getMessage());
