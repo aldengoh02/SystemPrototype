@@ -1,3 +1,5 @@
+package com.bookstore.db;
+
 import java.sql.Date;
 
 public class BookRecords {
