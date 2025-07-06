@@ -11,6 +11,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import com.bookstore.web.CartItem;
 
 public class BookActions {
 
@@ -35,6 +39,29 @@ public class BookActions {
             e.printStackTrace();
         }
         return results;
+    }
+
+    public static Map<String, Double> calculateCheckout(Connection connection, CartItem[] cartItems) throws SQLException, BookNotFoundException {
+        double subtotal = 0.0;
+
+        for (CartItem item : cartItems) {
+            BookRecords book = getBookById(connection, item.getId());
+            if (book != null) {
+                subtotal += book.getSellingPrice() * item.getQuantity();
+            } else {
+                throw new BookNotFoundException("Book with ID " + item.getId() + " not found.");
+            }
+        }
+
+        double salesTax = subtotal * 0.07; // 7% sales tax
+        double total = subtotal + salesTax;
+
+        Map<String, Double> result = new HashMap<>();
+        result.put("subtotal", subtotal);
+        result.put("salesTax", salesTax);
+        result.put("total", total);
+
+        return result;
     }
 
     public static ArrayList<BookRecords> getFeaturedBooks(Connection connection) {

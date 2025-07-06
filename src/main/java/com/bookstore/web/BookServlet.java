@@ -13,6 +13,7 @@ package com.bookstore.web;
 import com.bookstore.db.BookActions;
 import com.bookstore.db.BookDatabase;
 import com.bookstore.db.BookRecords;
+import com.bookstore.db.BookNotFoundException;
 import com.google.gson.Gson;
 
 import jakarta.servlet.ServletException;
@@ -23,7 +24,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -31,14 +31,22 @@ public class BookServlet extends HttpServlet {
 
     private final Gson gson = new Gson();
 
-    // A simple class to represent items in the cart for JSON deserialization
-    private static class CartItem {
-        int id;
-        int quantity;
-    }
-
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        /**
+         * Handles the checkout calculation. This endpoint expects a POST request to `/api/books/calculate`.
+         * The request body must be a JSON array of objects, where each object represents a cart item
+         * and has an "id" (integer) and a "quantity" (integer).
+         * 
+         * Example JSON body:
+         * [
+         *   { "id": 1, "quantity": 2 },
+         *   { "id": 5, "quantity": 1 }
+         * ]
+         * 
+         * On success, it returns a JSON object with "subtotal", "salesTax", and "total".
+         * On failure, it returns a JSON object with an "error" message.
+         */
         BookDatabase bookDb = new BookDatabase();
         
         resp.setHeader("Access-Control-Allow-Origin", "*");
@@ -62,33 +70,13 @@ public class BookServlet extends HttpServlet {
                 String requestBody = req.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
                 CartItem[] cartItems = gson.fromJson(requestBody, CartItem[].class);
 
-                double subtotal = 0.0;
-                boolean allBooksFound = true;
+                Map<String, Double> result = BookActions.calculateCheckout(BookDatabase.getConnection(), cartItems);
+                
+                out.print(gson.toJson(result));
 
-                for (CartItem item : cartItems) {
-                    BookRecords book = BookActions.getBookById(BookDatabase.getConnection(), item.id);
-                    if (book != null) {
-                        subtotal += book.getSellingPrice() * item.quantity;
-                    } else {
-                        resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                        out.print("{\"error\": \"Book with ID " + item.id + " not found.\"}");
-                        allBooksFound = false;
-                        break;
-                    }
-                }
-
-                if (allBooksFound) {
-                    double salesTax = subtotal * 0.07; // 7% sales tax
-                    double total = subtotal + salesTax;
-
-                    Map<String, Double> result = new HashMap<>();
-                    result.put("subtotal", subtotal);
-                    result.put("salesTax", salesTax);
-                    result.put("total", total);
-
-                    out.print(gson.toJson(result));
-                }
-
+            } catch (BookNotFoundException e) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                out.print("{\"error\": \"" + e.getMessage() + "\"}");
             } catch (Exception e) {
                 resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 out.print("{\"error\": \"Error processing the request: " + e.getMessage() + "\"}");
