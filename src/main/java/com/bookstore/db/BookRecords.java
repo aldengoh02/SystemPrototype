@@ -42,6 +42,20 @@ public class BookRecords {
         this.releaseDate = releaseDate;
     }
 
+    /**
+     * Checks if the book is considered "coming soon" by comparing its release date to the current date.
+     * @return true if the release date is in the future, false otherwise.
+     **/
+    public boolean isComingSoon() {
+       
+        if (this.releaseDate == null) { // release date not confirmed == not known, return false
+            return false;
+        }
+       
+        return this.releaseDate.after(new java.util.Date()); // book is coming soon if release after present
+    }
+    
+
     //Getters and setters for all fields
     public int getId() {
         return id;
