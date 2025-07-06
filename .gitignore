@@ -26,3 +26,4 @@ node_modules
 
 # Maven
 /target
+.idea/
