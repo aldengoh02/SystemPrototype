@@ -1,6 +1,11 @@
 /*
  * Rest API endpoint 
  * Currently connects to the database and supports search functionality
+ * Supports current format of queries:
+ * ?display=featured 
+ * ?display=comingsoon
+ * ?search=. . .
+ * /bookId num ex api/books/10
  */
 
 package com.bookstore.web;
@@ -34,16 +39,50 @@ public class BookServlet extends HttpServlet {
         PrintWriter out = resp.getWriter();
 
         if (bookDb.connectDb()) {
-            String searchTerm = req.getParameter("search");
-            ArrayList<BookRecords> books;
-            if (searchTerm != null && !searchTerm.isEmpty()) {
-                books = BookActions.searchBooks(BookDatabase.getConnection(), searchTerm);
+            String pathInfo = req.getPathInfo();
+
+            if (pathInfo != null && !pathInfo.equals("/")) {
+                try {
+                    int bookId = Integer.parseInt(pathInfo.substring(1));
+                    BookRecords book = BookActions.getBookById(BookDatabase.getConnection(), bookId);
+
+                    if (book != null) {
+                        out.print(gson.toJson(book));
+                    } else {
+                        resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                        out.print("{\"error\": \"Book not found\"}");
+                    }
+                } catch (NumberFormatException e) {
+                    resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    out.print("{\"error\": \"Invalid book ID\"}");
+                }
             } else {
-                bookDb.loadResults();
-                books = bookDb.getResults();
+                String searchTerm = req.getParameter("search");
+                String display = req.getParameter("display");
+                ArrayList<BookRecords> books;
+
+                if (searchTerm != null && !searchTerm.isEmpty()) {
+                    books = BookActions.searchBooks(BookDatabase.getConnection(), searchTerm);
+                } else if (display != null) {
+                    switch (display) {
+                        case "featured":
+                            books = BookActions.getFeaturedBooks(BookDatabase.getConnection());
+                            break;
+                        case "comingsoon":
+                            books = BookActions.getComingSoonBooks(BookDatabase.getConnection());
+                            break;
+                        default:
+                            bookDb.loadResults();
+                            books = bookDb.getResults();
+                            break;
+                    }
+                } else {
+                    bookDb.loadResults();
+                    books = bookDb.getResults();
+                }
+                String booksJson = gson.toJson(books);
+                out.print(booksJson);
             }
-            String booksJson = gson.toJson(books);
-            out.print(booksJson);
             bookDb.disconnectDb();
         } else {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

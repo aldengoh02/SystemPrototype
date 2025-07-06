@@ -44,6 +44,9 @@ public class BookRecords {
 
     /**
      * Checks if the book is considered "coming soon" by comparing its release date to the current date.
+     * Currently not in use as method in @BookActions does so for the entire list of datab
+     * but intended for use with a single book 
+     * possibly implemented later or in book details page
      * @return true if the release date is in the future, false otherwise.
      **/
     public boolean isComingSoon() {
