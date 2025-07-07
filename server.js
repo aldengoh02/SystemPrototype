@@ -1,43 +1,66 @@
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
-
+const path = require('path');
 const app = express();
-const port = 5000; // Backend will run on this port
+const PORT = 5000;
 
 app.use(cors());
 app.use(express.json());
 
-// Create MySQL connection pool
-const db = mysql.createPool({
+// Serve images from public/img directory
+app.use('/img', express.static(path.resolve(__dirname, 'public', 'img')));
+
+// MySQL connection
+const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    password: '1234', // replace with your MySQL password
-    database: 'BookStore'            // replace with your schema name if different
+    password: '1234',
+    database: 'BookStore'
 });
 
-// Test connection
-db.getConnection((err, connection) => {
+db.connect(err => {
     if (err) {
-        console.error('Error connecting to MySQL:', err);
-    } else {
-        console.log('Connected to MySQL database!');
-        connection.release();
+        console.error('❌ Database connection failed:', err.stack);
+        return;
     }
+    console.log('✅ Connected to MySQL database.');
 });
 
-// Endpoint to get all books
-app.get('/api/books', (req, res) => {
-    db.query('SELECT * FROM books', (err, results) => {
+// Get featured books
+app.get('/api/books/featured', (req, res) => {
+    const q = `SELECT id, isbn, title, author, sellingPrice AS price, 
+               coverImage, category, rating, featured 
+               FROM books WHERE featured = TRUE`;
+    db.query(q, (err, results) => {
         if (err) {
-            console.error(err);
-            res.status(500).send('Error fetching books');
-        } else {
-            res.json(results);
+            console.error('❌ Error fetching featured books:', err);
+            return res.status(500).json({ error: err.message });
         }
+        res.json(results);
     });
 });
 
-app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
+// Get coming soon books
+app.get('/api/books/coming-soon', (req, res) => {
+    const q = `SELECT id, isbn, title, author, sellingPrice AS price, 
+               coverImage, category, rating 
+               FROM books WHERE quantityInStock = 0`;
+    db.query(q, (err, results) => {
+        if (err) {
+            console.error('❌ Error fetching coming soon books:', err);
+            return res.status(500).json({ error: err.message });
+        }
+        res.json(results);
+    });
+});
+
+// Health check endpoint
+app.get('/', (req, res) => {
+    res.send('✅ BookStore API is running.');
+});
+
+// Start server
+app.listen(PORT, () => {
+    console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
