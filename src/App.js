@@ -470,14 +470,14 @@ const tax = total * 0.07; //  implnented a 7% tax adjust if your bookstore is ta
         <>
           {/* Shipping information section */}
           <div style={{ background: '#fff', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
-            <h3>Shipping Information</h3>
-            {/* Email field with change button */}
-            <div style={{ marginBottom: '15px' }}>
+    <h3>Shipping Information</h3>
+       {/* Email field with change button */}
+      <div style={{ marginBottom: '15px' }}>
               <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Email:</label>
-              <div style={{ display: 'flex', alignItems: 'center' }}>
+         <div style={{ display: 'flex', alignItems: 'center' }}>
                 <span style={{ flex: 1 }}>{email}</span>
                 {/* Button to update email */}
-                <button 
+              <button 
                   onClick={() => setEmail(prompt('Enter new email', email) || email)}
                   style={{ 
                     background: '#4a90e2',

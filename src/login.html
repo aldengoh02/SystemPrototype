@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bookstore Login</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: url('https://images.unsplash.com/photo-1512820790803-83ca734da794?fit=crop&w=1600&q=80') no-repeat center center fixed;
+    background-size: cover;
+}
+.login-container {
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    width: 300px;
+    text-align: center;
+}
+.login-container h2 {
+    margin-bottom: 20px;
+    color: #1d3557;
+}
+.login-container input[type="text"],
+.login-container input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #457b9d;
+    border-radius: 4px;
+}
+.login-container button {
+    width: 100%;
+    padding: 10px;
+    background-color: #1d4ed8;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+.login-container button:hover {
+    background-color: #1e40af;
+}
+.login-container .signup-link {
+    margin-top: 15px;
+    font-size: 14px;
+}
+.login-container .signup-link a {
+    color: #1d4ed8;
+    text-decoration: none;
+}
+.login-container .signup-link a:hover {
+    text-decoration: underline;
+}
+</style>
+</head>
+<body>
+<div class="login-container">
+    <h2>Bookstore Login</h2>
+    <form id="loginForm">
+        <input type="text" id="username" name="username" placeholder="Username" required>
+        <input type="password" id="password" name="password" placeholder="Password" required>
+        <button type="submit">Login</button>
+    </form>
+    <div class="signup-link">
+        Don’t have an account? <a href="signup.html">Create an account</a>
+    </div>
+</div>
+<script>
+document.getElementById('loginForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+
+    const storedUser = JSON.parse(localStorage.getItem('bookstoreUser'));
+
+    if (storedUser && username === storedUser.username && password === storedUser.password) {
+        window.location.href = "bookstore_homepage.html";
+    } else {
+        alert('Invalid username or password. If you do not have an account, please create one.');
+    }
+});
+</script>
+</body>
+</html>

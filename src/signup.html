@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Account - Bookstore</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: url('https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?fit=crop&w=1600&q=80') no-repeat center center fixed;
+    background-size: cover;
+}
+.signup-container {
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    width: 300px;
+    text-align: center;
+}
+.signup-container h2 {
+    margin-bottom: 20px;
+    color: #1d3557;
+}
+.signup-container input[type="text"],
+.signup-container input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #457b9d;
+    border-radius: 4px;
+}
+.signup-container button {
+    width: 100%;
+    padding: 10px;
+    background-color: #1d4ed8;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+.signup-container button:hover {
+    background-color: #1e40af;
+}
+.signup-container .login-link {
+    margin-top: 15px;
+    font-size: 14px;
+}
+.signup-container .login-link a {
+    color: #1d4ed8;
+    text-decoration: none;
+}
+.signup-container .login-link a:hover {
+    text-decoration: underline;
+}
+</style>
+</head>
+<body>
+<div class="signup-container">
+    <h2>Create Account</h2>
+    <form id="signupForm">
+        <input type="text" id="firstName" name="firstName" placeholder="First Name" required>
+        <input type="text" id="lastName" name="lastName" placeholder="Last Name" required>
+        <input type="text" id="newUsername" name="newUsername" placeholder="Username" required>
+        <input type="password" id="newPassword" name="newPassword" placeholder="Password" required>
+        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm Password" required>
+        <button type="submit">Create Account</button>
+    </form>
+    <div class="login-link">
+        Already have an account? <a href="login.html">Login here</a>
+    </div>
+</div>
+<script>
+document.getElementById('signupForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const firstName = document.getElementById('firstName').value;
+    const lastName = document.getElementById('lastName').value;
+    const username = document.getElementById('newUsername').value;
+    const password = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+
+    if (password !== confirmPassword) {
+        alert('Passwords do not match');
+        return;
+    }
+
+    const user = {
+        firstName: firstName,
+        lastName: lastName,
+        username: username,
+        password: password
+    };
+
+    localStorage.setItem('bookstoreUser', JSON.stringify(user));
+
+    alert('Account created successfully for ' + firstName + ' ' + lastName + '! Redirecting to login page.');
+    window.location.href = 'login.html';
+});
+</script>
+</body>
+</html>
