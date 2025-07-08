@@ -303,8 +303,8 @@ function Home({ featuredBooks, comingSoonBooks, handleAddToCart, loading, error 
             )}
             {/* The book information that shows an title, author and shows book imagee */}
             <h3 style={{ margin: '10px 0' }}>{book.title}</h3>
-            <p style={{ color: '#666' }}>by {book.author}</p>
-            <p style={{ color: '#50c878', fontWeight: 'bold' }}><i>Coming Soon</i></p>
+   <p style={{ color: '#666' }}>by {book.author}</p>
+     <p style={{ color: '#50c878', fontWeight: 'bold' }}><i>Coming Soon</i></p>
           </div>
         ))}
       </div>
@@ -325,23 +325,23 @@ function CartPage({ cartItems, handleQuantityChange }) {
       <h2>🛒 Your Cart</h2>
       
       {/* If  the cart is empty,  then show a friendly message encouraging them to  the add items */}
-      {cartItems.length === 0 ? (
-        <p>Your cart is empty. Maybe add some books? They're really good!</p>
-      ) : (
+     {cartItems.length === 0 ? (
+        <p>Your cart is empty. Maybe add some books?</p>
+     ) : (
         /* Otherwisee show all the  of cart items */
         <>
           {/* Loop through each item in the cart array and  then also display it */}
-          {cartItems.map(item => (
+      {cartItems.map(item => (
             // Each item gets its own container with white background and shadow
             <div key={item.id} style={{ 
-              display: 'flex', // Use flexbox layout
-              alignItems: 'center', // Center items vertically
-              justifyContent: 'space-between', // Space out the contents
-              background: '#fff', // White background
-              padding: '15px', // Some inner spacing
-              borderRadius: '8px', // Rounded corners because sharp corners are scary
-              margin: '10px 0', // Margin on top and bottom
-              boxShadow: '0 2px 5px rgba(0,0,0,0.1)' // Subtle shadow for depth
+        display: 'flex', // Use flexbox layout
+      alignItems: 'center', // Center items vertically
+             justifyContent: 'space-between', // Space out the contents
+          background: '#fff', // White background
+       padding: '15px', // Some inner spacing
+         borderRadius: '8px', // Rounded corners because sharp corners are scary
+           margin: '10px 0', // Margin on top and bottom
+          boxShadow: '0 2px 5px rgba(0,0,0,0.1)' // Subtle shadow for depth
             }}>
               {/* Left side showing book title and author */}
               <div style={{ flex: 2 }}>
@@ -350,7 +350,7 @@ function CartPage({ cartItems, handleQuantityChange }) {
                 {/* Author's name in slightly muted  in gray color */}
                 <p style={{ margin: '5px 0', color: '#666' }}>by {item.author}</p>
               </div>
-              {/* The Right side showing price calculations */}
+              {/* The Right side  is showing price calculations */}
               <div style={{ flex: 1, textAlign: 'right' }}>
                 {/* This shows price per item multiplied by quantity */}
                 <p style={{ margin: 0 }}>${item.price} × {item.quantity}</p>
@@ -363,12 +363,12 @@ function CartPage({ cartItems, handleQuantityChange }) {
                 <button 
                   onClick={() => handleQuantityChange(item.id, -1)} // Decrease by 1
                   style={{ 
-                    background: '#ff4444', // Here is the Red color
-                    color: 'white', // Here is the White text
+               background: '#ff4444', // Here is the Red color
+             color: 'white', // Here is the White text
                     border: 'none', // created it to have No border
-                    padding: '5px 10px', //The  Comfortable size
-                    borderRadius: '4px', //Here is the  Slightly rounded
-                    cursor: 'pointer', // Here is the Hand cursor on hover
+              padding: '5px 10px', //The  Comfortable size
+              borderRadius: '4px', //Here is the  Slightly rounded
+              cursor: 'pointer', // Here is the Hand cursor on hover
                     marginRight: '5px' // The Space between buttons
                   }}
                 >
@@ -404,11 +404,11 @@ function CartPage({ cartItems, handleQuantityChange }) {
             <h3 style={{ textAlign: 'right' }}>Total: ${total.toFixed(2)}</h3>
             {/* Checkout button container also aligned right */}
             <div style={{ textAlign: 'right' }}>
-              {/* Link to checkout page */}
+              {/* Link to  the checkout page */}
               <Link to="/checkout">
-                {/* Big green checkout button because green means go */}
+                {/* Big green checkout button */}
                 <button style={{ 
-                  background: '#50c878', // Green color
+                  background: '#50c878', // the Green color
                   color: 'white', // White text
                   border: 'none', // No border
                   padding: '10px 20px', // Comfortable clickable size
@@ -416,7 +416,7 @@ function CartPage({ cartItems, handleQuantityChange }) {
                   cursor: 'pointer', // Hand cursor
                   fontSize: '1.1em' // Slightly larger text
                 }}>
-                  Proceed to Checkout {/* Clear call-to-action */}
+                  Proceed to Checkout {/* Clear call to action */}
                 </button>
               </Link>
             </div>
@@ -435,12 +435,12 @@ function CheckoutPage({ cartItems, setCartItems, setOrders }) {
   const [email, setEmail] = useState('user@example.com'); // Contact email
   const [confirmed, setConfirmed] = useState(false); // Order confirmation status
 
-  // Calculate order totals - we do math here so users don't have to
+  // Calculate the  order's totals.  The math is done  here so users don't have to
   const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0); // Subtotal
-  const tax = total * 0.07; // 7% tax - adjust if your bookstore is tax-free!
-  const grandTotal = total + tax; // What they actually pay
+  const tax = total * 0.07; //  implnented a 7% tax adjust if your bookstore is tax free!
+  const grandTotal = total + tax; // What they actually will  pay
 
-  // When user confirms their order
+  // When  the user confirms their order
   const handleConfirm = () => {
     // Create new order object with all necessary info
     const newOrder = {
@@ -722,11 +722,11 @@ function OrderHistoryPage({ orders, setCartItems }) {
               <button 
                 onClick={() => handleReorder(order.items)}
                 style={{ 
-                  background: '#4a90e2',
-                  color: 'white',
-                  border: 'none',
+              background: '#4a90e2',
+              color: 'white',
+              border: 'none',
                   padding: '8px 15px',
-                  borderRadius: '5px',
+                borderRadius: '5px',
                   cursor: 'pointer'
                 }}
               >
@@ -760,22 +760,22 @@ function LoginPage() {
       <h2>Login</h2>
       {/* The form wrapper with some  styling */}
       <form onSubmit={handleSubmit} style={{ 
-        background: '#fff', // White background makes it look clean
-        padding: '20px', // Gives room.
+      background: '#fff', // White background makes it look clean
+       padding: '20px', // Gives room.
         borderRadius: '8px', // Rounded corners.
-        boxShadow: '0 2px 5px rgba(0,0,0,0.1)' // Subtle shadow for the  depth
+      boxShadow: '0 2px 5px rgba(0,0,0,0.1)' // Subtle shadow for the  depth
       }}>
         {/*The  email input field with label */}
         <div style={{ marginBottom: '15px' }}>
           <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Email:</label>
           <input
             type="email" // Makes sure it is a  a valid email format
-            value={email} // an controlled  component
-            onChange={(e) => setEmail(e.target.value)} // Updates the  state on typing
+           value={email} // an controlled  component
+           onChange={(e) => setEmail(e.target.value)} // Updates the  state on typing
             style={{ 
-              width: '100%', // Takes  up full width
+           width: '100%', // Takes  up full width
               padding: '8px', // Padding space
-              borderRadius: '4px', // Slightly rounded
+             borderRadius: '4px', // Slightly rounded
               border: '1px solid #ccc' // Light gray border
             }}
             required // Don't let them submit without this here
@@ -785,14 +785,14 @@ function LoginPage() {
         {/* Ths is the Password input field with label */}
         <div style={{ marginBottom: '20px' }}>
           <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Password:</label>
-          <input
+      <input
             type="password" // Dots instead of letters for secrecy for the user
-            value={password} // Controlled component
+        value={password} // Controlled component
             onChange={(e) => setPassword(e.target.value)} //This will update the  state on typing
-            style={{ 
+         style={{ 
               width: '100%', // here is the full width
-              padding: '8px', // Here is the Same as email field
-              borderRadius: '4px', // Here is the Consistent rounding
+           padding: '8px', // Here is the Same as email field
+          borderRadius: '4px', // Here is the Consistent rounding
               border: '1px solid #ccc' // This is the Same border used most of implemenations
             }}
             required 
@@ -803,18 +803,18 @@ function LoginPage() {
         <button 
           type="submit" // Makes it submit the form
           style={{ 
-            background: '#4a90e2', // Same blue as everywhere
+         background: '#4a90e2', // Same blue as everywhere
             color: 'white', // White text 
-            border: 'none', // No borders 
-            padding: '10px 15px', // clickable size
-            borderRadius: '5px', // it is  rounded
+        border: 'none', // No borders 
+         padding: '10px 15px', // clickable size
+          borderRadius: '5px', // it is  rounded
             cursor: 'pointer', // Hand cursor on hover
             width: '100%' //The  full width button
           }}
         >
           Login {/* the simple clear text */}
-        </button>
-      </form>
+</button>
+    </form>
     </div>
   );
 }
@@ -822,19 +822,19 @@ function LoginPage() {
 // HEre is the  Registration Page Component , where new users can sign up if they like
 function RegisterPage() {
   // We need an state for all the registration fields
-  const [email, setEmail] = useState(''); // Empty at  the start
+const [email, setEmail] = useState(''); // Empty at  the start
   const [password, setPassword] = useState(''); // This make it a empty password
   const [confirmPassword, setConfirmPassword] = useState(''); //Make sure it is confirmed
 
   // When the form gets submitted
-  const handleSubmit = (e) => {
+        const handleSubmit = (e) => {
     e.preventDefault(); // Stops  that page reload
     // Check if passwords actually match cuz users make mistakes
     if (password !== confirmPassword) {
       alert("Passwords don't match! Try again."); // Scold user to try again
       return; // Don't proceed
     }
-    alert(`Registered ${email}`); // In real app would call API here
+  alert(`Registered ${email}`); // In real app would call API here
   };
 
   // The registration form UI
@@ -845,9 +845,9 @@ function RegisterPage() {
       <h2>Register</h2>
       {/* The form wrapper with same styling as login */}
       <form onSubmit={handleSubmit} style={{ 
-        background: '#fff',
-        padding: '20px',
-        borderRadius: '8px',
+    background: '#fff',
+    padding: '20px',
+     borderRadius: '8px',
         boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
       }}>
         {/* This is the Email area which same as login */}
