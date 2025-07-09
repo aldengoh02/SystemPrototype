@@ -26,6 +26,40 @@ export default function App() {
   // If something breaks,  then we will  store the error here
   const [error, setError] = useState(null); // Starts as null cuz no errors yet
 
+  // Search results
+  const [searchResults, setSearchResults] = useState(null);
+
+  // Handle search when user types
+  useEffect(() => {
+    const searchBooks = async () => {
+      if (!search.trim()) {
+        setSearchResults(null);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const response = await fetch(`http://localhost:8080/api/books?search=${encodeURIComponent(search.trim())}`);
+        
+        if (!response.ok) {
+          throw new Error('Failed to search books');
+        }
+
+        const data = await response.json();
+        setSearchResults(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error('Error searching books:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Add debounce to avoid too many requests
+    const timeoutId = setTimeout(searchBooks, 300);
+    return () => clearTimeout(timeoutId);
+  }, [search]);
+
   // This runs when the  page loads to get our book data
   useEffect(() => {
     //  A Special async function  used toto fetch books
@@ -35,13 +69,13 @@ export default function App() {
         
         // Gets both types of books at  the same time 
         const [featuredResponse, comingSoonResponse] = await Promise.all([
-          fetch('http://localhost:5000/api/books/featured'), // Main books
-          fetch('http://localhost:5000/api/books/coming-soon') // Coming soon
+          fetch('http://localhost:8080/api/books?display=featured'), // Updated endpoint for featured books
+          fetch('http://localhost:8080/api/books?display=comingsoon') // Updated endpoint for coming soon books
         ]);
 
         // Checks to see  if both requests worked
         if (!featuredResponse.ok || !comingSoonResponse.ok) {
-          throw new Error('Oops server said no to our books'); // an  Error message created and will appear if needed
+          throw new Error('Failed to fetch books from server'); // Updated error message
         }
 
         // Turn  the responses into JSON we can use
@@ -50,9 +84,9 @@ export default function App() {
           comingSoonResponse.json() //  also this one too
         ]);
 
-        // Updates our state  with the book data
-        setFeaturedBooks(featuredData); // Sets the  featured books
-        setComingSoonBooks(comingSoonData); // Sets the  coming soon
+        // Updates our state  with the book data - ensure we have arrays
+        setFeaturedBooks(Array.isArray(featuredData) ? featuredData : []); // Sets the  featured books
+        setComingSoonBooks(Array.isArray(comingSoonData) ? comingSoonData : []); // Sets the  coming soon
       } catch (err) {
         // If anything goes wrong
         setError(err.message); //  It saves an  error message
@@ -192,11 +226,13 @@ export default function App() {
           {/* The home page */}
           <Route path="/" element={
             <Home 
-              featuredBooks={featuredBooks} 
-              comingSoonBooks={comingSoonBooks} 
+              featuredBooks={searchResults || featuredBooks.filter(book => book.featured)} 
+              comingSoonBooks={!searchResults ? comingSoonBooks.filter(book => !book.featured) : []} 
               handleAddToCart={handleAddToCart}
               loading={loading}
               error={error}
+              isSearching={!!searchResults}
+              searchTerm={search}
             />} 
           />
           {/* These are the Other pages consist of Cartpage,Checkotpage etc.. */}
@@ -214,7 +250,7 @@ export default function App() {
 }
 
 // This is the Home page component
-function Home({ featuredBooks, comingSoonBooks, handleAddToCart, loading, error }) {
+function Home({ featuredBooks, comingSoonBooks, handleAddToCart, loading, error, isSearching, searchTerm }) {
   //  this Style is for the  book cards
   const cardStyle = {
     background: '#fff', // HEre is the White bg
@@ -236,78 +272,92 @@ function Home({ featuredBooks, comingSoonBooks, handleAddToCart, loading, error 
   return (
     <div>
       {/* The featured books section */}
-      <h2 style={{ borderBottom: '3px solid #4a90e2', paddingBottom: '5px', color: '#4a90e2' }}>📘 Featured Books</h2>
+      <h2 style={{ borderBottom: '3px solid #4a90e2', paddingBottom: '5px', color: '#4a90e2' }}>
+        {isSearching ? `🔍 Search Results for "${searchTerm}"` : '📘 Featured Books'}
+      </h2>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '20px', marginBottom: '30px' }}>
-        {featuredBooks.map(book => (
+        {featuredBooks.length > 0 ? featuredBooks.map(book => (
           <div key={book.id} style={cardStyle}>
-            {/* The  Book cover image */}
-            {book.coverImage && (
-              <img 
-                src={`http://localhost:5000/img/${book.coverImage.split('/').pop()}`} 
-                alt={book.title}
-                style={{ width: '100%', height: '300px', objectFit: 'cover', borderRadius: '5px' }}
-                onError={(e) => {
-                  e.target.src = 'http://localhost:5000/img/placeholder.jpg'; // Fallback just incase.
-                }}
-              />
-            )}
-            {/* Thi is the Book informtion */}
-            <h3 style={{ margin: '10px 0' }}>{book.title}</h3>
-            <p style={{ color: '#666' }}>by {book.author}</p>
-            {/* The star rating */}
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '10px 0' }}>
-              {[...Array(5)].map((_, i) => (
-                <FaStar 
-                  key={i} 
-                  color={i < Math.floor(book.rating || 0) ? '#FFD700' : '#C0C0C0'} 
-                  style={{ margin: '0 2px' }}
-                />
-              ))}
-              <span style={{ marginLeft: '5px' }}>({book.rating?.toFixed(1) || '0.0'})</span>
+            {/* The Book cover image */}
+            <img 
+              src={`img/${book.coverImage.split('/').pop()}`}
+              alt={book.title}
+              style={{ width: '100%', height: '300px', objectFit: 'cover', borderRadius: '5px' }}
+            />
+            {/* Book details */}
+            <h3 style={{ margin: '10px 0', fontSize: '1.2em', height: '2.4em', overflow: 'hidden' }}>{book.title}</h3>
+            <p style={{ color: '#666', margin: '5px 0' }}>by {book.author}</p>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', margin: '5px 0' }}>
+              <FaStar color="#ffd700" />
+              <span>{book.rating ? book.rating.toFixed(1) : 'N/A'}</span>
             </div>
-            {/* These are the price and  the button */}
-            <p style={{ fontWeight: 'bold', fontSize: '1.2em', margin: '10px 0' }}>${book.price}</p>
-            <button 
+            <p style={{ 
+              fontWeight: 'bold', 
+              color: '#4a90e2', 
+              margin: '10px 0',
+              fontSize: '1.2em' 
+            }}>
+              ${book.sellingPrice ? book.sellingPrice.toFixed(2) : 'N/A'}
+            </p>
+            <button
+              onClick={() => handleAddToCart(book)}
               style={{
                 background: '#4a90e2',
                 color: '#fff',
                 border: 'none',
-                padding: '10px 15px',
+                padding: '8px 15px',
                 borderRadius: '5px',
                 cursor: 'pointer',
-                width: '100%'
-              }} 
-              onClick={() => handleAddToCart(book)}
+                width: '100%',
+                marginTop: '10px',
+                transition: 'background 0.2s',
+                ':hover': {
+                  background: '#357abd'
+                }
+              }}
             >
               Add to Cart
             </button>
           </div>
-        ))}
+        )) : (
+          <p>No books found for your search term.</p>
+        )}
       </div>
 
-      {/* HEre is is the coming soon section */}
-      <h2 style={{ borderBottom: '3px solid #50c878', paddingBottom: '5px', color: '#50c878' }}>📗 Coming Soon</h2>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '20px' }}>
-        {comingSoonBooks.map(book => (
-          <div key={book.id} style={cardStyle}>
-            {/* This is the Book cover */}
-            {book.coverImage && (
-              <img 
-                src={`http://localhost:5000/img/${book.coverImage.split('/').pop()}`} 
-                alt={book.title}
-                style={{ width: '100%', height: '300px', objectFit: 'cover', borderRadius: '5px' }}
-                onError={(e) => {
-                  e.target.src = 'http://localhost:5000/img/placeholder.jpg';
-                }}
-              />
-            )}
-            {/* The book information that shows an title, author and shows book imagee */}
-            <h3 style={{ margin: '10px 0' }}>{book.title}</h3>
-   <p style={{ color: '#666' }}>by {book.author}</p>
-     <p style={{ color: '#50c878', fontWeight: 'bold' }}><i>Coming Soon</i></p>
+      {/* Here is the coming soon section */}
+      {!isSearching && comingSoonBooks && comingSoonBooks.length > 0 && (
+        <>
+          <h2 style={{ borderBottom: '3px solid #50c878', paddingBottom: '5px', color: '#50c878' }}>📗 Coming Soon</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '20px' }}>
+            {comingSoonBooks.map(book => (
+              <div key={book.id} style={cardStyle}>
+                {/* Book cover image */}
+                <img 
+                  src={`img/${book.coverImage.split('/').pop()}`}
+                  alt={book.title}
+                  style={{ width: '100%', height: '300px', objectFit: 'cover', borderRadius: '5px' }}
+                />
+                {/* Book details */}
+                <h3 style={{ margin: '10px 0', fontSize: '1.2em', height: '2.4em', overflow: 'hidden' }}>{book.title}</h3>
+                <p style={{ color: '#666', margin: '5px 0' }}>by {book.author}</p>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', margin: '5px 0' }}>
+                  <FaStar color="#ffd700" />
+                  <span>{book.rating ? book.rating.toFixed(1) : 'N/A'}</span>
+                </div>
+                <p style={{ 
+                  fontWeight: 'bold', 
+                  color: '#50c878', 
+                  margin: '10px 0',
+                  fontSize: '1.2em' 
+                }}>
+                  ${book.sellingPrice ? book.sellingPrice.toFixed(2) : 'N/A'}
+                </p>
+                <p style={{ color: '#50c878', fontWeight: 'bold', marginTop: '10px' }}><i>Coming Soon</i></p>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </>
+      )}
     </div>
   );
 }
@@ -315,7 +365,7 @@ function Home({ featuredBooks, comingSoonBooks, handleAddToCart, loading, error 
 // Shopping Cart Page Component which shows all  of the items user has added to the cart
 function CartPage({ cartItems, handleQuantityChange }) {
   // First we would  calculate the total price by multiplying each items price by its quantity and adding them all together
-  const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const total = cartItems.reduce((sum, item) => sum + (item.sellingPrice * item.quantity), 0);
 
   // Now we will return the actual cart page UI that users will see
   return (
@@ -353,9 +403,9 @@ function CartPage({ cartItems, handleQuantityChange }) {
               {/* The Right side  is showing price calculations */}
               <div style={{ flex: 1, textAlign: 'right' }}>
                 {/* This shows price per item multiplied by quantity */}
-                <p style={{ margin: 0 }}>${item.price} × {item.quantity}</p>
+                <p style={{ margin: 0 }}>${item.sellingPrice.toFixed(2)} × {item.quantity}</p>
                 {/* This shows total for this specific book */}
-               <p style={{ margin: '5px 0', fontWeight: 'bold' }}>${(item.price * item.quantity).toFixed(2)}</p>
+               <p style={{ margin: '5px 0', fontWeight: 'bold' }}>${(item.sellingPrice * item.quantity).toFixed(2)}</p>
               </div>
             {/* Quantity adjustment for  the buttons */}
               <div style={{ flex: 0 }}>
@@ -429,222 +479,119 @@ function CartPage({ cartItems, handleQuantityChange }) {
 
 // Checkout Page Component - where users enter payment/shipping info
 function CheckoutPage({ cartItems, setCartItems, setOrders }) {
-  // State for all the checkout form fields with default values
-    const [paymentInfo, setPaymentInfo] = useState('Visa **** 1234'); // Payment method
-    const [address, setAddress] = useState('123 Main St, City'); // Shipping address
-   const [email, setEmail] = useState('user@example.com'); // Contact email
- const [confirmed, setConfirmed] = useState(false); // Order confirmation status
+  const [checkoutData, setCheckoutData] = useState(null);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  // Calculate the  order's totals.  The math is done  here so users don't have to
-  const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0); // Subtotal
-const tax = total * 0.07; //  implnented a 7% tax adjust if your bookstore is tax free!
-  const grandTotal = total + tax; // What they actually will  pay
+  useEffect(() => {
+    const calculateTotal = async () => {
+      if (cartItems.length === 0) return;
+      
+      setLoading(true);
+      try {
+        // Format cart items for the Java backend
+        const cartItemsFormatted = cartItems.map(item => ({
+          id: item.id,
+          quantity: item.quantity
+        }));
 
-  // When  the user confirms their order
-  const handleConfirm = () => {
-    // Create new order object with all necessary info
-    const newOrder = {
-      id: Date.now(), // Simple unique ID using timestamp
-     items: [...cartItems], // Copy of cart items
-     total: grandTotal, // Final amount charged
-    date: new Date().toISOString(), // When order was placed
-      status: 'Completed' // Initial status
+        const response = await fetch('http://localhost:8080/api/books/calculate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(cartItemsFormatted)
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to calculate checkout total');
+        }
+
+        const data = await response.json();
+        setCheckoutData(data);
+      } catch (err) {
+        setError(err.message);
+        console.error('Error calculating checkout:', err);
+      } finally {
+        setLoading(false);
+      }
     };
+
+    calculateTotal();
+  }, [cartItems]);
+
+  const handleConfirm = () => {
+    // Add order to history
+    setOrders(prev => [...prev, { 
+      id: Date.now(), 
+      items: cartItems,
+      total: checkoutData.total,
+      date: new Date().toLocaleDateString()
+    }]);
     
-    // Update orders array and clear the cart
-    setOrders(prev => [...prev, newOrder]); // Add new order to history
- setCartItems([]); // Empty the cart
-    setConfirmed(true); // Show confirmation message
+    // Clear cart
+    setCartItems([]);
+    
+    // Redirect to order history
+    window.location.href = '/order-history';
   };
 
-  // The checkout page UI
+  if (loading) {
+    return <div style={{ textAlign: 'center', padding: '20px' }}>Calculating total...</div>;
+  }
+
+  if (error) {
+    return <div style={{ color: 'red', textAlign: 'center', padding: '20px' }}>Error: {error}</div>;
+  }
+
+  if (cartItems.length === 0) {
+    return <div style={{ textAlign: 'center', padding: '20px' }}>Your cart is empty</div>;
+  }
+
   return (
-    // Container with max width for better readability
-    <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-      {/* Page title */}
+    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
       <h2>Checkout</h2>
       
-      {/* Show either checkout form or confirmation message */}
-      {!confirmed ? (
-        /* Checkout form */
-        <>
-          {/* Shipping information section */}
-          <div style={{ background: '#fff', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
-    <h3>Shipping Information</h3>
-       {/* Email field with change button */}
-      <div style={{ marginBottom: '15px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Email:</label>
-         <div style={{ display: 'flex', alignItems: 'center' }}>
-                <span style={{ flex: 1 }}>{email}</span>
-                {/* Button to update email */}
-              <button 
-                  onClick={() => setEmail(prompt('Enter new email', email) || email)}
-                  style={{ 
-                    background: '#4a90e2',
-               color: 'white',
-                   border: 'none',
-                 padding: '5px 10px',
-                borderRadius: '4px',
-                    cursor: 'pointer',
-                    marginLeft: '10px'
-                  }}
-                >
-                  Change
-                </button>
-              </div>
-            </div>
-            
-            {/* Address field with change button */}
-            <div style={{ marginBottom: '15px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Shipping Address:</label>
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <span style={{ flex: 1 }}>{address}</span>
-                {/* Button to update address */}
-                <button 
-                  onClick={() => setAddress(prompt('Enter new address', address) || address)}
-                  style={{ 
-                    background: '#4a90e2',
-                color: 'white',
-                    border: 'none',
-                padding: '5px 10px',
-                    borderRadius: '4px',
-                cursor: 'pointer',
-                    marginLeft: '10px'
-                  }}
-                >
-                  Change
-                </button>
-              </div>
-            </div>
-            
-            {/* Payment method field with change button */}
-            <div>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Payment Method:</label>
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <span style={{ flex: 1 }}>{paymentInfo}</span>
-                {/* Button to update payment info */}
-                <button 
-                  onClick={() => setPaymentInfo(prompt('Enter new payment info', paymentInfo) || paymentInfo)}
-                  style={{ 
-                 background: '#4a90e2',
-               color: 'white',
-                   border: 'none',
-                   padding: '5px 10px',
-                    borderRadius: '4px',
-                   cursor: 'pointer',
-                    marginLeft: '10px'
-                  }}
-                >
-                  Change
-                </button>
-              </div>
-            </div>
+      <div style={{ marginBottom: '20px' }}>
+        <h3>Order Summary</h3>
+        {cartItems.map(item => (
+          <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', margin: '10px 0' }}>
+            <span>{item.title} x {item.quantity}</span>
+            <span>${(item.sellingPrice * item.quantity).toFixed(2)}</span>
+          </div>
+        ))}
+      </div>
+
+      {checkoutData && (
+        <div style={{ borderTop: '1px solid #ccc', paddingTop: '20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', margin: '10px 0' }}>
+            <span>Subtotal:</span>
+            <span>${checkoutData.subtotal.toFixed(2)}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', margin: '10px 0' }}>
+            <span>Sales Tax:</span>
+            <span>${checkoutData.salesTax.toFixed(2)}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', margin: '10px 0', fontWeight: 'bold' }}>
+            <span>Total:</span>
+            <span>${checkoutData.total.toFixed(2)}</span>
           </div>
           
-          {/* Th is the rOrders summary section */}
-          <div style={{ background: '#fff', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
-            <h3>Order Summary</h3>
-            {/* List  of all cart items */}
-            {cartItems.map(item => (
-              <div key={item.id} style={{ 
-               display: 'flex', 
-                justifyContent: 'space-between',
-               padding: '10px 0',
-            borderBottom: '1px solid #eee'
-              }}>
-                <span>{item.title} × {item.quantity}</span>
-                <span>${(item.price * item.quantity).toFixed(2)}</span>
-              </div>
-            ))}
-            
-            {/* Here is the Subtotal line */}
-            <div style={{ 
-           display: 'flex', 
-              justifyContent: 'space-between',
-            padding: '10px 0',
-              borderBottom: '1px solid #eee'
-            }}>
-              <span>Subtotal:</span>
-              <span>${total.toFixed(2)}</span>
-            </div>
-            
-            {/* Here is the Tax line */}
-            <div style={{ 
-            display: 'flex', 
-              justifyContent: 'space-between',
-             padding: '10px 0',
-              borderBottom: '1px solid #eee'
-            }}>
-              <span>Tax (7%):</span>
-              <span>${tax.toFixed(2)}</span>
-            </div>
-            
-            {/* The  total line  */}
-            <div style={{ 
-              display: 'flex', 
-             justifyContent: 'space-between',
-            padding: '10px 0',
-              fontWeight: 'bold',
-            fontSize: '1.1em'
-            }}>
-              <span>Total:</span>
-              <span>${grandTotal.toFixed(2)}</span>
-            </div>
-          </div>
-          
-          {/* Big confirm order button */}
           <button 
             onClick={handleConfirm}
-            style={{ 
-              background: '#50c878',
-          color: 'white',
+            style={{
+              background: '#4CAF50',
+              color: 'white',
+              padding: '10px 20px',
               border: 'none',
-              padding: '15px 30px',
-            borderRadius: '5px',
+              borderRadius: '5px',
               cursor: 'pointer',
-             fontSize: '1.1em',
-              width: '100%'
+              width: '100%',
+              marginTop: '20px'
             }}
           >
             Confirm Order
           </button>
-        </>
-      ) : (
-        /* Order confirmation message */
-        <div style={{ 
-          background: '#fff', 
-      padding: '30px', 
-         borderRadius: '8px',
-          textAlign: 'center'
-        }}>
-          {/* Big checkmark for confirmation */}
-          <div style={{ 
-            fontSize: '4em',
-            color: '#50c878',
-            marginBottom: '20px'
-          }}>
-            ✓
-          </div>
-          {/* Confirmation heading */}
-          <h2>Order Confirmed!</h2>
-          {/* Personalized confirmation message */}
-          <p style={{ fontSize: '1.2em', marginBottom: '30px' }}>
-            Thank you for your purchase! We've sent a confirmation to {email}.
-          </p>
-          {/* Button  for the " return to shopping" */}
-          <Link to="/" style={{ textDecoration: 'none' }}>
-            <button style={{ 
-          background: '#4a90e2',
-              color: 'white',
-          border: 'none',
-              padding: '10px 20px',
-           borderRadius: '5px',
-              cursor: 'pointer',
-           fontSize: '1.1em'
-            }}>
-              Continue Shopping
-            </button>
-          </Link>
         </div>
       )}
     </div>
@@ -914,7 +861,7 @@ const [email, setEmail] = useState(''); // Empty at  the start
           width: '100%'
           }}
         >
-          Register {/* Clears the  call to action */}
+          Register {/* Clears the  action text */}
         </button>
       </form>
     </div>
