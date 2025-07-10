@@ -23,13 +23,45 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public class BookServlet extends HttpServlet {
-
     private final Gson gson = new Gson();
+    private static final Logger LOGGER = Logger.getLogger(BookServlet.class.getName());
+
+    private void logImageAvailability(BookRecords book, HttpServletRequest req) {
+        if (book != null && book.getCoverImage() != null) {
+            String imagePath = book.getCoverImage();
+            LOGGER.info("Processing book: " + book.getTitle() + " (ID: " + book.getId() + ")");
+            LOGGER.info("Image path from database: " + imagePath);
+
+            // Try multiple possible paths
+            String webappPath = getServletContext().getRealPath("/");
+            LOGGER.info("Webapp root path: " + webappPath);
+            
+            // Try direct path from webapp root
+            String path1 = webappPath + imagePath;
+            File file1 = new File(path1);
+            LOGGER.info("1. Full webapp path: " + path1 + " - Exists: " + file1.exists());
+            
+            // Try path relative to src/main/webapp
+            String path2 = "src/main/" + imagePath;
+            File file2 = new File(path2);
+            LOGGER.info("2. Src path: " + path2 + " - Exists: " + file2.exists());
+            
+            // Try just the filename in webapp/img
+            String path3 = webappPath + "img/" + new File(imagePath).getName();
+            File file3 = new File(path3);
+            LOGGER.info("3. Direct filename in webapp: " + path3 + " - Exists: " + file3.exists());
+        } else {
+            LOGGER.warning("Book or cover image is null");
+        }
+    }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -110,6 +142,7 @@ public class BookServlet extends HttpServlet {
                     BookRecords book = BookActions.getBookById(BookDatabase.getConnection(), bookId);
 
                     if (book != null) {
+                        logImageAvailability(book, req);
                         out.print(gson.toJson(book));
                     } else {
                         resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -143,6 +176,12 @@ public class BookServlet extends HttpServlet {
                     bookDb.loadResults();
                     books = bookDb.getResults();
                 }
+                
+                // Log image availability for all books
+                for (BookRecords book : books) {
+                    logImageAvailability(book, req);
+                }
+                
                 String booksJson = gson.toJson(books);
                 out.print(booksJson);
             }

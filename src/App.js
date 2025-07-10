@@ -280,7 +280,7 @@ function Home({ featuredBooks, comingSoonBooks, handleAddToCart, loading, error,
           <div key={book.id} style={cardStyle}>
             {/* The Book cover image */}
             <img 
-              src={`img/${book.coverImage.split('/').pop()}`}
+              src={`/img/${book.coverImage.split('/').pop()}`}
               alt={book.title}
               style={{ width: '100%', height: '300px', objectFit: 'cover', borderRadius: '5px' }}
             />
@@ -333,7 +333,7 @@ function Home({ featuredBooks, comingSoonBooks, handleAddToCart, loading, error,
               <div key={book.id} style={cardStyle}>
                 {/* Book cover image */}
                 <img 
-                  src={`img/${book.coverImage.split('/').pop()}`}
+                  src={`/img/${book.coverImage.split('/').pop()}`}
                   alt={book.title}
                   style={{ width: '100%', height: '300px', objectFit: 'cover', borderRadius: '5px' }}
                 />
