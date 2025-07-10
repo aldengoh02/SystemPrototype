@@ -10,7 +10,7 @@
 
     <servlet-mapping>
         <servlet-name>BookServlet</servlet-name>
-        <url-pattern>/api/books</url-pattern>
+        <url-pattern>/api/books/*</url-pattern>
     </servlet-mapping>
 
 </web-app> 

@@ -1,6 +1,6 @@
 package com.bookstore.db;
 
-public class TestDB {
+public class testDB {
     public static void main(String[] args) {
         BookDatabase bookDb = new BookDatabase();
 
