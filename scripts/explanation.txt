@@ -1,0 +1,9 @@
+This folder has been made as a spot for all scripts needed for compiling the backend as of current.
+Currently, there are three different ways to start the backend, with two methods being present in this folder.
+If you have maven, simply run mvn jetty:run in the root (System Prototype).
+If you have any issues with those that can't be resolved, you can use the scripts in this folder.
+The most simple is simply running the start.sh file present here which will do everything.
+If you have any issues with that, try sequentially running downloadDeps, compile, and then run.
+I have attempted to write compile .bat files for windows but I am not sure if they work yet.
+.sh files might work if you are using a non-mac unix based os but I am not sure.
+For windows machines currently run the .bat equivalents of the aforementioned files.
