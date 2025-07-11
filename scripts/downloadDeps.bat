@@ -1,30 +1,36 @@
 @echo off
 
-REM Create lib directory if it doesn't exist
-mkdir lib 2>nul
+REM ============================
+REM Dependency Download Script
+REM ============================
 
-REM Download required JARs
+REM Configure versions
+set SERVLET_VER=5.0.0
+set MYSQL_VER=8.0.28
+set GSON_VER=2.9.0
+set JETTY_VER=11.0.9
+set SLF4J_VER=1.7.36
+
+REM Create lib directory
+if not exist lib mkdir lib
+
 echo Downloading dependencies...
 
-REM Download Jakarta Servlet API
-curl -L "https://repo1.maven.org/maven2/jakarta/servlet/jakarta.servlet-api/5.0.0/jakarta.servlet-api-5.0.0.jar" -o lib\jakarta.servlet-api-5.0.0.jar
+REM Core dependencies
+curl -L "https://repo1.maven.org/maven2/jakarta/servlet/jakarta.servlet-api/%SERVLET_VER%/jakarta.servlet-api-%SERVLET_VER%.jar" -o lib\jakarta.servlet-api-%SERVLET_VER%.jar
+curl -L "https://repo1.maven.org/maven2/mysql/mysql-connector-java/%MYSQL_VER%/mysql-connector-java-%MYSQL_VER%.jar" -o lib\mysql-connector-java-%MYSQL_VER%.jar
+curl -L "https://repo1.maven.org/maven2/com/google/code/gson/gson/%GSON_VER%/gson-%GSON_VER%.jar" -o lib\gson-%GSON_VER%.jar
 
-REM Download MySQL Connector
-curl -L "https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.28/mysql-connector-java-8.0.28.jar" -o lib\mysql-connector-java-8.0.28.jar
+REM Jetty dependencies
+curl -L "https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-server/%JETTY_VER%/jetty-server-%JETTY_VER%.jar" -o lib\jetty-server.jar
+curl -L "https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-servlet/%JETTY_VER%/jetty-servlet-%JETTY_VER%.jar" -o lib\jetty-servlet.jar
+curl -L "https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-util/%JETTY_VER%/jetty-util-%JETTY_VER%.jar" -o lib\jetty-util.jar
+curl -L "https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-http/%JETTY_VER%/jetty-http-%JETTY_VER%.jar" -o lib\jetty-http.jar
+curl -L "https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-io/%JETTY_VER%/jetty-io-%JETTY_VER%.jar" -o lib\jetty-io.jar
+curl -L "https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-security/%JETTY_VER%/jetty-security-%JETTY_VER%.jar" -o lib\jetty-security.jar
 
-REM Download Gson
-curl -L "https://repo1.maven.org/maven2/com/google/code/gson/gson/2.9.0/gson-2.9.0.jar" -o lib\gson-2.9.0.jar
+REM Logging dependencies
+curl -L "https://repo1.maven.org/maven2/org/slf4j/slf4j-api/%SLF4J_VER%/slf4j-api-%SLF4J_VER%.jar" -o lib\slf4j-api.jar
+curl -L "https://repo1.maven.org/maven2/org/slf4j/slf4j-simple/%SLF4J_VER%/slf4j-simple-%SLF4J_VER%.jar" -o lib\slf4j-simple.jar
 
-REM Download Jetty 11 (Jakarta EE 9+ compatible)
-curl -L "https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-server/11.0.9/jetty-server-11.0.9.jar" -o lib\jetty-server.jar
-curl -L "https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-servlet/11.0.9/jetty-servlet-11.0.9.jar" -o lib\jetty-servlet.jar
-curl -L "https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-util/11.0.9/jetty-util-11.0.9.jar" -o lib\jetty-util.jar
-curl -L "https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-http/11.0.9/jetty-http-11.0.9.jar" -o lib\jetty-http.jar
-curl -L "https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-io/11.0.9/jetty-io-11.0.9.jar" -o lib\jetty-io.jar
-
-REM Additional Jetty dependencies needed for Jakarta EE 9+
-curl -L "https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-security/11.0.9/jetty-security-11.0.9.jar" -o lib\jetty-security.jar
-curl -L "https://repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar" -o lib\slf4j-api.jar
-curl -L "https://repo1.maven.org/maven2/org/slf4j/slf4j-simple/1.7.36/slf4j-simple-1.7.36.jar" -o lib\slf4j-simple.jar
-
-echo Dependencies downloaded to lib\ directory 
+echo Dependencies downloaded successfully.
