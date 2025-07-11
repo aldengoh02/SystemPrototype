@@ -7,3 +7,5 @@ If you have any issues with that, try sequentially running downloadDeps, compile
 I have attempted to write compile .bat files for windows but I am not sure if they work yet.
 .sh files might work if you are using a non-mac unix based os but I am not sure.
 For windows machines currently run the .bat equivalents of the aforementioned files.
+
+
