@@ -34,11 +34,16 @@ public class BookServlet extends HttpServlet {
     private final Gson gson = new Gson();
     private static final Logger LOGGER = Logger.getLogger(BookServlet.class.getName());
 
+    // Method for checking availability of images but currently not used.
+    // being kept for now but likely candidate for refactor
     private void logImageAvailability(BookRecords book, HttpServletRequest req) {
         if (book != null && book.getCoverImage() != null) {
             String imagePath = book.getCoverImage();
             LOGGER.info("Processing book: " + book.getTitle() + " (ID: " + book.getId() + ")");
             LOGGER.info("Image path from database: " + imagePath);
+
+            /* Logger that was being used for checking file issues; Currently no longer 
+            needed due to images being loaded via frontend
 
             // Try multiple possible paths
             String webappPath = getServletContext().getRealPath("/");
@@ -58,6 +63,7 @@ public class BookServlet extends HttpServlet {
             String path3 = webappPath + "img/" + new File(imagePath).getName();
             File file3 = new File(path3);
             LOGGER.info("3. Direct filename in webapp: " + path3 + " - Exists: " + file3.exists());
+            */
         } else {
             LOGGER.warning("Book or cover image is null");
         }
