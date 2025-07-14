@@ -2,34 +2,51 @@ package com.bookstore.db;
 
 public class testDB {
     public static void main(String[] args) {
+        // Test BookDatabase
         BookDatabase bookDb = new BookDatabase();
 
-        // Connect to DB
         if (bookDb.connectDb()) {
-            System.out.println("Connected to database.");
+            System.out.println("Connected to Book database.");
 
-            // Load and print book records
             String result = bookDb.loadResults();
             System.out.println(result);
             for (BookRecords book : bookDb.getResults()) {
-                String status;
-                if (book.isComingSoon()) {
-                    status = " (Coming Soon)";
-                } else {
-                    status = " (Available)";
-                }
+                String status = book.isComingSoon() ? " (Coming Soon)" : " (Available)";
                 System.out.println(
                         book.getId() + ": " + book.getTitle() + " by " + book.getAuthor() +
                                 " - $" + book.getSellingPrice() + " [" + book.getCategory() + "]" + status
                 );
             }
 
-            // Disconnect from DB
             bookDb.disconnectDb();
-            System.out.println("Disconnected from database.");
+            System.out.println("Disconnected from Book database.");
         } else {
-            System.out.println("Failed to connect to database.");
+            System.out.println("Failed to connect to Book database.");
+        }
+
+        System.out.println("------------------------------------------");
+
+        // Test UserDatabase
+        UserDatabase userDb = new UserDatabase();
+
+        if (userDb.connectDb()) {
+            System.out.println("Connected to User database.");
+
+            String userResult = userDb.loadResults();
+            System.out.println(userResult);
+            for (UserRecords user : userDb.getResults()) {
+                System.out.println(
+                        user.getUserID() + ": " + user.getFirstName() + " " + user.getLastName() +
+                                " (" + user.getEmail() + "), Status: " + user.getStatus() +
+                                ", User Type ID: " + user.getUserTypeID() +
+                                ", Enrolled for Promotions: " + user.isEnrollForPromotions()
+                );
+            }
+
+            userDb.disconnectDb();
+            System.out.println("Disconnected from User database.");
+        } else {
+            System.out.println("Failed to connect to User database.");
         }
     }
-} 
-
+}
