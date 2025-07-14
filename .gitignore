@@ -24,6 +24,9 @@
 .env.production.local
 .env.backup.*
 
+#db properties different per user so ignore
+src/main/resources/db.properties
+
 # Logs
 npm-debug.log*
 yarn-debug.log*
