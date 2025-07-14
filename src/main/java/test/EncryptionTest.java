@@ -13,7 +13,11 @@ public class EncryptionTest {
     public static void main(String[] args) {
         System.out.println("Testing encryption...");
         
-        // some fake card numbers to test with
+        /* 
+         * numbers written to represent potential card numbers
+         * note user passwords can also be encrypted but 
+         * if it works for cards it works for passwords too
+        */
         String[] cards = {
             "4111111111111111",
             "5555555555554444", 
