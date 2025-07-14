@@ -5,10 +5,9 @@
  * Supports encryption and decryption as well as hashing
  * Note, in order to use this, you must have a .env file with
  * a salt and encryption key (see explanation.txt for details)
+ * Also allows updating of and setting of new passwords for users
+ * (will be used in registration servlet eventually)
  */
-
-
-
 
 package com.bookstore;
 
@@ -119,6 +118,222 @@ public class SecUtils {
     private static void validateCreditCardNumber(String creditCardNumber) {
         if (creditCardNumber == null || creditCardNumber.trim().isEmpty()) {
             throw new IllegalArgumentException("Credit card number cannot be null or empty");
+        }
+    }
+
+    // User Authentication Methods
+    
+    /**
+     * Find user by email for login (one-time lookup)
+     * 
+     */
+    public static com.bookstore.db.UserRecords findUserForLogin(com.bookstore.db.UserDatabase userDatabase, String email) {
+        if (email == null || email.trim().isEmpty()) {
+            return null;
+        }
+        
+        try {
+            java.sql.Connection connection = userDatabase.getConnection();
+            if (connection == null) {
+                return null;
+            }
+            
+            String query = "SELECT * FROM Users WHERE email = ? AND status = 'active'";
+            java.sql.PreparedStatement ps = connection.prepareStatement(query);
+            ps.setString(1, email.toLowerCase());
+            java.sql.ResultSet rs = ps.executeQuery();
+            
+            if (rs.next()) {
+                return new com.bookstore.db.UserRecords(
+                    rs.getInt("userID"),
+                    rs.getString("firstName"),
+                    rs.getString("lastName"),
+                    rs.getString("email"),
+                    rs.getString("password"),
+                    rs.getString("phone"),
+                    rs.getString("status"),
+                    rs.getBoolean("enrollForPromotions"),
+                    rs.getInt("userTypeID")
+                );
+            }
+        } catch (java.sql.SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * Find user by ID for fast session validation
+     * @param userDatabase The database instance to use
+     * @param userID User's ID
+     * @return UserRecords if found and active, null otherwise
+     */
+    public static com.bookstore.db.UserRecords findUserByID(com.bookstore.db.UserDatabase userDatabase, int userID) {
+        try {
+            java.sql.Connection connection = userDatabase.getConnection();
+            if (connection == null) {
+                return null;
+            }
+            
+            String query = "SELECT * FROM Users WHERE userID = ? AND status = 'active'";
+            java.sql.PreparedStatement ps = connection.prepareStatement(query);
+            ps.setInt(1, userID);
+            java.sql.ResultSet rs = ps.executeQuery();
+            
+            if (rs.next()) {
+                return new com.bookstore.db.UserRecords(
+                    rs.getInt("userID"),
+                    rs.getString("firstName"),
+                    rs.getString("lastName"),
+                    rs.getString("email"),
+                    rs.getString("password"),
+                    rs.getString("phone"),
+                    rs.getString("status"),
+                    rs.getBoolean("enrollForPromotions"),
+                    rs.getInt("userTypeID")
+                );
+            }
+        } catch (java.sql.SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * Get user role name by userTypeID
+     * @param userTypeID The user type ID
+     * @return Role name as string
+     */
+    public static String getUserRoleName(int userTypeID) {
+        switch(userTypeID) {
+            case 1: return "Admin";
+            case 2: return "Customer"; 
+            case 3: return "Employee";
+            default: return "Customer";
+        }
+    }
+
+    /**
+     * Update user password with verification
+     * For use in edit profile field eventually
+     */
+    public static String updatePassword(com.bookstore.db.UserDatabase userDatabase, int userID, 
+                                      String currentPassword, String newPassword) {
+        if (currentPassword == null || currentPassword.trim().isEmpty()) {
+            return "Current password is required";
+        }
+        
+        if (newPassword == null || newPassword.trim().isEmpty()) {
+            return "New password cannot be empty";
+        }
+        
+        
+        
+        try {
+            // Get current user
+            com.bookstore.db.UserRecords user = findUserByID(userDatabase, userID);
+            if (user == null) {
+                return "User not found";
+            }
+            
+            // Verify current password
+            if (!verifyPassword(currentPassword, user.getPassword())) {
+                return "Current password is incorrect";
+            }
+            
+            // Hash the new password
+            String hashedNewPassword = hashPassword(newPassword);
+            
+            // Update in database
+            user.setPassword(hashedNewPassword);
+            String updateResult = userDatabase.updateUser(user);
+            
+            if (updateResult.contains("Updated")) {
+                return "Password updated successfully";
+            } else {
+                return "Failed to update password: " + updateResult;
+            }
+            
+        } catch (Exception e) {
+            return "Error updating password: " + e.getMessage();
+        }
+    }
+
+    /**
+     * Create a new 
+     */
+    public static String setPassword(com.bookstore.db.UserDatabase userDatabase, int userID, 
+                                   String newPassword) {
+        if (newPassword == null || newPassword.trim().isEmpty()) {
+            return "Password cannot be empty";
+        }
+        
+        
+        
+        try {
+            // Get user
+            com.bookstore.db.UserRecords user = findUserByID(userDatabase, userID);
+            if (user == null) {
+                return "User not found";
+            }
+            
+            // Hash the password
+            String hashedPassword = hashPassword(newPassword);
+            
+            // Update in database
+            user.setPassword(hashedPassword);
+            String updateResult = userDatabase.updateUser(user);
+            
+            if (updateResult.contains("Updated")) {
+                return "Password set successfully";
+            } else {
+                return "Failed to set password: " + updateResult;
+            }
+            
+        } catch (Exception e) {
+            return "Error setting password: " + e.getMessage();
+        }
+    }
+
+    /**
+     * Set password by email for initial setup (no current password verification needed)
+     * @param userDatabase The database instance to use
+     * @param email The user's email
+     * @param newPassword The password to set
+     * @return Success message or error message
+     */
+    public static String setPasswordByEmail(com.bookstore.db.UserDatabase userDatabase, String email, 
+                                          String newPassword) {
+        if (newPassword == null || newPassword.trim().isEmpty()) {
+            return "Password cannot be empty";
+        }
+        
+       
+        
+        try {
+            java.sql.Connection connection = userDatabase.getConnection();
+            if (connection == null) {
+                return "Database connection failed";
+            }
+            
+            // Hash the password
+            String hashedPassword = hashPassword(newPassword);
+            
+            // Update password directly by email
+            String query = "UPDATE Users SET password = ? WHERE email = ?";
+            java.sql.PreparedStatement ps = connection.prepareStatement(query);
+            ps.setString(1, hashedPassword);
+            ps.setString(2, email.toLowerCase());
+            
+            int rowsUpdated = ps.executeUpdate();
+            if (rowsUpdated > 0) {
+                return "Password set successfully";
+            } else {
+                return "User not found";
+            }
+            
+        } catch (Exception e) {
+            return "Error setting password: " + e.getMessage();
         }
     }
 } 
