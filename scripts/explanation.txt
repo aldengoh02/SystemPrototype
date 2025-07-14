@@ -1,11 +1,22 @@
-This folder has been made as a spot for all scripts needed for compiling the backend as of current.
-Currently, there are three different ways to start the backend, with two methods being present in this folder.
-If you have maven, simply run mvn jetty:run in the root (System Prototype).
-If you have any issues with those that can't be resolved, you can use the scripts in this folder.
-The most simple is simply running the start.sh file present here which will do everything.
-If you have any issues with that, try sequentially running downloadDeps, compile, and then run.
-I have attempted to write compile .bat files for windows but I am not sure if they work yet.
-.sh files might work if you are using a non-mac unix based os but I am not sure.
-For windows machines currently run the .bat equivalents of the aforementioned files.
+This folder has been made as a spot for various scripts in order to simply the process of testing, compiling, etc.
 
 
+Backend:
+    Currently, there are three different ways to start the backend, with two methods being present in this folder.
+    If you have maven, simply run mvn jetty:run in the root (System Prototype).
+    If you have any issues with those that can't be resolved, you can use the scripts in this folder.
+    The most simple is simply running the start.sh file present here which will do everything.
+    If you have any issues with that, try sequentially running downloadDeps, compile, and then run.
+    I have attempted to write compile .bat files for windows but I am not sure if they work yet.
+    .sh files might work if you are using a non-mac unix based os but I am not sure.
+    For windows machines currently run the .bat equivalents of the aforementioned files.
+
+
+Encryption related:
+    There are currently two scripts present in order to support testing involving encryption and decryption,
+    encryptionKeyGenerator and testEncryption. You can run the latter without first running the former because it calls 
+    the former anyways. DO NOT COMMIT THE .env file since this is bad practice. 
+    As of current encryption has no point since the rest of the functionalities are non-existant but this supports current testing
+    and hopefully allows for everyone (at least on unix) to be able to generate keys. I am not sure how to implement
+    it on windows but it is not necessary for everyone to be able to play around with testing for this so it is not 
+    too important.

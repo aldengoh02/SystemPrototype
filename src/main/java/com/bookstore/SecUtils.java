@@ -1,3 +1,15 @@
+/*
+ * Security features for user passwords and credit cards
+ * Uses AES encryption for credit cards and PBKDF2WithHmacSHA256 for passwords
+ * Uses various java security features for other purposes.
+ * Supports encryption and decryption as well as hashing
+ * Note, in order to use this, you must have a .env file with
+ * a salt and encryption key (see explanation.txt for details)
+ */
+
+
+
+
 package com.bookstore;
 
 import javax.crypto.Cipher;
@@ -13,8 +25,8 @@ import java.nio.charset.StandardCharsets;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 
 public class SecUtils {
-    private static final String SECRET_KEY = getSecureProperty("ENCRYPTION_SECRET_KEY");
-    private static final String SALT = getSecureProperty("ENCRYPTION_SALT");
+    private static final String encryptionKey = getSecureProperty("encryptionKey");
+    private static final String Salt = getSecureProperty("Salt");
     private static final String ALGORITHM = "AES/CBC/PKCS5Padding";
 
     // Helper method to get property from environment or system properties
@@ -88,7 +100,7 @@ public class SecUtils {
 
     private static SecretKey generateKey() throws Exception {
         SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-        KeySpec spec = new PBEKeySpec(SECRET_KEY.toCharArray(), SALT.getBytes(), 65536, 256);
+        KeySpec spec = new PBEKeySpec(encryptionKey.toCharArray(), Salt.getBytes(), 65536, 256);
         return new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
     }
 
@@ -99,7 +111,7 @@ public class SecUtils {
     }
 
     private static void validateEnvironmentVariables() {
-        if (SECRET_KEY == null || SALT == null) {
+        if (encryptionKey == null || Salt == null) {
             throw new IllegalStateException("Encryption secret key and salt must be set in environment variables");
         }
     }
@@ -108,6 +120,5 @@ public class SecUtils {
         if (creditCardNumber == null || creditCardNumber.trim().isEmpty()) {
             throw new IllegalArgumentException("Credit card number cannot be null or empty");
         }
-        // Add additional validation as needed (e.g., Luhn algorithm check)
     }
 } 
