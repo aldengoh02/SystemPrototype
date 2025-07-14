@@ -4,6 +4,9 @@ import java.sql.*;
 import java.util.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.io.InputStream;
+import java.util.Properties;
+
 
 
 public class BookDatabase {
@@ -22,8 +25,20 @@ public class BookDatabase {
     //Connect to DB
     public boolean connectDb() {
         try {
+            Properties props = new Properties();
+            InputStream input = getClass().getClassLoader().getResourceAsStream("db.properties");
+            if (input == null) {
+                System.out.println("Sorry, unable to find db.properties");
+                return false;
+            }
+            props.load(input);
+
+            String url = props.getProperty("db.url");
+            String username = props.getProperty("db.username");
+            String password = props.getProperty("db.password");
+
             Class.forName("com.mysql.cj.jdbc.Driver");
-            connection = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3307/BookStore?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true", "root", "");
+            connection = DriverManager.getConnection(url, username, password);
             connected = true;
         } catch (Exception e) {
             System.out.println("Connection failed: " + e.getMessage());
@@ -59,8 +74,8 @@ public class BookDatabase {
 
     //Add New Book
     public String addBook(BookRecords book) {
-        String query = "INSERT INTO books (isbn, category, author, title, coverImage, edition, publisher, publicationYear, quantityInStock, minThreshold, buyingPrice, sellingPrice, rating, featured, releaseDate) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String query = "INSERT INTO books (isbn, category, author, title, coverImage, edition, publisher, publicationYear, quantityInStock, minThreshold, buyingPrice, sellingPrice, rating, featured, releaseDate, description) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try {
             PreparedStatement ps = connection.prepareStatement(query);
             ps.setString(1, book.getIsbn());
@@ -78,6 +93,7 @@ public class BookDatabase {
             ps.setFloat(13, book.getRating());
             ps.setBoolean(14, book.isFeatured());
             ps.setDate(15, book.getReleaseDate());
+            ps.setString(16, book.getDescription());
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -110,7 +126,8 @@ public class BookDatabase {
                         rs.getDouble("sellingPrice"),
                         rs.getFloat("rating"),
                         rs.getBoolean("featured"),
-                        rs.getDate("releaseDate")
+                        rs.getDate("releaseDate"),
+                        rs.getString("description")
                 );
                 results.add(book);
             }
@@ -123,7 +140,7 @@ public class BookDatabase {
 
     //Update Book Information
     public String updateBook(BookRecords book) {
-        String query = "UPDATE books SET isbn=?, category=?, author=?, title=?, coverImage=?, edition=?, publisher=?, publicationYear=?, quantityInStock=?, minThreshold=?, buyingPrice=?, sellingPrice=?, rating=?, featured=?, releaseDate=? WHERE id=?";
+        String query = "UPDATE books SET isbn=?, category=?, author=?, title=?, coverImage=?, edition=?, publisher=?, publicationYear=?, quantityInStock=?, minThreshold=?, buyingPrice=?, sellingPrice=?, rating=?, featured=?, releaseDate=?, description=? WHERE id=?";
         try {
             PreparedStatement ps = connection.prepareStatement(query);
             ps.setString(1, book.getIsbn());
@@ -141,7 +158,8 @@ public class BookDatabase {
             ps.setFloat(13, book.getRating());
             ps.setBoolean(14, book.isFeatured());
             ps.setDate(15, book.getReleaseDate());
-            ps.setInt(16, book.getId());
+            ps.setString(16, book.getDescription());
+            ps.setInt(17, book.getId());
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();

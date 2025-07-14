@@ -124,7 +124,8 @@ public class BookActions {
                 rs.getDouble("sellingPrice"),
                 rs.getFloat("rating"),
                 rs.getBoolean("featured"),
-                rs.getDate("releaseDate")
+                rs.getDate("releaseDate"),
+                rs.getString("description")
         );
     }
 } 
