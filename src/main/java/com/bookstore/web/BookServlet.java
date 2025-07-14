@@ -1,31 +1,33 @@
 /**
- * BookStore REST API Servlet
+ * REST endpoint for most anything related to books
+ * Following javadoc shows format and examples of endpoints
+ * currently in use
  * 
  * Base URL: http://localhost:8080/api/books
  * 
- * === API ENDPOINTS ===
- * 
- * 1. GET /api/books
+ * Current endpoints:
+ *  
+ *  GET /api/books
  *    Returns: Array of all books with complete details including descriptions
  *    Example: GET http://localhost:8080/api/books
  * 
- * 2. GET /api/books?display=featured
+ *  GET /api/books?display=featured
  *    Returns: Array of featured books only
  *    Example: GET http://localhost:8080/api/books?display=featured
  * 
- * 3. GET /api/books?display=comingsoon
+ *  GET /api/books?display=comingsoon
  *    Returns: Array of upcoming releases (books with future release dates)
  *    Example: GET http://localhost:8080/api/books?display=comingsoon
  * 
- * 4. GET /api/books?search={term}
+ *  GET /api/books?search={term}
  *    Returns: Array of books matching search term (searches title, author, category, ISBN)
  *    Example: GET http://localhost:8080/api/books?search=fantasy
  * 
- * 5. GET /api/books/{id}
+ *  GET /api/books/{id}
  *    Returns: Single book object with complete details including description
  *    Example: GET http://localhost:8080/api/books/1
  * 
- * 6. POST /api/books/calculate
+ *  POST /api/books/calculate
  *    Body: Array of {id: number, quantity: number}
  *    Returns: Checkout calculation with subtotal, tax, and total
  *    Example: POST http://localhost:8080/api/books/calculate
@@ -53,7 +55,7 @@
  *   "releaseDate": "2023-04-05",
  *   "description": "Complete book description here..."
  * }
- 
+
  */
 
 package com.bookstore.web;
