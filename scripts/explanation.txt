@@ -20,3 +20,9 @@ Encryption related:
     and hopefully allows for everyone (at least on unix) to be able to generate keys. I am not sure how to implement
     it on windows but it is not necessary for everyone to be able to play around with testing for this so it is not 
     too important.
+
+Database:
+    initDatabase initializes the entire database as it currently is
+    Requires that you have the db.properties file and the user and password field match to your 
+    actual credentials (ie db.username="username here" and db.password="password here" 
+    do not remove the other parts and keep the = because grep uses it
