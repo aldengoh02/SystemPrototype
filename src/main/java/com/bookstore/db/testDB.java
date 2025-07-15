@@ -91,5 +91,98 @@ public class testDB {
         } else {
             System.out.println("Failed to connect to Payment Card database.");
         }
+
+        System.out.println("------------------------------------------");
+
+// Test PromotionDatabase
+        PromotionDatabase promoDb = new PromotionDatabase();
+        if (promoDb.connectDb()) {
+            System.out.println("Connected to Promotion database.");
+
+            String promoResult = promoDb.loadResults();
+            System.out.println(promoResult);
+            for (PromotionRecords promo : promoDb.getResults()) {
+                System.out.println(
+                        promo.getPromoID() + ": " + promo.getPromoCode() + ", Discount: " + promo.getDiscount() + "%" +
+                                ", Start Date: " + promo.getStartDate() + ", End Date: " + promo.getEndDate()
+                );
+            }
+
+            promoDb.disconnectDb();
+            System.out.println("Disconnected from Promotion database.");
+        } else {
+            System.out.println("Failed to connect to Promotion database.");
+        }
+
+
+        System.out.println("------------------------------------------");
+
+        // Test OrdersDatabase
+        OrdersDatabase ordersDb = new OrdersDatabase();
+        if (ordersDb.connectDb()) {
+            System.out.println("Connected to Orders database.");
+
+            String ordersResult = ordersDb.loadResults();
+            System.out.println(ordersResult);
+            for (OrdersRecords order : ordersDb.getResults()) {
+                System.out.println(
+                        "OrderID: " + order.getOrderID() + ", UserID: " + order.getUserID() +
+                                ", CardID: " + order.getCardID() + ", PromoID: " + order.getPromoID() +
+                                ", GrandTotal: $" + order.getGrandTotal() + ", Date: " + order.getOrderDateTime()
+                );
+            }
+
+            ordersDb.disconnectDb();
+            System.out.println("Disconnected from Orders database.");
+        } else {
+            System.out.println("Failed to connect to Orders database.");
+        }
+
+        System.out.println("------------------------------------------");
+
+        // Test TransactionDatabase
+        TransactionDatabase transactionDb = new TransactionDatabase();
+        if (transactionDb.connectDb()) {
+            System.out.println("Connected to Transaction database.");
+
+            String transactionResult = transactionDb.loadResults();
+            System.out.println(transactionResult);
+            for (TransactionRecords transaction : transactionDb.getResults()) {
+                System.out.println(
+                        "TransactionID: " + transaction.getTransactionID() +
+                                ", OrderID: " + transaction.getOrderID() +
+                                ", BookID: " + transaction.getBookID() +
+                                ", Quantity: " + transaction.getQuantity()
+                );
+            }
+
+            transactionDb.disconnectDb();
+            System.out.println("Disconnected from Transaction database.");
+        } else {
+            System.out.println("Failed to connect to Transaction database.");
+        }
+
+        System.out.println("------------------------------------------");
+
+        // Test CartDatabase
+        CartDatabase cartDb = new CartDatabase();
+        if (cartDb.connectDb()) {
+            System.out.println("Connected to Cart database.");
+
+            String cartResult = cartDb.loadResults();
+            System.out.println(cartResult);
+            for (CartRecord cart : cartDb.getResults()) {
+                System.out.println(
+                        "UserID: " + cart.getUserID() +
+                                ", BookID: " + cart.getBookID() +
+                                ", Quantity: " + cart.getQuantity()
+                );
+            }
+
+            cartDb.disconnectDb();
+            System.out.println("Disconnected from Cart database.");
+        } else {
+            System.out.println("Failed to connect to Cart database.");
+        }
     }
 }
