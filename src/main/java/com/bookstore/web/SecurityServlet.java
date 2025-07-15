@@ -3,6 +3,10 @@ Servlet for handling security in regards to password hashing,
 credit card encryption, and decryption.
 current api endpoint is /api/security/ 
 use post requests whenever using this servlet.
+/api/security/hash-password
+/api/security/verify-password
+/api/security/encrypt-card
+/api/security/decrypt-card
 */ 
 package com.bookstore.web;
 

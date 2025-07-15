@@ -81,7 +81,7 @@ public class LoginServlet extends HttpServlet {
     private void setupResponse(HttpServletResponse response) {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-        response.setHeader("Access-Control-Allow-Origin", "null");
+        response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000"); // Allow React dev server
         response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
         response.setHeader("Access-Control-Allow-Headers", "Content-Type");
         response.setHeader("Access-Control-Allow-Credentials", "true");
