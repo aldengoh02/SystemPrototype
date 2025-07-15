@@ -10,6 +10,7 @@ set MYSQL_VER=8.0.28
 set GSON_VER=2.9.0
 set JETTY_VER=11.0.9
 set SLF4J_VER=1.7.36
+set SPRING_SEC_VER=6.2.1
 
 REM Create lib directory
 if not exist lib mkdir lib
@@ -20,6 +21,9 @@ REM Core dependencies
 curl -L "https://repo1.maven.org/maven2/jakarta/servlet/jakarta.servlet-api/%SERVLET_VER%/jakarta.servlet-api-%SERVLET_VER%.jar" -o lib\jakarta.servlet-api-%SERVLET_VER%.jar
 curl -L "https://repo1.maven.org/maven2/mysql/mysql-connector-java/%MYSQL_VER%/mysql-connector-java-%MYSQL_VER%.jar" -o lib\mysql-connector-java-%MYSQL_VER%.jar
 curl -L "https://repo1.maven.org/maven2/com/google/code/gson/gson/%GSON_VER%/gson-%GSON_VER%.jar" -o lib\gson-%GSON_VER%.jar
+
+REM Spring Security BCrypt
+curl -L "https://repo1.maven.org/maven2/org/springframework/security/spring-security-crypto/%SPRING_SEC_VER%/spring-security-crypto-%SPRING_SEC_VER%.jar" -o lib\spring-security-crypto.jar
 
 REM Jetty dependencies
 curl -L "https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-server/%JETTY_VER%/jetty-server-%JETTY_VER%.jar" -o lib\jetty-server.jar

@@ -15,12 +15,17 @@
 *.iml
 .vscode/
 
-# Misc
+# Misc/sec
+.env
 .DS_Store
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+.env.backup.*
+
+#db properties different per user so ignore
+src/main/resources/db.properties
 
 # Logs
 npm-debug.log*

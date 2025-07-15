@@ -1,7 +1,7 @@
 CREATE DATABASE IF NOT EXISTS BookStore;
 USE BookStore;
 
-DROP TABLE IF EXISTS books; --Remove or comment this out after initial setup; Useful only for testing
+DROP TABLE IF EXISTS books; -- Remove or comment this out after initial setup. Useful only for testing
 
 CREATE TABLE books (
     id INT AUTO_INCREMENT PRIMARY KEY,
