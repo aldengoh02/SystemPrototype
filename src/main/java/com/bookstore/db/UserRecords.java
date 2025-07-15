@@ -25,10 +25,10 @@ public class UserRecords {
         this.userTypeID = userTypeID;
     }
 
-    //Getters and Setters
     public int getUserID() {
         return userID;
     }
+
     public void setUserID(int userID) {
         this.userID = userID;
     }
@@ -36,6 +36,7 @@ public class UserRecords {
     public String getFirstName() {
         return firstName;
     }
+
     public void setFirstName(String firstName) {
         this.firstName = firstName;
     }
@@ -43,6 +44,7 @@ public class UserRecords {
     public String getLastName() {
         return lastName;
     }
+
     public void setLastName(String lastName) {
         this.lastName = lastName;
     }
@@ -50,6 +52,7 @@ public class UserRecords {
     public String getEmail() {
         return email;
     }
+
     public void setEmail(String email) {
         this.email = email;
     }
@@ -57,6 +60,7 @@ public class UserRecords {
     public String getPassword() {
         return password;
     }
+
     public void setPassword(String password) {
         this.password = password;
     }
@@ -64,6 +68,7 @@ public class UserRecords {
     public String getPhone() {
         return phone;
     }
+
     public void setPhone(String phone) {
         this.phone = phone;
     }
@@ -71,6 +76,7 @@ public class UserRecords {
     public String getStatus() {
         return status;
     }
+
     public void setStatus(String status) {
         this.status = status;
     }
@@ -78,6 +84,7 @@ public class UserRecords {
     public boolean isEnrollForPromotions() {
         return enrollForPromotions;
     }
+
     public void setEnrollForPromotions(boolean enrollForPromotions) {
         this.enrollForPromotions = enrollForPromotions;
     }
@@ -85,6 +92,7 @@ public class UserRecords {
     public int getUserTypeID() {
         return userTypeID;
     }
+
     public void setUserTypeID(int userTypeID) {
         this.userTypeID = userTypeID;
     }
