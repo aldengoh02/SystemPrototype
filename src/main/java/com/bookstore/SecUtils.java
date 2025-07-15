@@ -163,10 +163,8 @@ public class SecUtils {
     }
 
     /**
-     * Find user by ID for fast session validation
-     * @param userDatabase The database instance to use
-     * @param userID User's ID
-     * @return UserRecords if found and active, null otherwise
+     * search for user by ID in backend
+     * since String search is slow
      */
     public static com.bookstore.db.UserRecords findUserByID(com.bookstore.db.UserDatabase userDatabase, int userID) {
         try {
@@ -200,9 +198,7 @@ public class SecUtils {
     }
 
     /**
-     * Get user role name by userTypeID
-     * @param userTypeID The user type ID
-     * @return Role name as string
+     * get user role via their userTypeID
      */
     public static String getUserRoleName(int userTypeID) {
         switch(userTypeID) {
@@ -260,7 +256,8 @@ public class SecUtils {
     }
 
     /**
-     * Create a new 
+     * Sets password based off of userID
+     *  Useful for things like changing password
      */
     public static String setPassword(com.bookstore.db.UserDatabase userDatabase, int userID, 
                                    String newPassword) {
@@ -296,11 +293,8 @@ public class SecUtils {
     }
 
     /**
-     * Set password by email for initial setup (no current password verification needed)
-     * @param userDatabase The database instance to use
-     * @param email The user's email
-     * @param newPassword The password to set
-     * @return Success message or error message
+     * Set password based soleyl off of email
+     * Useful for forgot password feature (not implemented yet)
      */
     public static String setPasswordByEmail(com.bookstore.db.UserDatabase userDatabase, String email, 
                                           String newPassword) {
