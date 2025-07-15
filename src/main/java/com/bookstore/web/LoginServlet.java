@@ -30,29 +30,28 @@ public class LoginServlet extends HttpServlet {
             throws ServletException, IOException {
         
         setupResponse(response);
-        String pathInfo = request.getPathInfo();
-        JsonObject jsonResponse = new JsonObject();
+        String path = request.getPathInfo();
+        JsonObject json = new JsonObject();
         
         try {
-            String requestBody = request.getReader().lines().collect(Collectors.joining());
-            JsonObject jsonRequest = gson.fromJson(requestBody, JsonObject.class);
+            String body = request.getReader().lines().collect(Collectors.joining());
+            JsonObject req = gson.fromJson(body, JsonObject.class);
             
-            // switch for pathInfo that handles 3 current endpoints
-            switch (pathInfo) {
-                case "/login": login(request, jsonRequest, jsonResponse, response); break;
-                case "/logout": logout(request, jsonResponse); break;
-                case "/check-session": sessionCheck(request, jsonResponse); break;
+            switch (path) {
+                case "/login": login(request, req, json, response); break;
+                case "/logout": logout(request, json); break;
+                case "/check-session": sessionCheck(request, json); break;
                 default:
                     response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                    jsonResponse.addProperty("error", "Unknown endpoint");
+                    json.addProperty("error", "Unknown endpoint");
             }
             
         } catch (Exception e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            jsonResponse.addProperty("error", "Invalid request: " + e.getMessage());
+            json.addProperty("error", "Invalid request: " + e.getMessage());
         }
         
-        response.getWriter().print(gson.toJson(jsonResponse));
+        response.getWriter().print(gson.toJson(json));
     }
     
     @Override
@@ -60,16 +59,16 @@ public class LoginServlet extends HttpServlet {
             throws ServletException, IOException {
         
         setupResponse(response);
-        JsonObject jsonResponse = new JsonObject();
+        JsonObject json = new JsonObject();
         
         if ("/check-session".equals(request.getPathInfo())) {
-            sessionCheck(request, jsonResponse);
+            sessionCheck(request, json);
         } else {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            jsonResponse.addProperty("error", "Endpoint not found");
+            json.addProperty("error", "Endpoint not found");
         }
         
-        response.getWriter().print(gson.toJson(jsonResponse));
+        response.getWriter().print(gson.toJson(json));
     }
     
     @Override
@@ -81,119 +80,124 @@ public class LoginServlet extends HttpServlet {
     private void setupResponse(HttpServletResponse response) {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-        response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000"); // Allow React dev server
+        response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
         response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
         response.setHeader("Access-Control-Allow-Headers", "Content-Type");
         response.setHeader("Access-Control-Allow-Credentials", "true");
     }
     
-    private void login(HttpServletRequest request, JsonObject jsonRequest, 
-                      JsonObject jsonResponse, HttpServletResponse response) {
+    private void login(HttpServletRequest request, JsonObject req, 
+                      JsonObject json, HttpServletResponse response) {
         
-        String email = jsonRequest.get("email").getAsString();
-        String password = jsonRequest.get("password").getAsString();
+        String identifier = null;
+        if (req.has("identifier")) {
+            identifier = req.get("identifier").getAsString();
+        } else if (req.has("email")) {
+            identifier = req.get("email").getAsString();
+        }
         
-        UserDatabase userDb = new UserDatabase();
+        String password = req.get("password").getAsString();
+        
+        if (identifier == null || identifier.trim().isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            json.addProperty("success", false);
+            json.addProperty("error", "Email or Account ID is required");
+            return;
+        }
+        
+        UserDatabase db = new UserDatabase();
         
         try {
-            if (!userDb.connectDb()) {
+            if (!db.connectDb()) {
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                jsonResponse.addProperty("success", false);
-                jsonResponse.addProperty("error", "Database connection failed");
+                json.addProperty("success", false);
+                json.addProperty("error", "Database connection failed");
                 return;
             }
             
-            // Find user by email using SecUtils (one-time lookup)
-            UserRecords user = SecUtils.findUserForLogin(userDb, email);
+            UserRecords user = SecUtils.findUserForLoginFlexible(db, identifier);
             
             if (user != null && SecUtils.verifyPassword(password, user.getPassword())) {
-                String userRole = SecUtils.getUserRoleName(user.getUserTypeID());
-                String fullName = user.getFirstName() + " " + user.getLastName();
+                String role = SecUtils.getUserRoleName(user.getUserTypeID());
+                String name = user.getFirstName() + " " + user.getLastName();
                 
-                // Create session with userID as the key identifier
                 HttpSession session = request.getSession(true);
-                session.setAttribute("user_id", user.getUserID());  // Store ID for fast lookups
+                session.setAttribute("user_id", user.getUserID());
                 session.setAttribute("user_email", user.getEmail());
-                session.setAttribute("user_name", fullName);
-                session.setAttribute("user_role", userRole.toLowerCase());
-                session.setMaxInactiveInterval(30 * 60); // 30 minutes
+                session.setAttribute("user_name", name);
+                session.setAttribute("user_role", role.toLowerCase());
+                session.setMaxInactiveInterval(30 * 60);
                 
-                jsonResponse.addProperty("success", true);
-                jsonResponse.addProperty("message", "Login successful");
-                jsonResponse.addProperty("user_id", user.getUserID());
-                jsonResponse.addProperty("user_name", fullName);
-                jsonResponse.addProperty("user_email", user.getEmail());
-                jsonResponse.addProperty("user_role", userRole.toLowerCase());
+                json.addProperty("success", true);
+                json.addProperty("message", "Login successful");
+                json.addProperty("user_id", user.getUserID());
+                json.addProperty("user_name", name);
+                json.addProperty("user_email", user.getEmail());
+                json.addProperty("user_role", role.toLowerCase());
             } else {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                jsonResponse.addProperty("success", false);
-                jsonResponse.addProperty("error", "Invalid email or password");
+                json.addProperty("success", false);
+                json.addProperty("error", "Invalid email/account ID or password");
             }
             
         } catch (Exception e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            jsonResponse.addProperty("success", false);
-            jsonResponse.addProperty("error", "Login failed: " + e.getMessage());
+            json.addProperty("success", false);
+            json.addProperty("error", "Login failed: " + e.getMessage());
         } finally {
-            userDb.disconnectDb();
+            db.disconnectDb();
         }
     }
     
-    private void logout(HttpServletRequest request, JsonObject jsonResponse) {
+    private void logout(HttpServletRequest request, JsonObject json) {
         HttpSession session = request.getSession(false);
         if (session != null) {
             session.invalidate();
         }
-        jsonResponse.addProperty("success", true);
-        jsonResponse.addProperty("message", "Logged out successfully");
+        json.addProperty("success", true);
+        json.addProperty("message", "Logged out successfully");
     }
     
-    private void sessionCheck(HttpServletRequest request, JsonObject jsonResponse) {
+    private void sessionCheck(HttpServletRequest request, JsonObject json) {
         HttpSession session = request.getSession(false);
         
         if (session != null && session.getAttribute("user_id") != null) {
             Integer userId = (Integer) session.getAttribute("user_id");
             
-            // Fast lookup by userID to verify user is still active
-            UserDatabase userDb = new UserDatabase();
+            UserDatabase db = new UserDatabase();
             try {
-                if (userDb.connectDb()) {
-                    UserRecords user = SecUtils.findUserByID(userDb, userId);
+                if (db.connectDb()) {
+                    UserRecords user = SecUtils.findUserByID(db, userId);
                     
                     if (user != null) {
-                        String userRole = SecUtils.getUserRoleName(user.getUserTypeID());
-                        String fullName = user.getFirstName() + " " + user.getLastName();
+                        String role = SecUtils.getUserRoleName(user.getUserTypeID());
+                        String name = user.getFirstName() + " " + user.getLastName();
                         
-                        jsonResponse.addProperty("authenticated", true);
-                        jsonResponse.addProperty("user_id", user.getUserID());
-                        jsonResponse.addProperty("user_name", fullName);
-                        jsonResponse.addProperty("user_email", user.getEmail());
-                        jsonResponse.addProperty("user_role", userRole.toLowerCase());
+                        json.addProperty("authenticated", true);
+                        json.addProperty("user_id", user.getUserID());
+                        json.addProperty("user_name", name);
+                        json.addProperty("user_email", user.getEmail());
+                        json.addProperty("user_role", role.toLowerCase());
                     } else {
-                        // User not found or inactive - invalidate session
                         session.invalidate();
-                        jsonResponse.addProperty("authenticated", false);
+                        json.addProperty("authenticated", false);
                     }
                 } else {
-                    // Database connection failed - fall back to session data
-                    jsonResponse.addProperty("authenticated", true);
-                    jsonResponse.addProperty("user_name", (String) session.getAttribute("user_name"));
-                    jsonResponse.addProperty("user_email", (String) session.getAttribute("user_email"));
-                    jsonResponse.addProperty("user_role", (String) session.getAttribute("user_role"));
+                    json.addProperty("authenticated", true);
+                    json.addProperty("user_name", (String) session.getAttribute("user_name"));
+                    json.addProperty("user_email", (String) session.getAttribute("user_email"));
+                    json.addProperty("user_role", (String) session.getAttribute("user_role"));
                 }
             } catch (Exception e) {
-                // Error occurred - fall back to session data
-                jsonResponse.addProperty("authenticated", true);
-                jsonResponse.addProperty("user_name", (String) session.getAttribute("user_name"));
-                jsonResponse.addProperty("user_email", (String) session.getAttribute("user_email"));
-                jsonResponse.addProperty("user_role", (String) session.getAttribute("user_role"));
+                json.addProperty("authenticated", true);
+                json.addProperty("user_name", (String) session.getAttribute("user_name"));
+                json.addProperty("user_email", (String) session.getAttribute("user_email"));
+                json.addProperty("user_role", (String) session.getAttribute("user_role"));
             } finally {
-                userDb.disconnectDb();
+                db.disconnectDb();
             }
         } else {
-            jsonResponse.addProperty("authenticated", false);
+            json.addProperty("authenticated", false);
         }
     }
-    
-
 } 

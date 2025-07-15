@@ -28,7 +28,6 @@ public class SecUtils {
     private static final String Salt = getSecureProperty("Salt");
     private static final String ALGORITHM = "AES/CBC/PKCS5Padding";
 
-    // Helper method to get property from environment or system properties
     private static String getSecureProperty(String name) {
         String value = System.getenv(name);
         if (value == null || value.trim().isEmpty()) {
@@ -37,30 +36,27 @@ public class SecUtils {
         return value;
     }
 
-    // For password hashing
-    public static String hashPassword(String plainTextPassword) {
-        if (plainTextPassword == null || plainTextPassword.isEmpty()) {
+    public static String hashPassword(String password) {
+        if (password == null || password.isEmpty()) {
             throw new IllegalArgumentException("Password cannot be null or empty");
         }
         String salt = BCrypt.gensalt(12);
-        return BCrypt.hashpw(plainTextPassword, salt);
+        return BCrypt.hashpw(password, salt);
     }
 
-    // For password verification
-    public static boolean verifyPassword(String plainTextPassword, String hashedPassword) {
-        if (plainTextPassword == null || hashedPassword == null) {
+    public static boolean verifyPassword(String password, String hash) {
+        if (password == null || hash == null) {
             return false;
         }
         try {
-            return BCrypt.checkpw(plainTextPassword, hashedPassword);
+            return BCrypt.checkpw(password, hash);
         } catch (IllegalArgumentException e) {
             return false;
         }
     }
 
-    // For credit card encryption
-    public static String encryptCreditCard(String creditCardNumber) throws Exception {
-        validateCreditCardNumber(creditCardNumber);
+    public static String encryptCreditCard(String cardNumber) throws Exception {
+        validateCreditCardNumber(cardNumber);
         validateEnvironmentVariables();
 
         SecretKey key = generateKey();
@@ -68,9 +64,8 @@ public class SecUtils {
         byte[] iv = generateIv();
         
         cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(iv));
-        byte[] encrypted = cipher.doFinal(creditCardNumber.getBytes());
+        byte[] encrypted = cipher.doFinal(cardNumber.getBytes());
         
-        // Combine IV and encrypted data
         byte[] combined = new byte[iv.length + encrypted.length];
         System.arraycopy(iv, 0, combined, 0, iv.length);
         System.arraycopy(encrypted, 0, combined, iv.length, encrypted.length);
@@ -78,7 +73,6 @@ public class SecUtils {
         return Base64.getEncoder().encodeToString(combined);
     }
 
-    // For credit card decryption
     public static String decryptCreditCard(String encryptedData) throws Exception {
         validateEnvironmentVariables();
         
@@ -115,32 +109,41 @@ public class SecUtils {
         }
     }
 
-    private static void validateCreditCardNumber(String creditCardNumber) {
-        if (creditCardNumber == null || creditCardNumber.trim().isEmpty()) {
+    private static void validateCreditCardNumber(String cardNumber) {
+        if (cardNumber == null || cardNumber.trim().isEmpty()) {
             throw new IllegalArgumentException("Credit card number cannot be null or empty");
         }
     }
 
-    // User Authentication Methods
-    
-    /**
-     * Find user by email for login (one-time lookup)
-     * 
-     */
-    public static com.bookstore.db.UserRecords findUserForLogin(com.bookstore.db.UserDatabase userDatabase, String email) {
-        if (email == null || email.trim().isEmpty()) {
+    public static com.bookstore.db.UserRecords findUserForLogin(com.bookstore.db.UserDatabase db, String identifier, boolean isAccountId) {
+        if (identifier == null || identifier.trim().isEmpty()) {
             return null;
         }
         
         try {
-            java.sql.Connection connection = userDatabase.getConnection();
-            if (connection == null) {
+            java.sql.Connection conn = db.getConnection();
+            if (conn == null) {
                 return null;
             }
             
-            String query = "SELECT * FROM Users WHERE email = ? AND status = 'active'";
-            java.sql.PreparedStatement ps = connection.prepareStatement(query);
-            ps.setString(1, email.toLowerCase());
+            String query;
+            java.sql.PreparedStatement ps;
+            
+            if (isAccountId) {
+                try {
+                    int userId = Integer.parseInt(identifier.trim());
+                    query = "SELECT * FROM Users WHERE userID = ? AND status = 'active'";
+                    ps = conn.prepareStatement(query);
+                    ps.setInt(1, userId);
+                } catch (NumberFormatException e) {
+                    return null;
+                }
+            } else {
+                query = "SELECT * FROM Users WHERE email = ? AND status = 'active'";
+                ps = conn.prepareStatement(query);
+                ps.setString(1, identifier.toLowerCase());
+            }
+            
             java.sql.ResultSet rs = ps.executeQuery();
             
             if (rs.next()) {
@@ -162,19 +165,24 @@ public class SecUtils {
         return null;
     }
 
-    /**
-     * search for user by ID in backend
-     * since String search is slow
-     */
-    public static com.bookstore.db.UserRecords findUserByID(com.bookstore.db.UserDatabase userDatabase, int userID) {
+    public static com.bookstore.db.UserRecords findUserForLoginFlexible(com.bookstore.db.UserDatabase db, String identifier) {
+        if (identifier == null || identifier.trim().isEmpty()) {
+            return null;
+        }
+        
+        boolean isAccountId = identifier.trim().matches("\\d+");
+        return findUserForLogin(db, identifier, isAccountId);
+    }
+
+    public static com.bookstore.db.UserRecords findUserByID(com.bookstore.db.UserDatabase db, int userID) {
         try {
-            java.sql.Connection connection = userDatabase.getConnection();
-            if (connection == null) {
+            java.sql.Connection conn = db.getConnection();
+            if (conn == null) {
                 return null;
             }
             
             String query = "SELECT * FROM Users WHERE userID = ? AND status = 'active'";
-            java.sql.PreparedStatement ps = connection.prepareStatement(query);
+            java.sql.PreparedStatement ps = conn.prepareStatement(query);
             ps.setInt(1, userID);
             java.sql.ResultSet rs = ps.executeQuery();
             
@@ -197,9 +205,6 @@ public class SecUtils {
         return null;
     }
 
-    /**
-     * get user role via their userTypeID
-     */
     public static String getUserRoleName(int userTypeID) {
         switch(userTypeID) {
             case 1: return "Admin";
@@ -209,11 +214,7 @@ public class SecUtils {
         }
     }
 
-    /**
-     * Update user password with verification
-     * For use in edit profile field eventually
-     */
-    public static String updatePassword(com.bookstore.db.UserDatabase userDatabase, int userID, 
+    public static String updatePassword(com.bookstore.db.UserDatabase db, int userID, 
                                       String currentPassword, String newPassword) {
         if (currentPassword == null || currentPassword.trim().isEmpty()) {
             return "Current password is required";
@@ -223,31 +224,24 @@ public class SecUtils {
             return "New password cannot be empty";
         }
         
-        
-        
         try {
-            // Get current user
-            com.bookstore.db.UserRecords user = findUserByID(userDatabase, userID);
+            com.bookstore.db.UserRecords user = findUserByID(db, userID);
             if (user == null) {
                 return "User not found";
             }
             
-            // Verify current password
             if (!verifyPassword(currentPassword, user.getPassword())) {
                 return "Current password is incorrect";
             }
             
-            // Hash the new password
-            String hashedNewPassword = hashPassword(newPassword);
+            String hashedPassword = hashPassword(newPassword);
+            user.setPassword(hashedPassword);
+            String result = db.updateUser(user);
             
-            // Update in database
-            user.setPassword(hashedNewPassword);
-            String updateResult = userDatabase.updateUser(user);
-            
-            if (updateResult.contains("Updated")) {
+            if (result.contains("Updated")) {
                 return "Password updated successfully";
             } else {
-                return "Failed to update password: " + updateResult;
+                return "Failed to update password: " + result;
             }
             
         } catch (Exception e) {
@@ -255,36 +249,25 @@ public class SecUtils {
         }
     }
 
-    /**
-     * Sets password based off of userID
-     *  Useful for things like changing password
-     */
-    public static String setPassword(com.bookstore.db.UserDatabase userDatabase, int userID, 
-                                   String newPassword) {
+    public static String setPassword(com.bookstore.db.UserDatabase db, int userID, String newPassword) {
         if (newPassword == null || newPassword.trim().isEmpty()) {
             return "Password cannot be empty";
         }
         
-        
-        
         try {
-            // Get user
-            com.bookstore.db.UserRecords user = findUserByID(userDatabase, userID);
+            com.bookstore.db.UserRecords user = findUserByID(db, userID);
             if (user == null) {
                 return "User not found";
             }
             
-            // Hash the password
             String hashedPassword = hashPassword(newPassword);
-            
-            // Update in database
             user.setPassword(hashedPassword);
-            String updateResult = userDatabase.updateUser(user);
+            String result = db.updateUser(user);
             
-            if (updateResult.contains("Updated")) {
+            if (result.contains("Updated")) {
                 return "Password set successfully";
             } else {
-                return "Failed to set password: " + updateResult;
+                return "Failed to set password: " + result;
             }
             
         } catch (Exception e) {
@@ -292,30 +275,20 @@ public class SecUtils {
         }
     }
 
-    /**
-     * Set password based soleyl off of email
-     * Useful for forgot password feature (not implemented yet)
-     */
-    public static String setPasswordByEmail(com.bookstore.db.UserDatabase userDatabase, String email, 
-                                          String newPassword) {
+    public static String setPasswordByEmail(com.bookstore.db.UserDatabase db, String email, String newPassword) {
         if (newPassword == null || newPassword.trim().isEmpty()) {
             return "Password cannot be empty";
         }
         
-       
-        
         try {
-            java.sql.Connection connection = userDatabase.getConnection();
-            if (connection == null) {
+            java.sql.Connection conn = db.getConnection();
+            if (conn == null) {
                 return "Database connection failed";
             }
             
-            // Hash the password
             String hashedPassword = hashPassword(newPassword);
-            
-            // Update password directly by email
             String query = "UPDATE Users SET password = ? WHERE email = ?";
-            java.sql.PreparedStatement ps = connection.prepareStatement(query);
+            java.sql.PreparedStatement ps = conn.prepareStatement(query);
             ps.setString(1, hashedPassword);
             ps.setString(2, email.toLowerCase());
             
