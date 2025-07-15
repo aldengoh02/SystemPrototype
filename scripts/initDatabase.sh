@@ -14,16 +14,16 @@ echo "Username: $USR"
 echo "Password: $DBPass"
 
 # reinitialize database and populate initial stuff from tables via mysql commands
-mysql -u "$user" -p"$DBPass" -e "DROP DATABASE IF EXISTS BookStore; CREATE DATABASE BookStore;"
+mysql -u "$USR" -p"$DBPass" -e "DROP DATABASE IF EXISTS BookStore; CREATE DATABASE BookStore;"
 
 # actual tables as of now
-mysql -u "$user" -p"$DBPass" BookStore < src/main/resources/BookStore_Schema/Books_Table.sql
-mysql -u "$user" -p"$DBPass" BookStore < src/main/resources/BookStore_Schema/User_table.sql
-mysql -u "$user" -p"$DBPass" BookStore < src/main/resources/BookStore_Schema/BillingAddress_Table.sql
-mysql -u "$user" -p"$DBPass" BookStore < src/main/resources/BookStore_Schema/PaymentCard_Table.sql
-mysql -u "$user" -p"$DBPass" BookStore < src/main/resources/BookStore_Schema/ShippingAddress_Table.sql
+mysql -u "$USR" -p"$DBPass" BookStore < src/main/resources/BookStore_Schema/Books_Table.sql
+mysql -u "$USR" -p"$DBPass" BookStore < src/main/resources/BookStore_Schema/User_table.sql
+mysql -u "$USR" -p"$DBPass" BookStore < src/main/resources/BookStore_Schema/BillingAddress_Table.sql
+mysql -u "$USR" -p"$DBPass" BookStore < src/main/resources/BookStore_Schema/PaymentCard_Table.sql
+mysql -u "$USR" -p"$DBPass" BookStore < src/main/resources/BookStore_Schema/ShippingAddress_Table.sql
 
 
 # show all tables that have been initialized.
-mysql -u "$user" -p"$DBPass" -e "USE BookStore; SHOW TABLES;"
+mysql -u "$USR" -p"$DBPass" -e "USE BookStore; SHOW TABLES;"
 
