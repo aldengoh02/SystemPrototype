@@ -43,7 +43,7 @@ INSERT INTO books (
 ('9781234567005', 'Thriller', 'Stephen King', 'Never Flinch', 'img/Never_Flinch.png', '1st Edition', 'Scribner', 2025, 17, 3, 11.50, 18.99, 4.7, TRUE, '2025-05-27',
  'From the master of suspense comes a collection of gripping tales that will keep you on edge. Each story tests human endurance and the ability to face fear without ever flinching.'),
 
-('9781234567006', 'Dystopian', 'Suzanne Collins', 'Sunrise on the Reaping', 'public/img/Sunrise_On_The_Reaping.png', '1st Edition', 'Scholastic Press', 2025, 25, 3, 14.00, 24.99, 5.0, TRUE, '2025-03-18',
+('9781234567006', 'Dystopian', 'Suzanne Collins', 'Sunrise on the Reaping', 'img/Sunrise_On_The_Reaping.png', '1st Edition', 'Scholastic Press', 2025, 25, 3, 14.00, 24.99, 5.0, TRUE, '2025-03-18',
  'In a dystopian future where survival is a daily battle, a new dawn brings hope and revolution. Follow the journey of those who rise against oppression and seek freedom at any cost.'),
 
 ('9781234567007', 'Thriller', 'Freida McFadden', 'The Housemaid', 'img/The_Housemaid.png', '1st Edition', 'Bookouture', 2022, 22, 3, 9.00, 16.99, 4.6, TRUE, '2022-04-21',
