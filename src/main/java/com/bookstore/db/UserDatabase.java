@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.util.Properties;
 
 public class UserDatabase {
+
     private static Connection connection;
     private ArrayList<UserRecords> results;
     private ResultSet rs;
@@ -17,7 +18,7 @@ public class UserDatabase {
         this.results = new ArrayList<>();
     }
 
-    //Connect to DB (Change mysql username and password on db.properties)
+    // Connect to DB
     public boolean connectDb() {
         try {
             Properties props = new Properties();
@@ -42,7 +43,7 @@ public class UserDatabase {
         return true;
     }
 
-    //Disconnect from DB
+    // Disconnect from DB
     public boolean disconnectDb() {
         try {
             if (connection != null && !connection.isClosed()) {
@@ -61,7 +62,7 @@ public class UserDatabase {
         return connection;
     }
 
-    //Getter and setter for results
+    // Getter and setter for results
     public ArrayList<UserRecords> getResults() {
         return results;
     }
@@ -70,8 +71,7 @@ public class UserDatabase {
         this.results = results;
     }
 
-
-    //Add New User
+    // Add New User
     public String addUser(UserRecords user) {
         String query = "INSERT INTO Users (firstName, lastName, email, password, phone, status, enrollForPromotions, userTypeID) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
@@ -94,7 +94,7 @@ public class UserDatabase {
         return "User Added.";
     }
 
-    //READ or Load All Users
+    // READ or Load All Users
     public String loadResults() {
         results.clear();
         try {
@@ -121,8 +121,7 @@ public class UserDatabase {
         }
     }
 
-
-    //Update User
+    // Update User
     public String updateUser(UserRecords user) {
         String query = "UPDATE Users SET firstName=?, lastName=?, email=?, password=?, phone=?, status=?, enrollForPromotions=?, userTypeID=? WHERE userID=?";
         try {
@@ -145,7 +144,7 @@ public class UserDatabase {
         return "User Updated.";
     }
 
-    //Delete User by userID
+    // Delete User by ID
     public String deleteUser(int userId) {
         String query = "DELETE FROM Users WHERE userID=?";
         try {

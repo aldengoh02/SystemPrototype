@@ -24,7 +24,7 @@ public class testDB {
         }
 
         System.out.println("------------------------------------------");
-/*
+
         // Test UserDatabase
         UserDatabase userDb = new UserDatabase();
         if (userDb.connectDb()) {
@@ -48,7 +48,7 @@ public class testDB {
         }
 
         System.out.println("------------------------------------------");
-*/
+
         // Test ShippingAddressDatabase
         ShippingAddressDatabase shippingDb = new ShippingAddressDatabase();
         if (shippingDb.connectDb()) {
