@@ -19,11 +19,12 @@ public class BookRecords {
     private float rating;
     private boolean featured;
     private Date releaseDate;
+    private String description;
 
     //Constructor
     public BookRecords(int id, String isbn, String category, String author, String title, String coverImage,
                        String edition, String publisher, int publicationYear, int quantityInStock, int minThreshold,
-                       double buyingPrice, double sellingPrice, float rating, boolean featured, Date releaseDate) {
+                       double buyingPrice, double sellingPrice, float rating, boolean featured, Date releaseDate, String description) {
         this.id = id;
         this.isbn = isbn;
         this.category = category;
@@ -40,6 +41,7 @@ public class BookRecords {
         this.rating = rating;
         this.featured = featured;
         this.releaseDate = releaseDate;
+        this.description = description;
     }
 
     /**
@@ -170,5 +172,12 @@ public class BookRecords {
     }
     public void setReleaseDate(Date releaseDate) {
         this.releaseDate = releaseDate;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

@@ -31,6 +31,9 @@ if [ -z "$(ls -A lib 2>/dev/null)" ]; then
     curl -L "https://repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar" -o lib/slf4j-api.jar
     curl -L "https://repo1.maven.org/maven2/org/slf4j/slf4j-simple/1.7.36/slf4j-simple-1.7.36.jar" -o lib/slf4j-simple.jar
 
+    # Spring Security BCrypt
+    curl -L "https://repo1.maven.org/maven2/org/springframework/security/spring-security-crypto/6.2.1/spring-security-crypto-6.2.1.jar" -o lib/spring-security-crypto.jar
+
     echo "Dependencies downloaded successfully!"
 else
     echo "Dependencies already present in lib/ directory"

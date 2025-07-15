@@ -1,7 +1,7 @@
-// The Importing stuff we need , these are like our tools for building the app
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'; // Used for switching pages
-import { FaUser, FaShoppingCart, FaSignInAlt, FaSearch, FaStar } from 'react-icons/fa'; // Pretty icons
-import { useState, useEffect } from 'react'; // Basic React hooks we gotta have
+// Various imports
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'; 
+import { FaUser, FaShoppingCart, FaSignInAlt, FaSearch, FaStar } from 'react-icons/fa';
+import { useState, useEffect } from 'react'; 
 
 // Main App component the boss of our whole application
 export default function App() {
@@ -29,7 +29,7 @@ export default function App() {
   // Search results
   const [searchResults, setSearchResults] = useState(null);
 
-  // Handle search when user types
+  // Search in response to user input
   useEffect(() => {
     const searchBooks = async () => {
       if (!search.trim()) {
@@ -324,20 +324,20 @@ function Home({ featuredBooks, comingSoonBooks, handleAddToCart, loading, error,
         )}
       </div>
 
-      {/* Here is the coming soon section */}
+      {/* Coming Soon section */}
       {!isSearching && comingSoonBooks && comingSoonBooks.length > 0 && (
         <>
           <h2 style={{ borderBottom: '3px solid #50c878', paddingBottom: '5px', color: '#50c878' }}>📗 Coming Soon</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '20px' }}>
             {comingSoonBooks.map(book => (
               <div key={book.id} style={cardStyle}>
-                {/* Book cover image */}
+                {}
                 <img 
                   src={`/img/${book.coverImage.split('/').pop()}`}
                   alt={book.title}
                   style={{ width: '100%', height: '300px', objectFit: 'cover', borderRadius: '5px' }}
                 />
-                {/* Book details */}
+                {}
                 <h3 style={{ margin: '10px 0', fontSize: '1.2em', height: '2.4em', overflow: 'hidden' }}>{book.title}</h3>
                 <p style={{ color: '#666', margin: '5px 0' }}>by {book.author}</p>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', margin: '5px 0' }}>

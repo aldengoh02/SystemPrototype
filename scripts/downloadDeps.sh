@@ -17,6 +17,9 @@ curl -L "https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.28/mysql-
 # Download Gson
 curl -L "https://repo1.maven.org/maven2/com/google/code/gson/gson/2.9.0/gson-2.9.0.jar" -o lib/gson-2.9.0.jar
 
+# Download Spring Security BCrypt
+curl -L "https://repo1.maven.org/maven2/org/springframework/security/spring-security-crypto/6.2.1/spring-security-crypto-6.2.1.jar" -o lib/spring-security-crypto.jar
+
 # Download Jetty 11 (Jakarta EE 9+ compatible)
 curl -L "https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-server/11.0.9/jetty-server-11.0.9.jar" -o lib/jetty-server.jar
 curl -L "https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-servlet/11.0.9/jetty-servlet-11.0.9.jar" -o lib/jetty-servlet.jar
