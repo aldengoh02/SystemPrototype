@@ -4,8 +4,8 @@ USE BookStore;
 -- Comment out the line below if table already exists
 DROP TABLE IF EXISTS PaymentCard;
 
---Changed the fields a bit to include cardID; if you already have the table
---Please re-upload this file and redo the table, with the DROP statement it wil fix your table
+-- Changed the fields a bit to include userID; if you already have the table
+-- Please re-upload this file and redo the table, with the DROP statement it wil fix your table
 
 CREATE TABLE PaymentCard (
     cardID INT AUTO_INCREMENT PRIMARY KEY,
