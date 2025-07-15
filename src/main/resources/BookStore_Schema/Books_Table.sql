@@ -40,22 +40,22 @@ INSERT INTO books (
 ('9781234567004', 'Fiction', 'V.E.Schwab', 'Bury Our Bones in the Midnight Soil', 'img/Midnight_Soil.png', '1st Edition', 'Tor Publishing Group', 2025, 12, 3, 10.00, 16.99, 4.5, TRUE, '2025-06-10',
  'A haunting narrative weaving themes of memory, loss, and survival. This evocative story explores the shadows that linger in the past and the hope that can be buried deep beneath the earth.'),
 
-('9781234567005', 'Thriller', 'Stephen King', 'Never Flinch', 'public/img/Never_Flinch.jpg', '1st Edition', 'Scribner', 2025, 17, 3, 11.50, 18.99, 4.7, TRUE, '2025-05-27',
+('9781234567005', 'Thriller', 'Stephen King', 'Never Flinch', 'img/Never_Flinch.jpg', '1st Edition', 'Scribner', 2025, 17, 3, 11.50, 18.99, 4.7, TRUE, '2025-05-27',
  'From the master of suspense comes a collection of gripping tales that will keep you on edge. Each story tests human endurance and the ability to face fear without ever flinching.'),
 
-('9781234567006', 'Dystopian', 'Suzanne Collins', 'Sunrise on the Reaping', 'public/img/Sunrise_On_The_Reaping.jpg', '1st Edition', 'Scholastic Press', 2025, 25, 3, 14.00, 24.99, 5.0, TRUE, '2025-03-18',
+('9781234567006', 'Dystopian', 'Suzanne Collins', 'Sunrise on the Reaping', 'img/Sunrise_On_The_Reaping.jpg', '1st Edition', 'Scholastic Press', 2025, 25, 3, 14.00, 24.99, 5.0, TRUE, '2025-03-18',
  'In a dystopian future where survival is a daily battle, a new dawn brings hope and revolution. Follow the journey of those who rise against oppression and seek freedom at any cost.'),
 
-('9781234567007', 'Thriller', 'Freida McFadden', 'The Housemaid', 'public/img/The_Housemaid.jpg', '1st Edition', 'Bookouture', 2022, 22, 3, 9.00, 16.99, 4.6, TRUE, '2022-04-21',
+('9781234567007', 'Thriller', 'Freida McFadden', 'The Housemaid', 'img/The_Housemaid.jpg', '1st Edition', 'Bookouture', 2022, 22, 3, 9.00, 16.99, 4.6, TRUE, '2022-04-21',
  'A psychological thriller unraveling secrets behind closed doors. When the new housemaid arrives, nothing is as it seems—trust is scarce, and danger lurks in every shadow.'),
 
-('9781234567008', 'Fantasy', 'Sarah Beth Durst', 'The Spellshop', 'public/img/The_Spellshop.jpg', '1st Edition', 'Brambles', 2024, 20, 3, 13.50, 21.99, 4.5, TRUE, '2024-07-09',
+('9781234567008', 'Fantasy', 'Sarah Beth Durst', 'The Spellshop', 'img/The_Spellshop.jpg', '1st Edition', 'Brambles', 2024, 20, 3, 13.50, 21.99, 4.5, TRUE, '2024-07-09',
  'Step inside The Spellshop, where magic is crafted with care and every customer has a story. This enchanting tale blends whimsy, wonder, and a touch of danger.'),
 
-('9781234567009', 'Mystery', 'Freida McFadden', 'The Tenant', 'public/img/The_Tenant.jpg', 'Exclusive Edition', 'Sourcebooks', 2025, 14, 3, 8.00, 14.99, 4.3, TRUE, '2025-05-06',
+('9781234567009', 'Mystery', 'Freida McFadden', 'The Tenant', 'img/The_Tenant.jpg', 'Exclusive Edition', 'Sourcebooks', 2025, 14, 3, 8.00, 14.99, 4.3, TRUE, '2025-05-06',
  'When a mysterious tenant moves in, a quiet neighborhood is shaken. Secrets unravel, alliances shift, and the truth may be more terrifying than anyone imagined.'),
 
-('9781234567010', 'Romance', 'Meghan Quinn', 'Till Summer Do Us Part', 'public/img/Till_Summer_Do_Us_Part.jpg', 'Deluxe Edition', 'Sourcebooks', 2025, 19, 3, 10.50, 17.99, 4.7, TRUE, '2025-06-03',
+('9781234567010', 'Romance', 'Meghan Quinn', 'Till Summer Do Us Part', 'img/Till_Summer_Do_Us_Part.jpg', 'Deluxe Edition', 'Sourcebooks', 2025, 19, 3, 10.50, 17.99, 4.7, TRUE, '2025-06-03',
  'A heartwarming summer romance about second chances, unexpected love, and finding yourself when you least expect it. Perfect for fans of sweet and swoony love stories.'),
 
 -- Coming Soon Books
