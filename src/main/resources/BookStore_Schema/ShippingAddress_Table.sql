@@ -18,4 +18,4 @@ CREATE TABLE ShippingAddress (
 
 INSERT INTO ShippingAddress (userID, street, city, state, zipCode)
 VALUES
-(1, '789 Maple Dr', 'Savannah', 'GA', '31401')
+(1, '789 Maple Dr', 'Savannah', 'GA', '31401');

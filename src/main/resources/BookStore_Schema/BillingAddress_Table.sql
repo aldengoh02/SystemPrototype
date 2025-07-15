@@ -14,4 +14,4 @@ CREATE TABLE BillingAddress (
 
 INSERT INTO BillingAddress (street, city, state, zipCode)
 VALUES
-('123 Peach St', 'Atlanta', 'GA', '30303')
+('123 Peach St', 'Atlanta', 'GA', '30303');
