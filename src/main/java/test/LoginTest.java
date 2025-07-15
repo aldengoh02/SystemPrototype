@@ -1,5 +1,5 @@
 package test;
-
+import com.mysql.cj.jdbc.Driver;
 import com.bookstore.SecUtils;
 import com.bookstore.db.UserDatabase;
 import com.bookstore.db.UserRecords;
@@ -7,8 +7,12 @@ import com.bookstore.db.UserRecords;
 /*
  * Testing class for login functionality
  * Requires database connection and proper db.properties configuration
-* run usingjava -cp "target/classes:target/dependency/*" test.LoginTest 
+* run using mvn dependency:copy-dependencies -DoutputDirectory=target/dependency
+* and then
+* java -cp "target/classes:target/dependency/*" test.LoginTest 
 * Make sure you have a user in the database that is actually active
+* if you want to pass all tests
+* as the user database currently is, only passing 8/10 of the tests is normal
  */
 
 public class LoginTest {
