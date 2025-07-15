@@ -61,7 +61,7 @@ public class UserDatabase {
         return connection;
     }
 
-    // Getter and setter for results
+    //Getter and setter for results
     public ArrayList<UserRecords> getResults() {
         return results;
     }
@@ -69,6 +69,7 @@ public class UserDatabase {
     public void setResults(ArrayList<UserRecords> results) {
         this.results = results;
     }
+
 
     //Add New User
     public String addUser(UserRecords user) {
@@ -93,7 +94,7 @@ public class UserDatabase {
         return "User Added.";
     }
 
-    //READ All Users
+    //READ or Load All Users
     public String loadResults() {
         results.clear();
         try {
@@ -119,6 +120,7 @@ public class UserDatabase {
             return e.toString();
         }
     }
+
 
     //Update User
     public String updateUser(UserRecords user) {

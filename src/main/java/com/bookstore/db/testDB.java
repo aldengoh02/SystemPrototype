@@ -4,7 +4,6 @@ public class testDB {
     public static void main(String[] args) {
         // Test BookDatabase
         BookDatabase bookDb = new BookDatabase();
-
         if (bookDb.connectDb()) {
             System.out.println("Connected to Book database.");
 
@@ -25,10 +24,9 @@ public class testDB {
         }
 
         System.out.println("------------------------------------------");
-
+/*
         // Test UserDatabase
         UserDatabase userDb = new UserDatabase();
-
         if (userDb.connectDb()) {
             System.out.println("Connected to User database.");
 
@@ -47,6 +45,51 @@ public class testDB {
             System.out.println("Disconnected from User database.");
         } else {
             System.out.println("Failed to connect to User database.");
+        }
+
+        System.out.println("------------------------------------------");
+*/
+        // Test ShippingAddressDatabase
+        ShippingAddressDatabase shippingDb = new ShippingAddressDatabase();
+        if (shippingDb.connectDb()) {
+            System.out.println("Connected to Shipping Address database.");
+
+            String shippingResult = shippingDb.loadResults();
+            System.out.println(shippingResult);
+            for (ShippingAddressRecords addr : shippingDb.getResults()) {
+                System.out.println(
+                        addr.getAddressID() + ": UserID " + addr.getUserID() + ", " +
+                                addr.getStreet() + ", " + addr.getCity() + ", " + addr.getState() + " " + addr.getZipCode()
+                );
+            }
+
+            shippingDb.disconnectDb();
+            System.out.println("Disconnected from Shipping Address database.");
+        } else {
+            System.out.println("Failed to connect to Shipping Address database.");
+        }
+
+        System.out.println("------------------------------------------");
+
+        // Test PaymentCardDatabase
+        PaymentCardDatabase paymentDb = new PaymentCardDatabase();
+        if (paymentDb.connectDb()) {
+            System.out.println("Connected to Payment Card database.");
+
+            String paymentResult = paymentDb.loadResults();
+            System.out.println(paymentResult);
+            for (PaymentCardRecords card : paymentDb.getResults()) {
+                System.out.println(
+                        "CardNo: " + card.getCardNo() + ", UserID: " + card.getUserID() +
+                                ", Type: " + card.getType() + ", Expiration: " + card.getExpirationDate() +
+                                ", BillingAddressID: " + card.getBillingAddressID()
+                );
+            }
+
+            paymentDb.disconnectDb();
+            System.out.println("Disconnected from Payment Card database.");
+        } else {
+            System.out.println("Failed to connect to Payment Card database.");
         }
     }
 }
