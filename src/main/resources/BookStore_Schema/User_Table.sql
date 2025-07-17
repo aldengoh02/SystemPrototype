@@ -22,5 +22,25 @@ CREATE TABLE IF NOT EXISTS Users (
     FOREIGN KEY (userTypeID) REFERENCES UserTypes(userTypeID)
 );
 
-INSERT INTO Users (firstName, lastName, email, password, phone)
-VALUES ('John', 'Doe', 'john@example.com', 'pass123', '555-555-5676');
+-- Test users with PORTABLE hashed passwords (work on ANY machine!)
+-- These hashes use fixed salts for consistency across different environments
+
+-- Password: password123 (for John Doe)
+INSERT INTO Users (firstName, lastName, email, password, phone, status)
+VALUES ('John', 'Doe', 'john@example.com', '$2a$12$abcdefghijklmnopqrstuuCzUtq1M4rqLjJzOfb.FbCAmg1Iz.cIy', '555-555-5676', 'active');
+
+-- Password: securepass456 (for Jane Smith)  
+INSERT INTO Users (firstName, lastName, email, password, phone, status)
+VALUES ('Jane', 'Smith', 'jane@example.com', '$2a$12$zyxwvutsrqponmlkjihgfey9oSa6NSBqPPTJDkk.WH7tkTbGSY/xa', '555-555-1234', 'active');
+
+-- Password: testUser789 (for Test User)
+INSERT INTO Users (firstName, lastName, email, password, phone, status)
+VALUES ('Test', 'User', 'test@example.com', '$2a$12$1234567890abcdefghijkeW9xxo0jTBbAtdBUgB5yPfprdeEI4d2.', '555-555-9999', 'active');
+
+-- Password: admin123 (for Admin User)
+INSERT INTO Users (firstName, lastName, email, password, phone, status)  
+VALUES ('Admin', 'User', 'admin@example.com', '$2a$12$qwertyuiopasdfghjklzxOsM3DLFZN7Bj0m4nFnCC8BbuHSOaajUO', '555-555-0001', 'active');
+
+-- Password: customer456 (for Customer User)
+INSERT INTO Users (firstName, lastName, email, password, phone, status)
+VALUES ('Customer', 'Demo', 'customer@example.com', '$2a$12$mnbvcxzasdfghjklpoiuyemxBrR1BAshmQ86CsGNK/szLuyBIcaYS', '555-555-0002', 'active');

@@ -1,5 +1,6 @@
 package com.bookstore.db;
 
+import com.bookstore.SecUtils;
 import java.sql.*;
 import java.util.*;
 import java.io.InputStream;
@@ -51,22 +52,61 @@ public class PaymentCardDatabase {
         return results;
     }
 
+        /*
+         * Adds card to database
+         * >= 4 used just since it has higher robustness than just
+         * checking if = 4
+         */
     public String addCard(PaymentCardRecords card) {
+        String countQuery = "SELECT COUNT(*) FROM PaymentCard WHERE userID = ?";
+        try {
+            PreparedStatement countPs = connection.prepareStatement(countQuery);
+            countPs.setInt(1, card.getUserID());
+            ResultSet rs = countPs.executeQuery();
+            if (rs.next() && rs.getInt(1) >= 4) {
+                return "User cannot have more than 4 payment cards.";
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return e.toString();
+        }
+
         String query = "INSERT INTO PaymentCard (cardNo, userID, type, expirationDate, billingAddressID) VALUES (?, ?, ?, ?, ?)";
         try {
+            String encryptedCardNo = SecUtils.encryptCreditCard(card.getCardNo());
             PreparedStatement ps = connection.prepareStatement(query);
-            ps.setString(1, card.getCardNo());
+            ps.setString(1, encryptedCardNo);
             ps.setInt(2, card.getUserID());
             ps.setString(3, card.getType());
             ps.setString(4, card.getExpirationDate());
             ps.setInt(5, card.getBillingAddressID());
             ps.executeUpdate();
-        } catch (SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return e.toString();
         }
         loadResults();
         return "Payment Card Added.";
+    }
+
+    public String updateCard(PaymentCardRecords card) {
+        String query = "UPDATE PaymentCard SET cardNo=?, type=?, expirationDate=?, billingAddressID=? WHERE cardID=? AND userID=?";
+        try {
+            String encryptedCardNo = SecUtils.encryptCreditCard(card.getCardNo());
+            PreparedStatement ps = connection.prepareStatement(query);
+            ps.setString(1, encryptedCardNo);
+            ps.setString(2, card.getType());
+            ps.setString(3, card.getExpirationDate());
+            ps.setInt(4, card.getBillingAddressID());
+            ps.setInt(5, card.getCardID());
+            ps.setInt(6, card.getUserID());
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return e.toString();
+        }
+        loadResults();
+        return "Payment Card Updated.";
     }
 
     public String loadResults() {
@@ -76,6 +116,7 @@ public class PaymentCardDatabase {
             rs = stmt.executeQuery("SELECT * FROM PaymentCard");
             while (rs.next()) {
                 PaymentCardRecords card = new PaymentCardRecords(
+                        rs.getInt("cardID"),
                         rs.getString("cardNo"),
                         rs.getInt("userID"),
                         rs.getString("type"),
@@ -91,10 +132,10 @@ public class PaymentCardDatabase {
         }
     }
 
-    public String deleteCard(String cardNo) {
+    public String deleteCard(int cardID) {
         try {
-            PreparedStatement ps = connection.prepareStatement("DELETE FROM PaymentCard WHERE cardNo=?");
-            ps.setString(1, cardNo);
+            PreparedStatement ps = connection.prepareStatement("DELETE FROM PaymentCard WHERE cardID=?");
+            ps.setInt(1, cardID);
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Edit User API</title>
+    <style>
+        body { font-family: sans-serif; margin: 2em; }
+        .container { max-width: 800px; margin: auto; }
+        .form-section { border: 1px solid #ccc; padding: 1em; margin-bottom: 1em; border-radius: 5px; }
+        h2 { border-bottom: 2px solid #007bff; padding-bottom: 0.5em; }
+        label { display: block; margin-bottom: 0.5em; font-weight: bold; }
+        input { width: calc(100% - 10px); padding: 8px; margin-bottom: 1em; border-radius: 3px; border: 1px solid #ccc; }
+        button { padding: 10px 15px; border: none; background-color: #007bff; color: white; border-radius: 5px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        pre { background-color: #f4f4f4; padding: 1em; border: 1px solid #ddd; border-radius: 5px; white-space: pre-wrap; word-wrap: break-word; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Test User Profile Editing</h1>
+
+        <!-- Test Credentials Reference -->
+        <div class="form-section" style="background-color: #f0f8ff; border-color: #007bff;">
+            <h2>🔑 Test User Credentials</h2>
+            <p><strong>Available test users with known passwords:</strong></p>
+            <ul>
+                <li><strong>User ID 1 (John Doe):</strong> password123</li>
+                <li><strong>User ID 2 (Jane Smith):</strong> securepass456</li>  
+                <li><strong>User ID 3 (Test User):</strong> testUser789</li>
+                <li><strong>User ID 4 (Admin User):</strong> admin123</li>
+                <li><strong>User ID 5 (Customer Demo):</strong> customer456</li>
+            </ul>
+            <p><em>Use these credentials for testing password updates!</em></p>
+        </div>
+
+        <!-- Update Name -->
+        <div class="form-section">
+            <h2>Update Name</h2>
+            <form id="updateNameForm">
+                <label for="nameUserID">User ID:</label>
+                <input type="number" id="nameUserID" value="2" required>
+                <label for="firstName">First Name:</label>
+                <input type="text" id="firstName" value="John" required>
+                <label for="lastName">Last Name:</label>
+                <input type="text" id="lastName" value="Doe" required>
+                <button type="submit">Update Name</button>
+            </form>
+            <h3>Response:</h3>
+            <pre id="updateNameResponse"></pre>
+        </div>
+
+        <!-- Update Billing Address -->
+        <div class="form-section">
+            <h2>Update Billing Address</h2>
+            <form id="updateBillingForm">
+                <label for="billingUserID">User ID:</label>
+                <input type="number" id="billingUserID" value="1" required>
+                <label for="addressID">Address ID:</label>
+                <input type="number" id="addressID" value="1" required>
+                <label for="street">Street:</label>
+                <input type="text" id="street" value="123 New Peach St" required>
+                <label for="city">City:</label>
+                <input type="text" id="city" value="Atlanta" required>
+                <label for="state">State:</label>
+                <input type="text" id="state" value="GA" required>
+                <label for="zipCode">Zip Code:</label>
+                <input type="text" id="zipCode" value="30304" required>
+                <button type="submit">Update Billing Address</button>
+            </form>
+            <h3>Response:</h3>
+            <pre id="updateBillingResponse"></pre>
+        </div>
+
+        <!-- Update Payment Card -->
+        <div class="form-section">
+            <h2>Update Payment Card</h2>
+            <form id="updatePaymentForm">
+                <label for="paymentUserID">User ID:</label>
+                <input type="number" id="paymentUserID" value="1" required>
+                <label for="cardID">Card ID:</label>
+                <input type="number" id="cardID" value="1" required>
+                <label for="cardNo">Card Number:</label>
+                <input type="text" id="cardNo" value="1111222233334444" required>
+                <label for="type">Type (e.g., Visa):</label>
+                <input type="text" id="type" value="Visa" required>
+                <label for="expirationDate">Expiration Date (MM/YY):</label>
+                <input type="text" id="expirationDate" value="12/28" required>
+                <label for="billingAddressID">Billing Address ID:</label>
+                <input type="number" id="billingAddressID" value="1" required>
+                <button type="submit">Update Payment Card</button>
+            </form>
+            <h3>Response:</h3>
+            <pre id="updatePaymentResponse"></pre>
+        </div>
+
+        <!-- Update Password -->
+        <div class="form-section">
+            <h2>Update Password</h2>
+            <form id="updatePasswordForm">
+                <label for="passwordUserID">User ID:</label>
+                <input type="number" id="passwordUserID" value="2" required>
+                <label for="currentPassword">Current Password:</label>
+                <input type="password" id="currentPassword" value="securepass456" required>
+                <label for="newPassword">New Password:</label>
+                <input type="password" id="newPassword" required>
+                <button type="submit">Update Password</button>
+            </form>
+            <h3>Response:</h3>
+            <pre id="updatePasswordResponse"></pre>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/user';
+        
+        // Attach event listeners
+        document.getElementById('updateNameForm').addEventListener('submit', (e) => {
+            const data = {
+                userID: document.getElementById('nameUserID').value,
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value
+            };
+            handleFormSubmit(e, '/update-name', 'updateNameResponse', data);
+        });
+
+        document.getElementById('updateBillingForm').addEventListener('submit', (e) => {
+            const data = {
+                userID: document.getElementById('billingUserID').value,
+                addressID: document.getElementById('addressID').value,
+                street: document.getElementById('street').value,
+                city: document.getElementById('city').value,
+                state: document.getElementById('state').value,
+                zipCode: document.getElementById('zipCode').value
+            };
+            handleFormSubmit(e, '/update-billing', 'updateBillingResponse', data);
+        });
+
+        document.getElementById('updatePaymentForm').addEventListener('submit', (e) => {
+            const data = {
+                userID: document.getElementById('paymentUserID').value,
+                cardID: document.getElementById('cardID').value,
+                cardNo: document.getElementById('cardNo').value,
+                type: document.getElementById('type').value,
+                expirationDate: document.getElementById('expirationDate').value,
+                billingAddressID: document.getElementById('billingAddressID').value
+            };
+            handleFormSubmit(e, '/update-payment', 'updatePaymentResponse', data);
+        });
+
+        document.getElementById('updatePasswordForm').addEventListener('submit', (e) => {
+            const data = {
+                userID: document.getElementById('passwordUserID').value,
+                currentPassword: document.getElementById('currentPassword').value,
+                newPassword: document.getElementById('newPassword').value
+            };
+            handleFormSubmit(e, '/update-password', 'updatePasswordResponse', data);
+        });
+
+        async function handleFormSubmit(event, endpoint, responseElementId, data) {
+            event.preventDefault();
+            
+            // Convert numeric fields from string to number
+            for (const key in data) {
+                if (!isNaN(data[key]) && data[key].trim() !== '') {
+                    data[key] = Number(data[key]);
+                }
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                document.getElementById(responseElementId).textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                document.getElementById(responseElementId).textContent = `Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html> 

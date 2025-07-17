@@ -24,16 +24,10 @@ import java.nio.charset.StandardCharsets;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 
 public class SecUtils {
-    private static final String encryptionKey = getSecureProperty("encryptionKey");
-    private static final String Salt = getSecureProperty("Salt");
     private static final String ALGORITHM = "AES/CBC/PKCS5Padding";
 
     private static String getSecureProperty(String name) {
-        String value = System.getenv(name);
-        if (value == null || value.trim().isEmpty()) {
-            value = System.getProperty(name);
-        }
-        return value;
+        return System.getProperty(name);
     }
 
     public static String hashPassword(String password) {
@@ -57,7 +51,6 @@ public class SecUtils {
 
     public static String encryptCreditCard(String cardNumber) throws Exception {
         validateCreditCardNumber(cardNumber);
-        validateEnvironmentVariables();
 
         SecretKey key = generateKey();
         Cipher cipher = Cipher.getInstance(ALGORITHM);
@@ -74,8 +67,6 @@ public class SecUtils {
     }
 
     public static String decryptCreditCard(String encryptedData) throws Exception {
-        validateEnvironmentVariables();
-        
         byte[] combined = Base64.getDecoder().decode(encryptedData);
         byte[] iv = new byte[16];
         byte[] encrypted = new byte[combined.length - 16];
@@ -92,8 +83,15 @@ public class SecUtils {
     }
 
     private static SecretKey generateKey() throws Exception {
+        String encryptionKey = getSecureProperty("encryptionKey");
+        String salt = getSecureProperty("Salt");
+
+        if (encryptionKey == null || salt == null) {
+            throw new IllegalStateException("Encryption secret key and salt must be set in environment variables");
+        }
+        
         SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-        KeySpec spec = new PBEKeySpec(encryptionKey.toCharArray(), Salt.getBytes(), 65536, 256);
+        KeySpec spec = new PBEKeySpec(encryptionKey.toCharArray(), salt.getBytes(), 65536, 256);
         return new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
     }
 
@@ -101,12 +99,6 @@ public class SecUtils {
         byte[] iv = new byte[16];
         new SecureRandom().nextBytes(iv);
         return iv;
-    }
-
-    private static void validateEnvironmentVariables() {
-        if (encryptionKey == null || Salt == null) {
-            throw new IllegalStateException("Encryption secret key and salt must be set in environment variables");
-        }
     }
 
     private static void validateCreditCardNumber(String cardNumber) {
@@ -215,7 +207,7 @@ public class SecUtils {
     }
 
     public static String updatePassword(com.bookstore.db.UserDatabase db, int userID, 
-                                      String currentPassword, String newPassword) {
+         String currentPassword, String newPassword) {
         if (currentPassword == null || currentPassword.trim().isEmpty()) {
             return "Current password is required";
         }
