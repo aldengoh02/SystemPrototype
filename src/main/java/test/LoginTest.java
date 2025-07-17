@@ -2,7 +2,7 @@ package test;
 import com.mysql.cj.jdbc.Driver;
 import com.bookstore.SecUtils;
 import com.bookstore.db.UserDatabase;
-import com.bookstore.db.UserRecords;
+import com.bookstore.records.UserRecords;
 
 /*
  * Testing class for login functionality

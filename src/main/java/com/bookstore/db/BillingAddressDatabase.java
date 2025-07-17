@@ -4,6 +4,7 @@ import java.sql.*;
 import java.util.*;
 import java.io.InputStream;
 import java.util.Properties;
+import com.bookstore.records.BillingAddressRecords;
 
 public class BillingAddressDatabase {
     private static Connection connection;

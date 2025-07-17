@@ -22,6 +22,7 @@ import java.security.spec.KeySpec;
 import java.util.Base64;
 import java.nio.charset.StandardCharsets;
 import org.springframework.security.crypto.bcrypt.BCrypt;
+import com.bookstore.records.UserRecords;
 
 public class SecUtils {
     private static final String ALGORITHM = "AES/CBC/PKCS5Padding";
@@ -107,7 +108,7 @@ public class SecUtils {
         }
     }
 
-    public static com.bookstore.db.UserRecords findUserForLogin(com.bookstore.db.UserDatabase db, String identifier, boolean isAccountId) {
+    public static UserRecords findUserForLogin(com.bookstore.db.UserDatabase db, String identifier, boolean isAccountId) {
         if (identifier == null || identifier.trim().isEmpty()) {
             return null;
         }
@@ -139,7 +140,7 @@ public class SecUtils {
             java.sql.ResultSet rs = ps.executeQuery();
             
             if (rs.next()) {
-                return new com.bookstore.db.UserRecords(
+                return new UserRecords(
                     rs.getInt("userID"),
                     rs.getString("firstName"),
                     rs.getString("lastName"),
@@ -157,7 +158,7 @@ public class SecUtils {
         return null;
     }
 
-    public static com.bookstore.db.UserRecords findUserForLoginFlexible(com.bookstore.db.UserDatabase db, String identifier) {
+    public static UserRecords findUserForLoginFlexible(com.bookstore.db.UserDatabase db, String identifier) {
         if (identifier == null || identifier.trim().isEmpty()) {
             return null;
         }
@@ -166,7 +167,7 @@ public class SecUtils {
         return findUserForLogin(db, identifier, isAccountId);
     }
 
-    public static com.bookstore.db.UserRecords findUserByID(com.bookstore.db.UserDatabase db, int userID) {
+    public static UserRecords findUserByID(com.bookstore.db.UserDatabase db, int userID) {
         try {
             java.sql.Connection conn = db.getConnection();
             if (conn == null) {
@@ -179,7 +180,7 @@ public class SecUtils {
             java.sql.ResultSet rs = ps.executeQuery();
             
             if (rs.next()) {
-                return new com.bookstore.db.UserRecords(
+                return new UserRecords(
                     rs.getInt("userID"),
                     rs.getString("firstName"),
                     rs.getString("lastName"),
@@ -217,7 +218,7 @@ public class SecUtils {
         }
         
         try {
-            com.bookstore.db.UserRecords user = findUserByID(db, userID);
+            UserRecords user = findUserByID(db, userID);
             if (user == null) {
                 return "User not found";
             }
@@ -247,7 +248,7 @@ public class SecUtils {
         }
         
         try {
-            com.bookstore.db.UserRecords user = findUserByID(db, userID);
+            UserRecords user = findUserByID(db, userID);
             if (user == null) {
                 return "User not found";
             }

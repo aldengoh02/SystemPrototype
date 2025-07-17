@@ -4,6 +4,7 @@ import java.sql.*;
 import java.util.*;
 import java.io.InputStream;
 import java.util.Properties;
+import com.bookstore.records.ShippingAddressRecords;
 
 public class ShippingAddressDatabase {
     private static Connection connection;
@@ -67,6 +68,25 @@ public class ShippingAddressDatabase {
         }
         loadResults();
         return "Shipping Address Added.";
+    }
+
+    public String updateAddress(ShippingAddressRecords addr) {
+        String query = "UPDATE ShippingAddress SET userID=?, street=?, city=?, state=?, zipCode=? WHERE addressID=?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(query);
+            ps.setInt(1, addr.getUserID());
+            ps.setString(2, addr.getStreet());
+            ps.setString(3, addr.getCity());
+            ps.setString(4, addr.getState());
+            ps.setString(5, addr.getZipCode());
+            ps.setInt(6, addr.getAddressID());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return e.toString();
+        }
+        loadResults();
+        return "Shipping Address Updated.";
     }
 
     public String loadResults() {

@@ -62,7 +62,7 @@ package com.bookstore.web;
 
 import com.bookstore.db.BookActions;
 import com.bookstore.db.BookDatabase;
-import com.bookstore.db.BookRecords;
+import com.bookstore.records.BookRecords;
 import com.bookstore.db.BookNotFoundException;
 import com.google.gson.Gson;
 

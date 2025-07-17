@@ -5,6 +5,7 @@ import java.sql.*;
 import java.util.*;
 import java.io.InputStream;
 import java.util.Properties;
+import com.bookstore.records.PaymentCardRecords;
 
 public class PaymentCardDatabase {
     private static Connection connection;

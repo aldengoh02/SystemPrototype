@@ -1,11 +1,11 @@
 package com.bookstore.web;
 
 import com.bookstore.db.UserDatabase;
-import com.bookstore.db.UserRecords;
+import com.bookstore.records.UserRecords;
 import com.bookstore.db.BillingAddressDatabase;
-import com.bookstore.db.BillingAddressRecords;
+import com.bookstore.records.BillingAddressRecords;
 import com.bookstore.db.PaymentCardDatabase;
-import com.bookstore.db.PaymentCardRecords;
+import com.bookstore.records.PaymentCardRecords;
 import com.bookstore.SecUtils;
 
 import jakarta.servlet.ServletException;

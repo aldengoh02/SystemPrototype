@@ -1,6 +1,6 @@
-package com.bookstore.db;
+package com.bookstore.records;
 
-public class ShippingAddressRecords {
+public class BillingAddressRecords {
     private int addressID;
     private int userID;
     private String street;
@@ -8,7 +8,7 @@ public class ShippingAddressRecords {
     private String state;
     private String zipCode;
 
-    public ShippingAddressRecords(int addressID, int userID, String street, String city, String state, String zipCode) {
+    public BillingAddressRecords(int addressID, int userID, String street, String city, String state, String zipCode) {
         this.addressID = addressID;
         this.userID = userID;
         this.street = street;

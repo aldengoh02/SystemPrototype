@@ -1,5 +1,14 @@
 package com.bookstore.db;
 
+import com.bookstore.records.BookRecords;
+import com.bookstore.records.UserRecords;
+import com.bookstore.records.ShippingAddressRecords;
+import com.bookstore.records.PaymentCardRecords;
+import com.bookstore.records.PromotionRecords;
+import com.bookstore.records.OrdersRecords;
+import com.bookstore.records.TransactionRecords;
+import com.bookstore.records.CartRecord;
+
 public class testDB {
     public static void main(String[] args) {
         // Test BookDatabase
@@ -9,6 +18,7 @@ public class testDB {
 
             String result = bookDb.loadResults();
             System.out.println(result);
+            System.out.println("Books in database: ");
             for (BookRecords book : bookDb.getResults()) {
                 String status = book.isComingSoon() ? " (Coming Soon)" : " (Available)";
                 System.out.println(
@@ -32,6 +42,7 @@ public class testDB {
 
             String userResult = userDb.loadResults();
             System.out.println(userResult);
+            System.out.println("\nUsers in database: ");
             for (UserRecords user : userDb.getResults()) {
                 System.out.println(
                         user.getUserID() + ": " + user.getFirstName() + " " + user.getLastName() +
@@ -56,6 +67,7 @@ public class testDB {
 
             String shippingResult = shippingDb.loadResults();
             System.out.println(shippingResult);
+            System.out.println("\nShipping Addresses in database: ");
             for (ShippingAddressRecords addr : shippingDb.getResults()) {
                 System.out.println(
                         addr.getAddressID() + ": UserID " + addr.getUserID() + ", " +
@@ -78,6 +90,7 @@ public class testDB {
 
             String paymentResult = paymentDb.loadResults();
             System.out.println(paymentResult);
+            System.out.println("\nPayment Cards in database: ");
             for (PaymentCardRecords card : paymentDb.getResults()) {
                 System.out.println(
                         "CardNo: " + card.getCardNo() + ", UserID: " + card.getUserID() +
@@ -101,6 +114,7 @@ public class testDB {
 
             String promoResult = promoDb.loadResults();
             System.out.println(promoResult);
+            System.out.println("\nPromotions in database: ");
             for (PromotionRecords promo : promoDb.getResults()) {
                 System.out.println(
                         promo.getPromoID() + ": " + promo.getPromoCode() + ", Discount: " + promo.getDiscount() + "%" +
@@ -124,6 +138,7 @@ public class testDB {
 
             String ordersResult = ordersDb.loadResults();
             System.out.println(ordersResult);
+            System.out.println("\nOrders in database: ");
             for (OrdersRecords order : ordersDb.getResults()) {
                 System.out.println(
                         "OrderID: " + order.getOrderID() + ", UserID: " + order.getUserID() +
@@ -147,6 +162,7 @@ public class testDB {
 
             String transactionResult = transactionDb.loadResults();
             System.out.println(transactionResult);
+            System.out.println("\nTransactions in database: ");
             for (TransactionRecords transaction : transactionDb.getResults()) {
                 System.out.println(
                         "TransactionID: " + transaction.getTransactionID() +
@@ -171,6 +187,7 @@ public class testDB {
 
             String cartResult = cartDb.loadResults();
             System.out.println(cartResult);
+            System.out.println("\nCart items in database: ");
             for (CartRecord cart : cartDb.getResults()) {
                 System.out.println(
                         "UserID: " + cart.getUserID() +

@@ -31,8 +31,9 @@ fi
 echo " Found .env file with encryption keys"
 echo ""
 
-# Load environment variables from .env
-export $(cat .env | grep -v '#' | xargs)
+# Load environment variables from .env and pass them to Java
+ENCRYPTION_KEY=$(grep 'encryptionKey=' .env | cut -d'=' -f2)
+SALT=$(grep 'Salt=' .env | cut -d'=' -f2)
 
 # Create target directory if it doesn't exist
 mkdir -p target/test-classes
@@ -41,6 +42,8 @@ mkdir -p target/test-classes
 echo " Compiling test class..."
 javac -cp "target/classes:$(find lib -name "*.jar" | tr '\n' ':')" \
     -d target/test-classes \
+    src/main/java/com/bookstore/records/UserRecords.java \
+    src/main/java/com/bookstore/SecUtils.java \
     src/main/java/test/EncryptionTest.java
 
 if [ $? -ne 0 ]; then
@@ -53,6 +56,7 @@ echo ""
 
 # Run the test
 java -cp "target/classes:target/test-classes:$(find lib -name "*.jar" | tr '\n' ':')" \
+    -DencryptionKey="$ENCRYPTION_KEY" -DSalt="$SALT" \
     test.EncryptionTest
 
 echo ""

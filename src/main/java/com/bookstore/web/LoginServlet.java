@@ -8,7 +8,7 @@ package com.bookstore.web;
 
 import com.bookstore.SecUtils;
 import com.bookstore.db.UserDatabase;
-import com.bookstore.db.UserRecords;
+import com.bookstore.records.UserRecords;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import jakarta.servlet.ServletException;
