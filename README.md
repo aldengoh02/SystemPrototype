@@ -5,6 +5,10 @@ SWE Bookstore System Prototype
 # If you have issues with maven follow the instructions present in the scripts folder; Would reccomend running all scripts from the root however in order to avoid problems
 # run npm start in root in a separate terminal to start frontend
 # backend is currently connected and images are loaded via public/img
+# how to actually call apis should be listed in each given servlet
+
+
+
 
 #Database Setup
 #Running the Schema Files 

@@ -9,7 +9,7 @@ DROP TABLE IF EXISTS PaymentCard;
 
 CREATE TABLE PaymentCard (
     cardID INT AUTO_INCREMENT PRIMARY KEY,
-    cardNo VARCHAR(16) UNIQUE,
+    cardNo VARCHAR(255),
     userID INT NOT NULL,
     type VARCHAR(20) NOT NULL,
     expirationDate VARCHAR(10) NOT NULL,
@@ -20,6 +20,8 @@ CREATE TABLE PaymentCard (
 );
 
 
+-- Note: The sample data below should be encrypted before insertion
+-- For now, using placeholder encrypted data
 INSERT INTO PaymentCard (cardNo, userID, type, expirationDate, billingAddressID)
 VALUES
-('1234567890123456', 1, 'Visa', '12/26', 1);
+('PLACEHOLDER', 1, 'Visa', '12/26', 1);

@@ -1,4 +1,4 @@
-package com.bookstore.db;
+package com.bookstore.records;
 
 public class ShippingAddressRecords {
     private int addressID;

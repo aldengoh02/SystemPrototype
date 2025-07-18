@@ -4,6 +4,7 @@ import java.sql.*;
 import java.util.*;
 import java.io.InputStream;
 import java.util.Properties;
+import com.bookstore.records.UserRecords;
 
 public class UserDatabase {
 
@@ -92,6 +93,37 @@ public class UserDatabase {
         }
         loadResults();
         return "User Added.";
+    }
+
+    // Find user by email regardless of status (for registration purposes)
+    public UserRecords findUserByEmail(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            return null;
+        }
+        
+        try {
+            String query = "SELECT * FROM Users WHERE email = ?";
+            PreparedStatement ps = connection.prepareStatement(query);
+            ps.setString(1, email.toLowerCase());
+            ResultSet rs = ps.executeQuery();
+            
+            if (rs.next()) {
+                return new UserRecords(
+                    rs.getInt("userID"),
+                    rs.getString("firstName"),
+                    rs.getString("lastName"),
+                    rs.getString("email"),
+                    rs.getString("password"),
+                    rs.getString("phone"),
+                    rs.getString("status"),
+                    rs.getBoolean("enrollForPromotions"),
+                    rs.getInt("userTypeID")
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     // READ or Load All Users

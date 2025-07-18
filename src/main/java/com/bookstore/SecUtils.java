@@ -1,40 +1,17 @@
 /*
  * Security features for user passwords and credit cards
- * Uses AES encryption for credit cards and PBKDF2WithHmacSHA256 for passwords
- * Uses various java security features for other purposes.
- * Supports encryption and decryption as well as hashing
- * Note, in order to use this, you must have a .env file with
- * a salt and encryption key (see explanation.txt for details)
- * Also allows updating of and setting of new passwords for users
- * (will be used in registration servlet eventually)
+ * Uses Java's built in AESencryption and hashing libraries
+ * and BCrypt
  */
-
 package com.bookstore;
-
 import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.security.SecureRandom;
-import java.security.spec.KeySpec;
 import java.util.Base64;
 import java.nio.charset.StandardCharsets;
 import org.springframework.security.crypto.bcrypt.BCrypt;
+import com.bookstore.records.UserRecords;
 
 public class SecUtils {
-    private static final String encryptionKey = getSecureProperty("encryptionKey");
-    private static final String Salt = getSecureProperty("Salt");
-    private static final String ALGORITHM = "AES/CBC/PKCS5Padding";
-
-    private static String getSecureProperty(String name) {
-        String value = System.getenv(name);
-        if (value == null || value.trim().isEmpty()) {
-            value = System.getProperty(name);
-        }
-        return value;
-    }
 
     public static String hashPassword(String password) {
         if (password == null || password.isEmpty()) {
@@ -55,59 +32,7 @@ public class SecUtils {
         }
     }
 
-    public static String encryptCreditCard(String cardNumber) throws Exception {
-        validateCreditCardNumber(cardNumber);
-        validateEnvironmentVariables();
 
-        SecretKey key = generateKey();
-        Cipher cipher = Cipher.getInstance(ALGORITHM);
-        byte[] iv = generateIv();
-        
-        cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(iv));
-        byte[] encrypted = cipher.doFinal(cardNumber.getBytes());
-        
-        byte[] combined = new byte[iv.length + encrypted.length];
-        System.arraycopy(iv, 0, combined, 0, iv.length);
-        System.arraycopy(encrypted, 0, combined, iv.length, encrypted.length);
-        
-        return Base64.getEncoder().encodeToString(combined);
-    }
-
-    public static String decryptCreditCard(String encryptedData) throws Exception {
-        validateEnvironmentVariables();
-        
-        byte[] combined = Base64.getDecoder().decode(encryptedData);
-        byte[] iv = new byte[16];
-        byte[] encrypted = new byte[combined.length - 16];
-        
-        System.arraycopy(combined, 0, iv, 0, 16);
-        System.arraycopy(combined, 16, encrypted, 0, encrypted.length);
-        
-        SecretKey key = generateKey();
-        Cipher cipher = Cipher.getInstance(ALGORITHM);
-        cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(iv));
-        
-        byte[] decrypted = cipher.doFinal(encrypted);
-        return new String(decrypted, StandardCharsets.UTF_8);
-    }
-
-    private static SecretKey generateKey() throws Exception {
-        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-        KeySpec spec = new PBEKeySpec(encryptionKey.toCharArray(), Salt.getBytes(), 65536, 256);
-        return new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
-    }
-
-    private static byte[] generateIv() {
-        byte[] iv = new byte[16];
-        new SecureRandom().nextBytes(iv);
-        return iv;
-    }
-
-    private static void validateEnvironmentVariables() {
-        if (encryptionKey == null || Salt == null) {
-            throw new IllegalStateException("Encryption secret key and salt must be set in environment variables");
-        }
-    }
 
     private static void validateCreditCardNumber(String cardNumber) {
         if (cardNumber == null || cardNumber.trim().isEmpty()) {
@@ -115,57 +40,62 @@ public class SecUtils {
         }
     }
 
-    public static com.bookstore.db.UserRecords findUserForLogin(com.bookstore.db.UserDatabase db, String identifier, boolean isAccountId) {
+    private static UserRecords toUserRecord(java.sql.ResultSet rs) throws java.sql.SQLException {
+        return new UserRecords(
+            rs.getInt("userID"),
+            rs.getString("firstName"),
+            rs.getString("lastName"),
+            rs.getString("email"),
+            rs.getString("password"),
+            rs.getString("phone"),
+            rs.getString("status"),
+            rs.getBoolean("enrollForPromotions"),
+            rs.getInt("userTypeID")
+        );
+    }
+
+    /*
+     * Finds a specific user for login
+     * Note that if you try to login with an account that has not been activated
+     * this method fails.
+     * This is intentional!
+     */
+    public static UserRecords findUserForLogin(com.bookstore.db.UserDatabase db, String identifier, boolean isAccountId) {
         if (identifier == null || identifier.trim().isEmpty()) {
             return null;
         }
         
-        try {
-            java.sql.Connection conn = db.getConnection();
-            if (conn == null) {
+        if (isAccountId) {
+            try {
+                int userId = Integer.parseInt(identifier.trim());
+                return findUserByID(db, userId);
+            } catch (NumberFormatException e) {
                 return null;
             }
-            
-            String query;
-            java.sql.PreparedStatement ps;
-            
-            if (isAccountId) {
-                try {
-                    int userId = Integer.parseInt(identifier.trim());
-                    query = "SELECT * FROM Users WHERE userID = ? AND status = 'active'";
-                    ps = conn.prepareStatement(query);
-                    ps.setInt(1, userId);
-                } catch (NumberFormatException e) {
+        } else {
+            try {
+                java.sql.Connection conn = db.getConnection();
+                if (conn == null) {
                     return null;
                 }
-            } else {
-                query = "SELECT * FROM Users WHERE email = ? AND status = 'active'";
-                ps = conn.prepareStatement(query);
+                
+                String query = "SELECT * FROM Users WHERE email = ? AND status = 'active'";
+                java.sql.PreparedStatement ps = conn.prepareStatement(query);
                 ps.setString(1, identifier.toLowerCase());
+                
+                java.sql.ResultSet rs = ps.executeQuery();
+                
+                if (rs.next()) {
+                    return toUserRecord(rs);
+                }
+            } catch (java.sql.SQLException e) {
+                e.printStackTrace(); // debugging logging, candidate for removal
             }
-            
-            java.sql.ResultSet rs = ps.executeQuery();
-            
-            if (rs.next()) {
-                return new com.bookstore.db.UserRecords(
-                    rs.getInt("userID"),
-                    rs.getString("firstName"),
-                    rs.getString("lastName"),
-                    rs.getString("email"),
-                    rs.getString("password"),
-                    rs.getString("phone"),
-                    rs.getString("status"),
-                    rs.getBoolean("enrollForPromotions"),
-                    rs.getInt("userTypeID")
-                );
-            }
-        } catch (java.sql.SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }
 
-    public static com.bookstore.db.UserRecords findUserForLoginFlexible(com.bookstore.db.UserDatabase db, String identifier) {
+    public static UserRecords findUserForLoginFlexible(com.bookstore.db.UserDatabase db, String identifier) {
         if (identifier == null || identifier.trim().isEmpty()) {
             return null;
         }
@@ -174,7 +104,7 @@ public class SecUtils {
         return findUserForLogin(db, identifier, isAccountId);
     }
 
-    public static com.bookstore.db.UserRecords findUserByID(com.bookstore.db.UserDatabase db, int userID) {
+    public static UserRecords findUserByID(com.bookstore.db.UserDatabase db, int userID) {
         try {
             java.sql.Connection conn = db.getConnection();
             if (conn == null) {
@@ -187,17 +117,7 @@ public class SecUtils {
             java.sql.ResultSet rs = ps.executeQuery();
             
             if (rs.next()) {
-                return new com.bookstore.db.UserRecords(
-                    rs.getInt("userID"),
-                    rs.getString("firstName"),
-                    rs.getString("lastName"),
-                    rs.getString("email"),
-                    rs.getString("password"),
-                    rs.getString("phone"),
-                    rs.getString("status"),
-                    rs.getBoolean("enrollForPromotions"),
-                    rs.getInt("userTypeID")
-                );
+                return toUserRecord(rs);
             }
         } catch (java.sql.SQLException e) {
             e.printStackTrace();
@@ -205,6 +125,9 @@ public class SecUtils {
         return null;
     }
 
+    /*
+     * Get user role name with quick int check
+     */
     public static String getUserRoleName(int userTypeID) {
         switch(userTypeID) {
             case 1: return "Admin";
@@ -215,7 +138,7 @@ public class SecUtils {
     }
 
     public static String updatePassword(com.bookstore.db.UserDatabase db, int userID, 
-                                      String currentPassword, String newPassword) {
+         String currentPassword, String newPassword) {
         if (currentPassword == null || currentPassword.trim().isEmpty()) {
             return "Current password is required";
         }
@@ -225,7 +148,7 @@ public class SecUtils {
         }
         
         try {
-            com.bookstore.db.UserRecords user = findUserByID(db, userID);
+            UserRecords user = findUserByID(db, userID);
             if (user == null) {
                 return "User not found";
             }
@@ -255,7 +178,7 @@ public class SecUtils {
         }
         
         try {
-            com.bookstore.db.UserRecords user = findUserByID(db, userID);
+            UserRecords user = findUserByID(db, userID);
             if (user == null) {
                 return "User not found";
             }
@@ -302,5 +225,31 @@ public class SecUtils {
         } catch (Exception e) {
             return "Error setting password: " + e.getMessage();
         }
+    }
+
+    public static String encryptCreditCardSimple(String cardNumber) throws Exception {
+        validateCreditCardNumber(cardNumber);
+        
+        // Use a hardcoded key for simple encryption
+        String keySource = "BookStoreApp2024SecretKey123456789012345678901234"; 
+        SecretKeySpec key = new SecretKeySpec(keySource.substring(0, 32).getBytes(), "AES");
+        
+        Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+        cipher.init(Cipher.ENCRYPT_MODE, key);
+        byte[] encrypted = cipher.doFinal(cardNumber.getBytes());
+        
+        return Base64.getEncoder().encodeToString(encrypted);
+    }
+
+    public static String decryptCreditCardSimple(String encryptedData) throws Exception {
+        // Use the same hardcoded key
+        String keySource = "BookStoreApp2024SecretKey123456789012345678901234";
+        SecretKeySpec key = new SecretKeySpec(keySource.substring(0, 32).getBytes(), "AES");
+        
+        Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+        cipher.init(Cipher.DECRYPT_MODE, key);
+        byte[] decrypted = cipher.doFinal(Base64.getDecoder().decode(encryptedData));
+        
+        return new String(decrypted, StandardCharsets.UTF_8);
     }
 } 

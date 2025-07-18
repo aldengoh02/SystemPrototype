@@ -1,14 +1,16 @@
-package com.bookstore.db;
+package com.bookstore.records;
 
 public class BillingAddressRecords {
     private int addressID;
+    private int userID;
     private String street;
     private String city;
     private String state;
     private String zipCode;
 
-    public BillingAddressRecords(int addressID, String street, String city, String state, String zipCode) {
+    public BillingAddressRecords(int addressID, int userID, String street, String city, String state, String zipCode) {
         this.addressID = addressID;
+        this.userID = userID;
         this.street = street;
         this.city = city;
         this.state = state;
@@ -16,6 +18,7 @@ public class BillingAddressRecords {
     }
 
     public int getAddressID() { return addressID; }
+    public int getUserID() { return userID; }
     public String getStreet() { return street; }
     public String getCity() { return city; }
     public String getState() { return state; }

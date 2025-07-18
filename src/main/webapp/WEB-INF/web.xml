@@ -20,4 +20,32 @@
         <url-pattern>/img/*</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>SecurityServlet</servlet-name>
+        <servlet-class>com.bookstore.web.SecurityServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>SecurityServlet</servlet-name>
+        <url-pattern>/api/security/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>EditUserServlet</servlet-name>
+        <servlet-class>com.bookstore.web.EditUserServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>EditUserServlet</servlet-name>
+        <url-pattern>/api/user/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>RegistrationServlet</servlet-name>
+        <servlet-class>com.bookstore.web.RegistrationServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>RegistrationServlet</servlet-name>
+        <url-pattern>/api/register/*</url-pattern>
+    </servlet-mapping>
+
 </web-app> 

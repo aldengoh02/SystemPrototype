@@ -4,6 +4,7 @@ import java.sql.*;
 import java.util.*;
 import java.io.InputStream;
 import java.util.Properties;
+import com.bookstore.records.OrdersRecords;
 
 public class OrdersDatabase {
 
@@ -100,14 +101,11 @@ public class OrdersDatabase {
             Statement stmt = connection.createStatement();
             rs = stmt.executeQuery("SELECT * FROM orders");
             while (rs.next()) {
-                Integer promoID = rs.getInt("promoID");
-                if (rs.wasNull()) promoID = null;
-
                 OrdersRecords order = new OrdersRecords(
                         rs.getInt("orderID"),
                         rs.getInt("userID"),
                         rs.getInt("cardID"),
-                        promoID,
+                        rs.getInt("promoID"),
                         rs.getDouble("grandTotal"),
                         rs.getTimestamp("orderDateTime")
                 );
