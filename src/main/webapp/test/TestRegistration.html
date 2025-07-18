@@ -1,0 +1,322 @@
+//Boilerplate for testing registration
+//Comes with various prefilled data to test
+//Whether it got added to the database or not
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Registration - BookStore</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+        }
+        .test-section h2 {
+            color: #007bff;
+            margin-top: 0;
+        }
+        .btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .btn.success {
+            background-color: #28a745;
+        }
+        .btn.error {
+            background-color: #dc3545;
+        }
+        .response {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 10px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .test-data {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .links {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .links a {
+            color: #007bff;
+            text-decoration: none;
+            margin: 0 15px;
+        }
+        .links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Registration API Test Suite</h1>
+        
+        <div class="test-section">
+            <h2>Test 1: Basic Registration (Required Fields Only)</h2>
+            <p>Tests user registration with only required fields.</p>
+            <div class="test-data" id="test1Data">
+{
+  "firstName": "Alice",
+  "lastName": "Johnson",
+  "email": "alice.test@example.com",
+  "phone": "555-123-4567",
+  "password": "testpassword123",
+  "enrollForPromotions": true
+}
+            </div>
+            <button class="btn" onclick="runTest1()">Run Test 1</button>
+            <div class="response" id="test1Response" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Test 2: Registration with Shipping Address</h2>
+            <p>Tests user registration with shipping address included.</p>
+            <div class="test-data" id="test2Data">
+{
+  "firstName": "Bob",
+  "lastName": "Smith",
+  "email": "bob.test@example.com",
+  "phone": "555-987-6543",
+  "password": "securepass456",
+  "enrollForPromotions": false,
+  "shippingAddress": {
+    "street": "456 Oak Avenue",
+    "city": "Portland",
+    "state": "OR",
+    "zipCode": "97201"
+  }
+}
+            </div>
+            <button class="btn" onclick="runTest2()">Run Test 2</button>
+            <div class="response" id="test2Response" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Test 3: Full Registration (All Optional Fields)</h2>
+            <p>Tests user registration with shipping address and payment card.</p>
+            <div class="test-data" id="test3Data">
+{
+  "firstName": "Carol",
+  "lastName": "Williams",
+  "email": "carol.test@example.com",
+  "phone": "555-555-1234",
+  "password": "fulltest789",
+  "enrollForPromotions": true,
+  "shippingAddress": {
+    "street": "789 Pine Street",
+    "city": "Seattle",
+    "state": "WA",
+    "zipCode": "98101"
+  },
+  "paymentCard": {
+    "cardNumber": "4111111111111111",
+    "cardType": "Visa",
+    "expirationDate": "12/26",
+    "billingAddress": {
+      "street": "321 Elm Drive",
+      "city": "Bellevue",
+      "state": "WA",
+      "zipCode": "98004"
+    }
+  }
+}
+            </div>
+            <button class="btn" onclick="runTest3()">Run Test 3</button>
+            <div class="response" id="test3Response" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Test 4: Validation Error Test</h2>
+            <p>Tests validation by attempting registration with missing required fields.</p>
+            <div class="test-data" id="test4Data">
+{
+  "firstName": "Dave",
+  "email": "incomplete@example.com",
+  "password": "123"
+}
+            </div>
+            <button class="btn" onclick="runTest4()">Run Test 4 (Should Fail)</button>
+            <div class="response" id="test4Response" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Test 5: Duplicate Email Test</h2>
+            <p>Tests duplicate email validation by re-registering the first test user.</p>
+            <button class="btn" onclick="runTest5()">Run Test 5 (Should Fail - Duplicate Email)</button>
+            <div class="response" id="test5Response" style="display: none;"></div>
+        </div>
+
+        <div class="links">
+            <a href="register.html">Registration Form</a>
+            <a href="index.html">Login Page</a>
+        </div>
+    </div>
+
+    <script>
+        function showResponse(testNum, data, isError = false) {
+            const responseDiv = document.getElementById(`test${testNum}Response`);
+            responseDiv.style.display = 'block';
+            responseDiv.textContent = JSON.stringify(data, null, 2);
+            responseDiv.style.backgroundColor = isError ? '#f8d7da' : '#d4edda';
+            responseDiv.style.borderColor = isError ? '#f5c6cb' : '#c3e6cb';
+        }
+
+        async function makeRegistrationRequest(testData, testNum) {
+            try {
+                const response = await fetch('/api/register/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                const result = await response.json();
+                
+                showResponse(testNum, {
+                    status: response.status,
+                    success: result.success,
+                    message: result.message || result.error,
+                    userID: result.userID,
+                    email: result.email
+                }, !result.success);
+                
+            } catch (error) {
+                showResponse(testNum, {
+                    error: 'Network error: ' + error.message
+                }, true);
+            }
+        }
+
+        function runTest1() {
+            const testData = {
+                "firstName": "Alice",
+                "lastName": "Johnson",
+                "email": "alice.test@example.com",
+                "phone": "555-123-4567",
+                "password": "testpassword123",
+                "enrollForPromotions": true
+            };
+            makeRegistrationRequest(testData, 1);
+        }
+
+        function runTest2() {
+            const testData = {
+                "firstName": "Bob",
+                "lastName": "Smith",
+                "email": "bob.test@example.com",
+                "phone": "555-987-6543",
+                "password": "securepass456",
+                "enrollForPromotions": false,
+                "shippingAddress": {
+                    "street": "456 Oak Avenue",
+                    "city": "Portland",
+                    "state": "OR",
+                    "zipCode": "97201"
+                }
+            };
+            makeRegistrationRequest(testData, 2);
+        }
+
+        function runTest3() {
+            const testData = {
+                "firstName": "Carol",
+                "lastName": "Williams",
+                "email": "carol.test@example.com",
+                "phone": "555-555-1234",
+                "password": "fulltest789",
+                "enrollForPromotions": true,
+                "shippingAddress": {
+                    "street": "789 Pine Street",
+                    "city": "Seattle",
+                    "state": "WA",
+                    "zipCode": "98101"
+                },
+                "paymentCard": {
+                    "cardNumber": "4111111111111111",
+                    "cardType": "Visa",
+                    "expirationDate": "12/26",
+                    "billingAddress": {
+                        "street": "321 Elm Drive",
+                        "city": "Bellevue",
+                        "state": "WA",
+                        "zipCode": "98004"
+                    }
+                }
+            };
+            makeRegistrationRequest(testData, 3);
+        }
+
+        function runTest4() {
+            const testData = {
+                "firstName": "Dave",
+                "email": "incomplete@example.com",
+                "password": "123"
+            };
+            makeRegistrationRequest(testData, 4);
+        }
+
+        function runTest5() {
+            // Reuse Test 1 data to test duplicate email
+            const testData = {
+                "firstName": "Alice",
+                "lastName": "Johnson", 
+                "email": "alice.test@example.com",
+                "phone": "555-123-4567",
+                "password": "testpassword123",
+                "enrollForPromotions": true
+            };
+            makeRegistrationRequest(testData, 5);
+        }
+
+        // Add some helper info
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Registration Test Suite loaded');
+            console.log('Make sure the server is running with: mvn jetty:run -DencryptionKey=... -DSalt=...');
+        });
+    </script>
+</body>
+</html> 

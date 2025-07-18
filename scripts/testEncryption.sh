@@ -1,39 +1,14 @@
 #!/bin/bash
 
-#Tests functionality of currenty encryption capabilities
-# simply checks if keys are present and work
-# run from root directory since it uses relative paths 
-# I have no idea how to write this for windows sorry
+# Tests functionality of current encryption capabilities
+# Simply checks if the simple encryption works without external keys
+# Run from root directory since it uses relative paths 
 
-echo " Testing Encryption Keys..."
+echo " Testing Simple Encryption..."
 echo ""
 
-# If no env file, generate one automatically by running key gen
-if [ ! -f ".env" ]; then
-    echo "  .env file not found. Generating encryption keys..."
-    echo ""
-    ./scripts/encryptionKeyGenerator.sh
-    echo ""
-    echo " Encryption keys generated. Continuing with test..."
-    echo ""
-fi
-
-# Check if .env contains required keys, regenerate if missing
-if ! grep -q "encryptionKey=" .env || ! grep -q "Salt=" .env; then
-    echo "  .env file is missing required keys. Regenerating..."
-    echo ""
-    ./scripts/encryptionKeyGenerator.sh
-    echo ""
-    echo " Encryption keys regenerated. Continuing with test..."
-    echo ""
-fi
-
-echo " Found .env file with encryption keys"
+echo " No external keys needed - using built-in simple encryption"
 echo ""
-
-# Load environment variables from .env and pass them to Java
-ENCRYPTION_KEY=$(grep 'encryptionKey=' .env | cut -d'=' -f2)
-SALT=$(grep 'Salt=' .env | cut -d'=' -f2)
 
 # Create target directory if it doesn't exist
 mkdir -p target/test-classes
@@ -54,9 +29,8 @@ fi
 echo " Running encryption tests..."
 echo ""
 
-# Run the test
+# Run the test (no encryption keys needed)
 java -cp "target/classes:target/test-classes:$(find lib -name "*.jar" | tr '\n' ':')" \
-    -DencryptionKey="$ENCRYPTION_KEY" -DSalt="$SALT" \
     test.EncryptionTest
 
 echo ""

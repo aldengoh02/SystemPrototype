@@ -32,10 +32,10 @@ public class EncryptionTest {
             System.out.println("Card: " + hide(card));
             
             try {
-                String enc = SecUtils.encryptCreditCard(card);
+                String enc = SecUtils.encryptCreditCardSimple(card);
                 System.out.println("Encrypted: " + enc.substring(0, Math.min(enc.length(), 15)) + "...");
                 
-                String dec = SecUtils.decryptCreditCard(enc);
+                String dec = SecUtils.decryptCreditCardSimple(enc);
                 System.out.println("Decrypted: " + hide(dec));
                 
                 if(card.equals(dec)) {

@@ -52,13 +52,13 @@ public class SecurityServlet extends HttpServlet {
 
                 case "/encrypt-card":
                     String cardNumber = jsonRequest.get("cardNumber").getAsString();
-                    String encryptedCard = SecUtils.encryptCreditCard(cardNumber);
+                    String encryptedCard = SecUtils.encryptCreditCardSimple(cardNumber);
                     jsonResponse.addProperty("encryptedCard", encryptedCard);
                     break;
 
                 case "/decrypt-card":
                     String encryptedData = jsonRequest.get("encryptedCard").getAsString();
-                    String decryptedCard = SecUtils.decryptCreditCard(encryptedData);
+                    String decryptedCard = SecUtils.decryptCreditCardSimple(encryptedData);
                     jsonResponse.addProperty("decryptedCard", decryptedCard);
                     break;
 

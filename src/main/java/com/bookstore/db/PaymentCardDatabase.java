@@ -74,7 +74,7 @@ public class PaymentCardDatabase {
 
         String query = "INSERT INTO PaymentCard (cardNo, userID, type, expirationDate, billingAddressID) VALUES (?, ?, ?, ?, ?)";
         try {
-            String encryptedCardNo = SecUtils.encryptCreditCard(card.getCardNo());
+            String encryptedCardNo = SecUtils.encryptCreditCardSimple(card.getCardNo());
             PreparedStatement ps = connection.prepareStatement(query);
             ps.setString(1, encryptedCardNo);
             ps.setInt(2, card.getUserID());
@@ -93,7 +93,7 @@ public class PaymentCardDatabase {
     public String updateCard(PaymentCardRecords card) {
         String query = "UPDATE PaymentCard SET cardNo=?, type=?, expirationDate=?, billingAddressID=? WHERE cardID=? AND userID=?";
         try {
-            String encryptedCardNo = SecUtils.encryptCreditCard(card.getCardNo());
+            String encryptedCardNo = SecUtils.encryptCreditCardSimple(card.getCardNo());
             PreparedStatement ps = connection.prepareStatement(query);
             ps.setString(1, encryptedCardNo);
             ps.setString(2, card.getType());

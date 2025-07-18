@@ -22,8 +22,8 @@ CREATE TABLE IF NOT EXISTS Users (
     FOREIGN KEY (userTypeID) REFERENCES UserTypes(userTypeID)
 );
 
--- Test users with PORTABLE hashed passwords (work on ANY machine!)
--- These hashes use fixed salts for consistency across different environments
+-- filling users table with sample users with hashes for these passwords and
+-- their relevant actual pass being shown, users set to active for testing
 
 -- Password: password123 (for John Doe)
 INSERT INTO Users (firstName, lastName, email, password, phone, status)

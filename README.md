@@ -6,6 +6,11 @@ SWE Bookstore System Prototype
 # run npm start in root in a separate terminal to start frontend
 # backend is currently connected and images are loaded via public/img
 
+# For any functionalities involving passwords you need to 
+# mvn jetty:run -Dencryptionkey=testKey123456789012345678901234567890 -DSalt=testSalt1234567890
+
+
+
 #Database Setup
 #Running the Schema Files 
 - Open MySql, then click on file and open 'SQL Script' and locate to your folder to the src/main/resources/BookStore_Schema/the.sql files to open them on the workbench and click the lightning icon to run it.
