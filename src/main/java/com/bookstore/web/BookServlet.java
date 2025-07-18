@@ -33,28 +33,6 @@
  *    Example: POST http://localhost:8080/api/books/calculate
  *             Body: [{"id": 1, "quantity": 2}, {"id": 3, "quantity": 1}]
  * 
- * 
- *  Example response:
- * Book Object:
- * {
- *   "id": 1,
- *   "isbn": "9781234567001",
- *   "category": "Fantasy",
- *   "author": "Rebecca Yarros",
- *   "title": "Fourth Wing",
- *   "coverImage": "img/Fourth_Wing.png",
- *   "edition": "1st Edition",
- *   "publisher": "Entangled Publishing",
- *   "publicationYear": 2023,
- *   "quantityInStock": 18,
- *   "minThreshold": 3,
- *   "buyingPrice": 11.00,
- *   "sellingPrice": 19.99,
- *   "rating": 4.6,
- *   "featured": true,
- *   "releaseDate": "2023-04-05",
- *   "description": "Complete book description here..."
- * }
 
  */
 
