@@ -1,7 +1,10 @@
 /*
  * Handles login, logout, and session checking
- * POST /api/auth/login and /api/auth/logout
- * GET /api/auth/check-session
+ *
+ * Endpoints:
+ *  - POST /api/auth/login: Authenticates a user and creates a session.
+ *  - POST /api/auth/logout: Invalidates the current user session.
+ *  - GET /api/auth/check-session: Checks if a valid session exists for the user.
  */
 
 package com.bookstore.web;
@@ -40,7 +43,6 @@ public class LoginServlet extends HttpServlet {
             switch (path) {
                 case "/login": login(request, req, json, response); break;
                 case "/logout": logout(request, json); break;
-                case "/check-session": sessionCheck(request, json); break;
                 default:
                     response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                     json.addProperty("error", "Unknown endpoint");

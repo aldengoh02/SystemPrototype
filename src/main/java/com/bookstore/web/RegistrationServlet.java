@@ -1,3 +1,12 @@
+/*
+ * Handles user registration and account creation.
+ * Currently only missing email verification, forgot/rest password
+ * can be handled by methods in other classes so might be a good idea
+ * to move them to here for cohesion
+ * /api/register/ endpoint
+ * Post Method
+ */
+
 package com.bookstore.web;
 
 import jakarta.servlet.ServletException;
@@ -20,9 +29,9 @@ public class RegistrationServlet extends HttpServlet {
     private Gson gson = new Gson();
 
     // Email validation pattern
-    private static final Pattern EMAIL_PATTERN = Pattern.compile(
-        "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$"
-    );
+    private static final Pattern emailPattern = Pattern.compile(
+    "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$" //regex for email validation
+);
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) 
@@ -161,12 +170,13 @@ public class RegistrationServlet extends HttpServlet {
         if (email == null || email.isEmpty()) {
             return "Email address is required";
         }
-        if (!EMAIL_PATTERN.matcher(email).matches()) {
+        if (!emailPattern.matcher(email).matches()) {
             return "Invalid email address format";
         }
         if (password == null || password.isEmpty()) {
             return "Password is required";
         }
+        // pass length check, not neccessarily needed but just good practice
         if (password.length() < 6) {
             return "Password must be at least 6 characters long";
         }

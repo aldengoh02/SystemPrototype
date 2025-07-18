@@ -1,11 +1,9 @@
 /*
  * Security features for user passwords and credit cards
- * Uses simple AES encryption for credit cards and BCrypt for passwords
- * No external keys or configuration required
+ * Uses Java's built in AESencryption and hashing libraries
+ * and BCrypt
  */
-
 package com.bookstore;
-
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import java.util.Base64;
@@ -39,8 +37,7 @@ public class SecUtils {
     public static String hashCreditCard(String cardNumber) {
         validateCreditCardNumber(cardNumber);
         
-        // Use BCrypt with a lower cost (8) since card numbers are predictable
-        // This makes it harder for attackers to brute force
+        // hash cc
         String salt = BCrypt.gensalt(8);
         return BCrypt.hashpw(cardNumber, salt);
     }

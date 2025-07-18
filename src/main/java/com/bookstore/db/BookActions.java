@@ -2,6 +2,7 @@
  * Data access layer for database
  * Currently only supports search functionality
  * performs an sql query to database and returns result
+ * Final deliverable will need for this section to be modified
  */
 
 package com.bookstore.db;
