@@ -184,5 +184,33 @@ public class testDB {
         } else {
             System.out.println("Failed to connect to Cart database.");
         }
+
+        System.out.println("------------------------------------------");
+
+        // Test VerificationTokenDatabase
+        VerificationTokenDatabase tokenDb = new VerificationTokenDatabase();
+        if (tokenDb.connectDb()) {
+            System.out.println("Connected to VerificationToken database.");
+
+            String tokenResult = tokenDb.loadResults();
+            System.out.println(tokenResult);
+            for (VerificationTokenRecords token : tokenDb.getResults()) {
+                System.out.println(
+                        "TokenID: " + token.getTokenId() +
+                                ", UserID: " + token.getUserId() +
+                                ", Token: " + token.getToken() +
+                                ", Expiry: " + token.getExpiryDate() +
+                                ", Type: " + token.getTokenType()
+                );
+            }
+
+            tokenDb.disconnectDb();
+            System.out.println("Disconnected from VerificationToken database.");
+        } else {
+            System.out.println("Failed to connect to VerificationToken database.");
+        }
+
     }
 }
+
+
