@@ -231,7 +231,7 @@ public class SecUtils {
         validateCreditCardNumber(cardNumber);
         
         // Use a hardcoded key for simple encryption
-        String keySource = "BookStoreApp2024SecretKey123456789012345678901234"; // 32+ chars
+        String keySource = "BookStoreApp2024SecretKey123456789012345678901234"; 
         SecretKeySpec key = new SecretKeySpec(keySource.substring(0, 32).getBytes(), "AES");
         
         Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
