@@ -14,4 +14,4 @@ CREATE TABLE IF NOT EXISTS orders (
 );
 
 INSERT INTO orders (userID, cardID, promoID, grandTotal, orderDateTime)
-VALUES (1, '1', 1, 42.38, NOW());
+VALUES (1, 1, 1, 42.38, NOW());
