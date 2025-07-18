@@ -34,79 +34,63 @@ public class SecUtils {
 
 
 
-    public static String hashCreditCard(String cardNumber) {
-        validateCreditCardNumber(cardNumber);
-        
-        // hash cc
-        String salt = BCrypt.gensalt(8);
-        return BCrypt.hashpw(cardNumber, salt);
-    }
-
-    public static boolean verifyCreditCard(String cardNumber, String hash) {
-        if (cardNumber == null || hash == null) {
-            return false;
-        }
-        try {
-            return BCrypt.checkpw(cardNumber, hash);
-        } catch (IllegalArgumentException e) {
-            return false;
-        }
-    }
-
-
-
     private static void validateCreditCardNumber(String cardNumber) {
         if (cardNumber == null || cardNumber.trim().isEmpty()) {
             throw new IllegalArgumentException("Credit card number cannot be null or empty");
         }
     }
 
+    private static UserRecords toUserRecord(java.sql.ResultSet rs) throws java.sql.SQLException {
+        return new UserRecords(
+            rs.getInt("userID"),
+            rs.getString("firstName"),
+            rs.getString("lastName"),
+            rs.getString("email"),
+            rs.getString("password"),
+            rs.getString("phone"),
+            rs.getString("status"),
+            rs.getBoolean("enrollForPromotions"),
+            rs.getInt("userTypeID")
+        );
+    }
+
+    /*
+     * Finds a specific user for login
+     * Note that if you try to login with an account that has not been activated
+     * this method fails.
+     * This is intentional!
+     */
     public static UserRecords findUserForLogin(com.bookstore.db.UserDatabase db, String identifier, boolean isAccountId) {
         if (identifier == null || identifier.trim().isEmpty()) {
             return null;
         }
         
-        try {
-            java.sql.Connection conn = db.getConnection();
-            if (conn == null) {
+        if (isAccountId) {
+            try {
+                int userId = Integer.parseInt(identifier.trim());
+                return findUserByID(db, userId);
+            } catch (NumberFormatException e) {
                 return null;
             }
-            
-            String query;
-            java.sql.PreparedStatement ps;
-            
-            if (isAccountId) {
-                try {
-                    int userId = Integer.parseInt(identifier.trim());
-                    query = "SELECT * FROM Users WHERE userID = ? AND status = 'active'";
-                    ps = conn.prepareStatement(query);
-                    ps.setInt(1, userId);
-                } catch (NumberFormatException e) {
+        } else {
+            try {
+                java.sql.Connection conn = db.getConnection();
+                if (conn == null) {
                     return null;
                 }
-            } else {
-                query = "SELECT * FROM Users WHERE email = ? AND status = 'active'";
-                ps = conn.prepareStatement(query);
+                
+                String query = "SELECT * FROM Users WHERE email = ? AND status = 'active'";
+                java.sql.PreparedStatement ps = conn.prepareStatement(query);
                 ps.setString(1, identifier.toLowerCase());
+                
+                java.sql.ResultSet rs = ps.executeQuery();
+                
+                if (rs.next()) {
+                    return toUserRecord(rs);
+                }
+            } catch (java.sql.SQLException e) {
+                e.printStackTrace(); // debugging logging, candidate for removal
             }
-            
-            java.sql.ResultSet rs = ps.executeQuery();
-            
-            if (rs.next()) {
-                return new UserRecords(
-                    rs.getInt("userID"),
-                    rs.getString("firstName"),
-                    rs.getString("lastName"),
-                    rs.getString("email"),
-                    rs.getString("password"),
-                    rs.getString("phone"),
-                    rs.getString("status"),
-                    rs.getBoolean("enrollForPromotions"),
-                    rs.getInt("userTypeID")
-                );
-            }
-        } catch (java.sql.SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }
@@ -133,17 +117,7 @@ public class SecUtils {
             java.sql.ResultSet rs = ps.executeQuery();
             
             if (rs.next()) {
-                return new UserRecords(
-                    rs.getInt("userID"),
-                    rs.getString("firstName"),
-                    rs.getString("lastName"),
-                    rs.getString("email"),
-                    rs.getString("password"),
-                    rs.getString("phone"),
-                    rs.getString("status"),
-                    rs.getBoolean("enrollForPromotions"),
-                    rs.getInt("userTypeID")
-                );
+                return toUserRecord(rs);
             }
         } catch (java.sql.SQLException e) {
             e.printStackTrace();
@@ -151,6 +125,9 @@ public class SecUtils {
         return null;
     }
 
+    /*
+     * Get user role name with quick int check
+     */
     public static String getUserRoleName(int userTypeID) {
         switch(userTypeID) {
             case 1: return "Admin";
@@ -253,7 +230,7 @@ public class SecUtils {
     public static String encryptCreditCardSimple(String cardNumber) throws Exception {
         validateCreditCardNumber(cardNumber);
         
-        // Use a hardcoded key for simple encryption (not production ready, but works)
+        // Use a hardcoded key for simple encryption
         String keySource = "BookStoreApp2024SecretKey123456789012345678901234"; // 32+ chars
         SecretKeySpec key = new SecretKeySpec(keySource.substring(0, 32).getBytes(), "AES");
         

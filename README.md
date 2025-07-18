@@ -7,7 +7,6 @@ SWE Bookstore System Prototype
 # backend is currently connected and images are loaded via public/img
 # how to actually call apis should be listed in each given servlet
 
-# For any functionalities involving passwords you need to 
 
 
 

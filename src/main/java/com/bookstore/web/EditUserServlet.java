@@ -183,7 +183,7 @@ public class EditUserServlet extends HttpServlet {
      */
     public static String updatePaymentCard(PaymentCardDatabase db, int userID, int cardID, String cardNo, String type, String expirationDate, int billingAddressID) {
         if (cardNo.length() != 16 || cardNo == null || cardNo.trim().isEmpty() || type == null || type.trim().isEmpty() || expirationDate == null || expirationDate.trim().isEmpty()) {
-            return "Card number, type, and expiration date cannot be empty";
+            return "Card number, type, and expiration date cannot be empty, or card number is not 16 digits";
         }
         
         try {
