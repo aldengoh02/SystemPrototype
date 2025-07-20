@@ -104,6 +104,10 @@ public class SecUtils {
         return findUserForLogin(db, identifier, isAccountId);
     }
 
+    /*
+     * Find a user by their userID
+     * Only does so if they are an active user
+     */
     public static UserRecords findUserByID(com.bookstore.db.UserDatabase db, int userID) {
         try {
             java.sql.Connection conn = db.getConnection();
@@ -124,6 +128,36 @@ public class SecUtils {
         }
         return null;
     }
+
+
+    /*
+     * Find a user by their userID
+     * Copies findUserByID but only returns inactive users
+     * since those are the only users that need to be verified
+     */
+    public static UserRecords findUserForVerification(com.bookstore.db.UserDatabase db, int userID) {
+        try {
+            java.sql.Connection conn = db.getConnection();
+            if (conn == null) {
+                return null;
+            }
+            
+            String query = "SELECT * FROM Users WHERE userID = ? AND status = 'inactive'";
+            java.sql.PreparedStatement ps = conn.prepareStatement(query);
+            ps.setInt(1, userID);
+            java.sql.ResultSet rs = ps.executeQuery();
+            
+            if (rs.next()) {
+                return toUserRecord(rs);
+            }
+        } catch (java.sql.SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
+
 
     /*
      * Get user role name with quick int check

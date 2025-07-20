@@ -11,4 +11,4 @@ CREATE TABLE IF NOT EXISTS VerificationToken (
 );
 
 INSERT INTO VerificationToken (user_id, token, expiry_date, token_type)
-VALUES (101, 'abc123emailtoken456', '2025-07-31 23:59:59', 'email_verification');
+VALUES (1, 'abc123emailtoken456', '2025-07-31 23:59:59', 'email_verification');
