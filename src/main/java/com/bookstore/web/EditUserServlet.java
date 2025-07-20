@@ -22,6 +22,7 @@ import com.bookstore.records.BillingAddressRecords;
 import com.bookstore.db.PaymentCardDatabase;
 import com.bookstore.records.PaymentCardRecords;
 import com.bookstore.SecUtils;
+import com.bookstore.Email;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -90,6 +91,17 @@ public class EditUserServlet extends HttpServlet {
         UserDatabase db = new UserDatabase();
         db.connectDb();
         String result = updateUserName(db, userID, firstName, lastName);
+        
+        // Send email notification if update was successful
+        if (result.contains("successfully")) {
+            try {
+                Email.sendProfileChangeNotification(userID);
+            } catch (Exception e) {
+                // Log error but don't fail the request
+                System.err.println("Failed to send email notification: " + e.getMessage());
+            }
+        }
+        
         db.disconnectDb();
         
         res.addProperty("message", result);
@@ -106,6 +118,17 @@ public class EditUserServlet extends HttpServlet {
         BillingAddressDatabase db = new BillingAddressDatabase();
         db.connectDb();
         String result = updateBillingAddress(db, userID, addressID, street, city, state, zipCode);
+        
+        // Send email notification if update was successful
+        if (result.contains("successfully")) {
+            try {
+                Email.sendProfileChangeNotification(userID);
+            } catch (Exception e) {
+                // Log error but don't fail the request
+                System.err.println("Failed to send email notification: " + e.getMessage());
+            }
+        }
+        
         db.disconnectDb();
         
         res.addProperty("message", result);
@@ -122,6 +145,17 @@ public class EditUserServlet extends HttpServlet {
         PaymentCardDatabase db = new PaymentCardDatabase();
         db.connectDb();
         String result = updatePaymentCard(db, userID, cardID, cardNo, type, expirationDate, billingAddressID);
+        
+        // Send email notification if update was successful
+        if (result.contains("successfully")) {
+            try {
+                Email.sendProfileChangeNotification(userID);
+            } catch (Exception e) {
+                // Log error but don't fail the request
+                System.err.println("Failed to send email notification: " + e.getMessage());
+            }
+        }
+        
         db.disconnectDb();
 
         res.addProperty("message", result);
@@ -129,7 +163,7 @@ public class EditUserServlet extends HttpServlet {
 
         /*
          * Updates password of user
-         * checks current password against databse
+         * checks current password against database
          * before allowing password change
          * and throws error if current password is incorrect
          */
@@ -141,6 +175,17 @@ public class EditUserServlet extends HttpServlet {
         UserDatabase db = new UserDatabase();
         db.connectDb();
         String result = SecUtils.updatePassword(db, userID, currentPassword, newPassword);
+        
+        // Send email notification if update was successful
+        if (result.contains("successfully")) {
+            try {
+                Email.sendProfileChangeNotification(userID);
+            } catch (Exception e) {
+                // Log error but don't fail the request
+                System.err.println("Failed to send email notification: " + e.getMessage());
+            }
+        }
+        
         db.disconnectDb();
 
         res.addProperty("message", result);

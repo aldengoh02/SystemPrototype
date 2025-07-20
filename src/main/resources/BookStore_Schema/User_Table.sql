@@ -43,4 +43,4 @@ VALUES ('Admin', 'User', 'admin@example.com', '$2a$12$qwertyuiopasdfghjklzxOsM3D
 
 -- Password: customer456 (for Customer User)
 INSERT INTO Users (firstName, lastName, email, password, phone, status)
-VALUES ('Customer', 'Demo', 'customer@example.com', '$2a$12$mnbvcxzasdfghjklpoiuyemxBrR1BAshmQ86CsGNK/szLuyBIcaYS', '555-555-0002', 'active');
+VALUES ('Customer', 'Demo', 'adamjewelmcdonald@gmail.com', '$2a$12$mnbvcxzasdfghjklpoiuyemxBrR1BAshmQ86CsGNK/szLuyBIcaYS', '555-555-0002', 'active');
