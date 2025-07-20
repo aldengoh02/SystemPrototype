@@ -144,4 +144,68 @@ public class VerificationTokenDatabase {
         loadResults();
         return "Token Deleted.";
     }
+
+    //Find token by token string
+    public VerificationTokenRecords findTokenByToken(String token) {
+        String query = "SELECT * FROM VerificationToken WHERE token = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(query);
+            ps.setString(1, token);
+            rs = ps.executeQuery();
+            
+            if (rs.next()) {
+                return new VerificationTokenRecords(
+                    rs.getInt("token_id"),
+                    rs.getInt("user_id"),
+                    rs.getString("token"),
+                    rs.getTimestamp("expiry_date"),
+                    rs.getString("token_type")
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    //Validate token (check if exists and not expired)
+    public boolean isTokenValid(String token) {
+        VerificationTokenRecords tokenRecord = findTokenByToken(token);
+        if (tokenRecord == null) {
+            return false;
+        }
+        
+        // Check if token is expired
+        Timestamp now = new Timestamp(System.currentTimeMillis());
+        return tokenRecord.getExpiryDate().after(now);
+    }
+
+    //Delete expired tokens
+    public String deleteExpiredTokens() {
+        String query = "DELETE FROM VerificationToken WHERE expiry_date < NOW()";
+        try {
+            PreparedStatement ps = connection.prepareStatement(query);
+            int deletedCount = ps.executeUpdate();
+            loadResults();
+            return "Deleted " + deletedCount + " expired tokens.";
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return e.toString();
+        }
+    }
+
+    //Delete token by token string
+    public String deleteTokenByToken(String token) {
+        String query = "DELETE FROM VerificationToken WHERE token = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(query);
+            ps.setString(1, token);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return e.toString();
+        }
+        loadResults();
+        return "Token Deleted.";
+    }
 }

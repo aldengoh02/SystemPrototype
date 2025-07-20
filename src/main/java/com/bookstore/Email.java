@@ -32,8 +32,6 @@ public class Email {
     
     /**
      * Sends a profile change notification email to the user by user ID
-     * @param userID The user's ID to retrieve from database
-     * @return true if email sent successfully, false otherwise
      */
     public static boolean sendProfileChangeNotification(int userID) {
         UserDatabase db = new UserDatabase();
@@ -108,18 +106,24 @@ public class Email {
     
     /**
      * Creates the email body content
-     * @param userName The user's name for personalization
-     * @return The formatted email body
+     * currently quite generic but can be changed
+     * to provide more detail either here or inside the actual servlets
+     * 
      */
     private static String createEmailBody(String userName) {
         return userName + ", your profile information has been changed.";
     }
-    
+
     /**
-     * Test method to verify email configuration
-     * This should be called during application startup or in a test environment
+     * Sends an email verification email to the user
+     * 
      */
-    public static boolean testEmailConfiguration() {
+    public static boolean sendVerificationEmail(String userEmail, String userName, String verificationToken, String baseUrl) {
+        if (userEmail == null || userEmail.trim().isEmpty()) {
+            LOGGER.warning("Cannot send verification email: user email is null or empty");
+            return false;
+        }
+        
         try {
             Properties props = new Properties();
             props.put("mail.smtp.auth", "true");
@@ -134,17 +138,39 @@ public class Email {
                 }
             });
             
-            // Test connection
-            Transport transport = session.getTransport("smtp");
-            transport.connect();
-            transport.close();
+            Message message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(EMAIL));
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(userEmail));
+            message.setSubject("Verify Your Email - Bookstore Account");
             
-            LOGGER.info("Email configuration test successful");
+            String emailBody = createVerificationEmailBody(userName, verificationToken, baseUrl);
+            message.setText(emailBody);
+            
+            Transport.send(message);
+            LOGGER.info("Verification email sent successfully to: " + userEmail);
             return true;
             
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Email configuration test failed", e);
+            LOGGER.log(Level.SEVERE, "Failed to send verification email to: " + userEmail, e);
             return false;
         }
     }
+
+    /**
+     * Sends the verification email 
+     * to the user as well as a link to verify 
+     * their account
+     */
+    private static String createVerificationEmailBody(String userName, String verificationToken, String baseUrl) {
+        String body = "Hello " + userName + ",\n\n"
+                + "Thank you for registering with our bookstore!\n\n"
+                + "To activate your account, please click on the following link:\n\n"
+                + baseUrl + "/api/verify-email?token=" + verificationToken + "\n\n";
+        return body;
+    }
+    
+    
+            
+            
+    
 } 

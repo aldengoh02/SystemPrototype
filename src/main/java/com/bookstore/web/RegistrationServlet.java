@@ -20,12 +20,16 @@ import com.google.gson.JsonObject;
 import com.bookstore.db.*;
 import com.bookstore.records.*;
 import com.bookstore.SecUtils;
+import com.bookstore.Email;
+import java.sql.Timestamp;
+import java.util.UUID;
 
 public class RegistrationServlet extends HttpServlet {
     private UserDatabase userDB = new UserDatabase();
     private ShippingAddressDatabase shippingDB = new ShippingAddressDatabase();
     private BillingAddressDatabase billingDB = new BillingAddressDatabase();
     private PaymentCardDatabase paymentDB = new PaymentCardDatabase();
+    private VerificationTokenDatabase tokenDB = new VerificationTokenDatabase();
     private Gson gson = new Gson();
 
     // Email validation pattern
@@ -137,10 +141,17 @@ public class RegistrationServlet extends HttpServlet {
                 }
             }
             
+            // Generate and send verification email
+            String verificationResult = generateAndSendVerificationEmail(userId, email, firstName);
+            if (verificationResult != null) {
+                // Log the error but don't fail registration
+                System.err.println("Warning: Failed to send verification email: " + verificationResult);
+            }
+            
             // Success response
             JsonObject successResponse = new JsonObject();
             successResponse.addProperty("success", true);
-            successResponse.addProperty("message", "Registration successful");
+            successResponse.addProperty("message", "Registration successful. Please check your email to verify your account.");
             successResponse.addProperty("userID", userId);
             successResponse.addProperty("email", email);
             
@@ -338,5 +349,53 @@ public class RegistrationServlet extends HttpServlet {
         
         response.setStatus(statusCode);
         response.getWriter().write(gson.toJson(errorResponse));
+    }
+    
+    /**
+     * Generates a verification token and sends verification email
+     * tokens are temporary
+     * and stored in database
+     */
+    private String generateAndSendVerificationEmail(int userId, String userEmail, String userName) {
+        try {
+
+            // generate token and set expiration to 24 hours
+            String verificationToken = UUID.randomUUID().toString();
+            Timestamp expiryDate = new Timestamp(System.currentTimeMillis() + (24 * 60 * 60 * 1000));
+            VerificationTokenRecords tokenRecord = new VerificationTokenRecords(
+                0, 
+                userId,
+                verificationToken,
+                expiryDate,
+                "email_verification"
+            );
+            
+            if (!tokenDB.connectDb()) {
+                return "Failed to connect to token database";
+            }
+            
+            // Add token to database
+            String tokenResult = tokenDB.addToken(tokenRecord);
+            if (!tokenResult.contains("Added")) {
+                tokenDB.disconnectDb();
+                return "Failed to create verification token: " + tokenResult;
+            }
+            
+            tokenDB.disconnectDb();
+            
+            // url for verification so that clicking actually verifies
+            String baseUrl = "http://localhost:8080"; 
+            
+            boolean emailSent = Email.sendVerificationEmail(userEmail, userName, verificationToken, baseUrl);
+            if (!emailSent) {
+                return "Failed to send verification email";
+            }
+            
+            return null; // worked
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Error generating verification email: " + e.getMessage();
+        }
     }
 } 
