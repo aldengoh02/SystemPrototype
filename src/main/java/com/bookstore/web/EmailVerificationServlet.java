@@ -117,15 +117,17 @@ public class EmailVerificationServlet extends HttpServlet {
             tokenDB.disconnectDb();
             userDB.disconnectDb();
             
-            // Send success response
-            JsonObject successResponse = new JsonObject();
-            successResponse.addProperty("success", true);
-            successResponse.addProperty("message", "Email verified successfully. Your account is now active.");
-            successResponse.addProperty("userID", userId);
-            successResponse.addProperty("email", user.getEmail());
-            
-            response.setStatus(200);
-            response.getWriter().write(gson.toJson(successResponse));
+            jakarta.servlet.http.HttpSession session = request.getSession(true);
+            session.setAttribute("user_id", user.getUserID());
+            session.setAttribute("user_email", user.getEmail());
+            session.setAttribute("user_name", user.getFirstName() + " " + user.getLastName());
+            session.setAttribute("user_role", com.bookstore.SecUtils.getUserRoleName(user.getUserTypeID()).toLowerCase());
+            session.setMaxInactiveInterval(30 * 60); // arbitrary session timeout
+
+            // Redirects to books page change as needed if you change the
+            // structuring of the frontend
+            response.sendRedirect("http://localhost:3000/home");
+            return;
             
         } catch (Exception e) {
             e.printStackTrace();
