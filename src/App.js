@@ -1,7 +1,6 @@
-// This will be the updated App.js with all page imports and routing
-import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom'; 
+import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom'; 
 import { FaUser, FaShoppingCart, FaSignInAlt, FaSearch } from 'react-icons/fa';
-import { useState, useEffect } from 'react'; 
+import { useState, useEffect } from 'react';
 
 // Page Components
 import Home from './pages/Home';
@@ -15,8 +14,15 @@ import AdminPage from './pages/AdminPage';
 import WelcomePage from './pages/WelcomePage';
 import BookDetailPage from './pages/BookDetailPage';
 
-
 export default function App() {
+  return (
+    <Router>
+      <AppContent />
+    </Router>
+  );
+}
+
+function AppContent() {
   const [search, setSearch] = useState('');
   const [cartItems, setCartItems] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -26,8 +32,10 @@ export default function App() {
   const [error, setError] = useState(null);
   const [searchResults, setSearchResults] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [logoutMessage, setLogoutMessage] = useState('');
 
-  // maintains user session on refresh through check to backend
+  const navigate = useNavigate(); 
+
   useEffect(() => {
     fetch('/api/auth/check-session', {
       method: 'GET',
@@ -107,87 +115,90 @@ export default function App() {
     setCartItems(prev => prev.map(item => item.id === id ? { ...item, quantity: item.quantity + delta } : item).filter(item => item.quantity > 0));
   };
 
+  const handleLogout = async () => {
+    try {
+      const res = await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (res.ok) {
+        setIsLoggedIn(false);
+        setLogoutMessage('You have been successfully logged out.');
+        navigate('/home');
+        setTimeout(() => setLogoutMessage(''), 3000);
+      } else {
+        console.error('Logout failed');
+      }
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+  };
 
-return (
-    <Router>
-      <div style={{ fontFamily: 'Arial, sans-serif', padding: '20px', background: '#f4f4f4', minHeight: '100vh' }}>
-        <header style={{ background: '#4a90e2', color: '#fff', padding: '10px 20px', borderRadius: '8px', marginBottom: '20px' }}>
-          <Link to="/home" style={{ textDecoration: 'none', color: 'white' }}><h1>📚 University Bookstore</h1></Link>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-            {!isLoggedIn && <>
-              <Link to="/login" style={navStyle}><FaSignInAlt /> Login</Link>
-              <Link to="/register" style={navStyle}>Register</Link>
-            </>}
-            {isLoggedIn && <>
+  return (
+    <div style={{ fontFamily: 'Arial, sans-serif', padding: '20px', background: '#f4f4f4', minHeight: '100vh' }}>
+      <header style={{ background: '#4a90e2', color: '#fff', padding: '10px 20px', borderRadius: '8px', marginBottom: '20px' }}>
+        <Link to="/home" style={{ textDecoration: 'none', color: 'white' }}><h1>📚 University Bookstore</h1></Link>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          {isLoggedIn ? (
+            <>
               <Link to="/profile" style={navStyle}><FaUser /> Profile</Link>
               <Link to="/order-history" style={navStyle}>Order History</Link>
               <Link to="/admin" style={navStyle}>Admin</Link>
-              <Link to="/cart" style={navStyle}><FaShoppingCart /> Cart ({cartItems.reduce((sum, item) => sum + item.quantity, 0)})</Link>
-            </>}
-            <div style={{ display: 'flex', alignItems: 'center', background: '#fff', borderRadius: '5px', padding: '5px 10px' }}>
-              <FaSearch color="#4a90e2" />
-              <input
-                type="text"
-                placeholder="Search books..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                style={{ border: 'none', outline: 'none', marginLeft: '5px' }}
-              />
-            </div>
-          </div>
-        </header>
-
-        <Routes>
-          {/* Step #1: Welcome screen at root */}
-          <Route path="/" element={<WelcomePage />} />
-
-          {/* Step #2: Login/Register update with setIsLoggedIn */}
-          <Route path="/login" element={<LoginPage setIsLoggedIn={setIsLoggedIn} />} />
-          <Route path="/register" element={<RegisterPage setIsLoggedIn={setIsLoggedIn} />} />
-
-          {/* Step #3: Only show book store if logged in */}
-          {/*
-          <Route
-            path="/home"
-            element={isLoggedIn
-              ? <Home
-                  featuredBooks={searchResults || featuredBooks}
-                  comingSoonBooks={!searchResults ? comingSoonBooks : []}
-                  handleAddToCart={handleAddToCart}
-                  loading={loading}
-                  error={error}
-                  isSearching={!!searchResults}
-                  searchTerm={search}
-                />
-              : <Navigate to="/" replace />
-            }
-          />
-          */}
-          <Route
-            path="/home"
-            element={
-           <Home
-              featuredBooks={searchResults || featuredBooks}
-              comingSoonBooks={!searchResults ? comingSoonBooks : []}
-              handleAddToCart={handleAddToCart}
-              loading={loading}
-              error={error}
-              isSearching={!!searchResults}
-              searchTerm={search}
+              <button
+                onClick={handleLogout}
+                style={{ ...navStyle, background: '#fff', cursor: 'pointer', border: 'none' }}
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <Link to="/register" style={navStyle}><FaUser /> Register/Login</Link>
+          )}
+          <Link to="/cart" style={navStyle}><FaShoppingCart /> Cart ({cartItems.reduce((sum, item) => sum + item.quantity, 0)})</Link>
+          <div style={{ display: 'flex', alignItems: 'center', background: '#fff', borderRadius: '5px', padding: '5px 10px' }}>
+            <FaSearch color="#4a90e2" />
+            <input
+              type="text"
+              placeholder="Search books..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{ border: 'none', outline: 'none', marginLeft: '5px' }}
             />
-          }
-          />
+          </div>
+        </div>
+        {logoutMessage && <p style={{ color: 'white', marginTop: '10px' }}>{logoutMessage}</p>}
+      </header>
 
-          <Route path="/book/:id" element={<BookDetailPage handleAddToCart={handleAddToCart} />} />
-          {/* Protected routes */}
-          <Route path="/cart" element={isLoggedIn ? <CartPage cartItems={cartItems} handleQuantityChange={handleQuantityChange} /> : <Navigate to="/" />} />
-          <Route path="/checkout" element={isLoggedIn ? <CheckoutPage cartItems={cartItems} setCartItems={setCartItems} setOrders={setOrders} /> : <Navigate to="/" />} />
-          <Route path="/order-history" element={isLoggedIn ? <OrderHistoryPage orders={orders} setCartItems={setCartItems} /> : <Navigate to="/" />} />
-          <Route path="/profile" element={isLoggedIn ? <ProfilePage /> : <Navigate to="/" />} />
-          <Route path="/admin" element={isLoggedIn ? <AdminPage /> : <Navigate to="/" />} />
-        </Routes>
-      </div>
-    </Router>
+      <Routes>
+        <Route path="/" element={<Navigate to="/home" replace />} />
+        <Route path="/login" element={<LoginPage setIsLoggedIn={setIsLoggedIn} />} />
+        <Route path="/register" element={<RegisterPage setIsLoggedIn={setIsLoggedIn} />} />
+        <Route path="/home" element={
+          <Home
+            featuredBooks={searchResults || featuredBooks}
+            comingSoonBooks={!searchResults ? comingSoonBooks : []}
+            handleAddToCart={handleAddToCart}
+            loading={loading}
+            error={error}
+            isSearching={!!searchResults}
+            searchTerm={search}
+            isLoggedIn={isLoggedIn}
+          />
+        } />
+        <Route path="/book/:id" element={<BookDetailPage handleAddToCart={handleAddToCart} />} />
+        <Route path="/cart" element={<CartPage cartItems={cartItems} handleQuantityChange={handleQuantityChange} />} />
+        <Route path="/checkout" element={
+          isLoggedIn ? (
+            <CheckoutPage cartItems={cartItems} setCartItems={setCartItems} setOrders={setOrders} />
+          ) : (
+            <Navigate to="/register" replace />
+          )
+        } />
+        <Route path="/order-history" element={isLoggedIn ? <OrderHistoryPage orders={orders} setCartItems={setCartItems} /> : <Navigate to="/register" />} />
+        <Route path="/profile" element={isLoggedIn ? <ProfilePage /> : <Navigate to="/register" />} />
+        <Route path="/admin" element={isLoggedIn ? <AdminPage /> : <Navigate to="/register" />} />
+      </Routes>
+    </div>
   );
 }
 
@@ -202,3 +213,6 @@ const navStyle = {
   alignItems: 'center',
   gap: '5px',
 };
+
+
+

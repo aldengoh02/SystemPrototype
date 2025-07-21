@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
-export default function BookDetailPage() {
+export default function BookDetailPage({ handleAddToCart }) {
   const { id } = useParams();
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -31,6 +31,23 @@ export default function BookDetailPage() {
       <p><strong>Price:</strong> ${book.sellingPrice?.toFixed(2)}</p>
       <p><strong>Rating:</strong> {book.rating}</p>
       <p style={{ marginTop: '15px' }}><strong>Description:</strong><br />{book.description}</p>
+
+      <button
+        onClick={() => handleAddToCart(book)}
+        style={{
+          background: '#4a90e2',
+          color: '#fff',
+          border: 'none',
+          padding: '10px 20px',
+          borderRadius: '5px',
+          cursor: 'pointer',
+          marginTop: '20px',
+          fontSize: '1em',
+          width: '100%'
+        }}
+      >
+        Add to Cart
+      </button>
     </div>
   );
 }
