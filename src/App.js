@@ -27,7 +27,7 @@ export default function App() {
   const [searchResults, setSearchResults] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Add this useEffect to check session on app load
+  // maintains user session on refresh through check to backend
   useEffect(() => {
     fetch('/api/auth/check-session', {
       method: 'GET',
