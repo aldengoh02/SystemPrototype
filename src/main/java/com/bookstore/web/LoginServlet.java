@@ -24,7 +24,7 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.stream.Collectors;
 
-@WebServlet("/api/auth/*")
+//@WebServlet("/api/auth/*")
 public class LoginServlet extends HttpServlet {
     private final Gson gson = new Gson();
     
