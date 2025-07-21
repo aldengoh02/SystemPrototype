@@ -27,6 +27,22 @@ export default function App() {
   const [searchResults, setSearchResults] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  // Add this useEffect to check session on app load
+  useEffect(() => {
+    fetch('/api/auth/check-session', {
+      method: 'GET',
+      credentials: 'include',
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.authenticated) {
+          setIsLoggedIn(true);
+        } else {
+          setIsLoggedIn(false);
+        }
+      })
+      .catch(() => setIsLoggedIn(false));
+  }, []);
 
   useEffect(() => {
     const searchBooks = async () => {
