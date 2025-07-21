@@ -90,47 +90,7 @@ export default function App() {
   const handleQuantityChange = (id, delta) => {
     setCartItems(prev => prev.map(item => item.id === id ? { ...item, quantity: item.quantity + delta } : item).filter(item => item.quantity > 0));
   };
-/*
-  return (
-    <Router>
-      <div style={{ fontFamily: 'Arial, sans-serif', padding: '20px', background: '#f4f4f4', minHeight: '100vh' }}>
-        <header style={{ background: '#4a90e2', color: '#fff', padding: '10px 20px', borderRadius: '8px', marginBottom: '20px' }}>
-          <Link to="/" style={{ textDecoration: 'none', color: 'white' }}><h1>📚 Online Bookstore</h1></Link>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-            <Link to="/login" style={navStyle}><FaSignInAlt /> Login</Link>
-            <Link to="/register" style={navStyle}>Register</Link>
-            <Link to="/profile" style={navStyle}><FaUser /> Profile</Link>
-            <Link to="/order-history" style={navStyle}>Order History</Link>
-            <Link to="/admin" style={navStyle}>Admin</Link>
-            <Link to="/cart" style={navStyle}><FaShoppingCart /> Cart ({cartItems.reduce((sum, item) => sum + item.quantity, 0)})</Link>
-            <div style={{ display: 'flex', alignItems: 'center', background: '#fff', borderRadius: '5px', padding: '5px 10px' }}>
-              <FaSearch color="#4a90e2" />
-              <input
-                type="text"
-                placeholder="Search books..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                style={{ border: 'none', outline: 'none', marginLeft: '5px' }}
-              />
-            </div>
-          </div>
-        </header>
 
-        <Routes>
-          <Route path="/" element={<Home featuredBooks={searchResults || featuredBooks.filter(book => book.featured)} comingSoonBooks={!searchResults ? comingSoonBooks.filter(book => !book.featured) : []} handleAddToCart={handleAddToCart} loading={loading} error={error} isSearching={!!searchResults} searchTerm={search} />} />
-          <Route path="/cart" element={<CartPage cartItems={cartItems} handleQuantityChange={handleQuantityChange} />} />
-          <Route path="/checkout" element={<CheckoutPage cartItems={cartItems} setCartItems={setCartItems} setOrders={setOrders} />} />
-          <Route path="/order-history" element={<OrderHistoryPage orders={orders} setCartItems={setCartItems} />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/admin" element={<AdminPage />} />
-        </Routes>
-      </div>
-    </Router>
-  );
-}
-*/
 
 return (
     <Router>
