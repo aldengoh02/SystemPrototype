@@ -48,7 +48,6 @@
         <url-pattern>/api/register</url-pattern>
     </servlet-mapping>
 
-<<<<<<< HEAD
     <servlet>
         <servlet-name>EmailVerificationServlet</servlet-name>
         <servlet-class>com.bookstore.web.EmailVerificationServlet</servlet-class>
@@ -57,8 +56,8 @@
         <servlet-name>EmailVerificationServlet</servlet-name>
         <url-pattern>/api/verify-email</url-pattern>
     </servlet-mapping>
-=======
-   <servlet>
+
+    <servlet>
         <servlet-name>LoginServlet</servlet-name>
         <servlet-class>com.bookstore.web.LoginServlet</servlet-class>
     </servlet>
@@ -67,7 +66,5 @@
         <servlet-name>LoginServlet</servlet-name>
         <url-pattern>/api/auth/*</url-pattern>
     </servlet-mapping>
- 
->>>>>>> updatedUI
 
 </web-app> 
