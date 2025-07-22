@@ -169,6 +169,46 @@ public class Email {
         return body;
     }
     
+    public static boolean sendPasswordResetEmail(String userEmail, String userName, String resetToken, String baseUrl) {
+        if (userEmail == null || userEmail.trim().isEmpty()) {
+            LOGGER.warning("Cannot send password reset email: user email is null or empty");
+            return false;
+        }
+        try {
+            Properties props = new Properties();
+            props.put("mail.smtp.auth", "true");
+            props.put("mail.smtp.starttls.enable", "true");
+            props.put("mail.smtp.host", HOST);
+            props.put("mail.smtp.port", PORT);
+
+            Session session = Session.getInstance(props, new Authenticator() {
+                @Override
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(USERNAME, PASSWORD);
+                }
+            });
+
+            Message message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(EMAIL));
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(userEmail));
+            message.setSubject("Password Reset - Bookstore");
+
+            String emailBody = "Hello " + userName + ",\n\n"
+                + "You requested a password reset. Click the link below to reset your password:\n\n"
+                + baseUrl + "/password-reset?token=" + resetToken + "\n\n"
+                + "If you did not request this, please ignore this email.\n";
+            message.setText(emailBody);
+
+            Transport.send(message);
+            LOGGER.info("Password reset email sent successfully to: " + userEmail);
+            return true;
+
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Failed to send password reset email to: " + userEmail, e);
+            return false;
+        }
+    }
+    
     
             
             
