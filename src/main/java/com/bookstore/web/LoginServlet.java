@@ -5,6 +5,8 @@
  *  - POST /api/auth/login: Authenticates a user and creates a session.
  *  - POST /api/auth/logout: Invalidates the current user session.
  *  - GET /api/auth/check-session: Checks if a valid session exists for the user.
+ *  Supports loging via either providing both email and password
+ *  or just providing userID
  */
 
 package com.bookstore.web;
@@ -98,12 +100,20 @@ public class LoginServlet extends HttpServlet {
             identifier = req.get("email").getAsString();
         }
         
-        String password = req.get("password").getAsString();
+        String password = req.has("password") ? req.get("password").getAsString() : null;
         
         if (identifier == null || identifier.trim().isEmpty()) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             json.addProperty("success", false);
             json.addProperty("error", "Email or Account ID is required");
+            return;
+        }
+        
+        boolean isUserId = identifier.trim().matches("\\d+");
+        if (!isUserId && (password == null || password.trim().isEmpty())) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            json.addProperty("success", false);
+            json.addProperty("error", "Password is required for email login");
             return;
         }
         
@@ -119,7 +129,18 @@ public class LoginServlet extends HttpServlet {
             
             UserRecords user = SecUtils.findUserForLoginFlexible(db, identifier);
             
-            if (user != null && SecUtils.verifyPassword(password, user.getPassword())) {
+            boolean authenticated = false;
+            if (user != null) {
+                if (isUserId) {
+                    // Login by userID, no password required
+                    authenticated = true;
+                } else if (SecUtils.verifyPassword(password, user.getPassword())) {
+                    // Login by email + password
+                    authenticated = true;
+                }
+            }
+            
+            if (authenticated) {
                 String role = SecUtils.getUserRoleName(user.getUserTypeID());
                 String name = user.getFirstName() + " " + user.getLastName();
                 
@@ -138,8 +159,13 @@ public class LoginServlet extends HttpServlet {
                 json.addProperty("user_role", role.toLowerCase());
             } else {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                json.addProperty("success", false);
-                json.addProperty("error", "Invalid email/account ID or password");
+                if (isUserId) {
+                    json.addProperty("success", false);
+                    json.addProperty("error", "Invalid account ID");
+                } else {
+                    json.addProperty("success", false);
+                    json.addProperty("error", "Invalid email or password");
+                }
             }
             
         } catch (Exception e) {
