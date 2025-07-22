@@ -142,7 +142,7 @@
 {
   "firstName": "Carol",
   "lastName": "Williams",
-  "email": "carol.test@example.com",
+  "email": "adamjewelmcdonald@gmail.com",
   "phone": "555-555-1234",
   "password": "fulltest789",
   "enrollForPromotions": true,
@@ -207,7 +207,7 @@
 
         async function makeRegistrationRequest(testData, testNum) {
             try {
-                const response = await fetch('/api/register/', {
+                const response = await fetch('/api/register', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -266,7 +266,7 @@
             const testData = {
                 "firstName": "Carol",
                 "lastName": "Williams",
-                "email": "carol.test@example.com",
+                "email": "adamjewelmcdonald@gmail.com",
                 "phone": "555-555-1234",
                 "password": "fulltest789",
                 "enrollForPromotions": true,

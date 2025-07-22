@@ -53,14 +53,13 @@ public class BillingAddressDatabase {
     }
 
     public String addAddress(BillingAddressRecords addr) {
-        String query = "INSERT INTO BillingAddress (userID, street, city, state, zipCode) VALUES (?, ?, ?, ?, ?)";
+        String query = "INSERT INTO BillingAddress (street, city, state, zipCode) VALUES (?, ?, ?, ?)";
         try {
             PreparedStatement ps = connection.prepareStatement(query);
-            ps.setInt(1, addr.getUserID());
-            ps.setString(2, addr.getStreet());
-            ps.setString(3, addr.getCity());
-            ps.setString(4, addr.getState());
-            ps.setString(5, addr.getZipCode());
+            ps.setString(1, addr.getStreet());
+            ps.setString(2, addr.getCity());
+            ps.setString(3, addr.getState());
+            ps.setString(4, addr.getZipCode());
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -71,7 +70,7 @@ public class BillingAddressDatabase {
     }
 
     public String updateBillingAddress(BillingAddressRecords addr) {
-        String query = "UPDATE BillingAddress SET street=?, city=?, state=?, zipCode=? WHERE addressID=? AND userID=?";
+        String query = "UPDATE BillingAddress SET street=?, city=?, state=?, zipCode=? WHERE addressID=?";
         try {
             PreparedStatement ps = connection.prepareStatement(query);
             ps.setString(1, addr.getStreet());
@@ -79,7 +78,6 @@ public class BillingAddressDatabase {
             ps.setString(3, addr.getState());
             ps.setString(4, addr.getZipCode());
             ps.setInt(5, addr.getAddressID());
-            ps.setInt(6, addr.getUserID());
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -97,7 +95,6 @@ public class BillingAddressDatabase {
             while (rs.next()) {
                 BillingAddressRecords addr = new BillingAddressRecords(
                         rs.getInt("addressID"),
-                        rs.getInt("userID"),
                         rs.getString("street"),
                         rs.getString("city"),
                         rs.getString("state"),

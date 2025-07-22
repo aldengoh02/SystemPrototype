@@ -38,6 +38,10 @@
         <servlet-name>EditUserServlet</servlet-name>
         <url-pattern>/api/user/*</url-pattern>
     </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>EditUserServlet</servlet-name>
+        <url-pattern>/api/edit/*</url-pattern>
+    </servlet-mapping>
 
     <servlet>
         <servlet-name>RegistrationServlet</servlet-name>

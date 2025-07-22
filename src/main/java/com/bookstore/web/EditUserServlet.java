@@ -8,7 +8,7 @@
  * /api/edit/update-billing
  * /api/edit/update-payment
  * /api/edit/update-password
- * 
+ * /api/edit/info
  * All endpoints are POST methods
  * 
  */
@@ -38,7 +38,8 @@ public class EditUserServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+        response.setHeader("Access-Control-Allow-Credentials", "true");
         response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
         response.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
@@ -76,8 +77,109 @@ public class EditUserServlet extends HttpServlet {
     }
 
     @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+        response.setHeader("Access-Control-Allow-Credentials", "true");
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        JsonObject jsonResponse = new JsonObject();
+        try {
+            jakarta.servlet.http.HttpSession session = request.getSession(false);
+            if (session == null || session.getAttribute("user_id") == null) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                jsonResponse.addProperty("error", "Not authenticated");
+                response.getWriter().write(jsonResponse.toString());
+                return;
+            }
+            int userID = (int) session.getAttribute("user_id");
+
+            // Get user info
+            UserDatabase userDb = new UserDatabase();
+            BillingAddressDatabase billingDb = new BillingAddressDatabase();
+            PaymentCardDatabase cardDb = new PaymentCardDatabase();
+            userDb.connectDb();
+            billingDb.connectDb();
+            cardDb.connectDb();
+            cardDb.loadResults(); // <-- Load payment cards from DB
+            UserRecords user = com.bookstore.SecUtils.findUserByID(userDb, userID);
+            // Get all billing addresses for user (now, get all billing addresses linked to user's cards)
+            java.util.List<com.bookstore.records.BillingAddressRecords> billingAddresses = new java.util.ArrayList<>();
+            for (com.bookstore.records.PaymentCardRecords card : cardDb.getResults()) {
+                if (card.getUserID() == userID) {
+                    for (com.bookstore.records.BillingAddressRecords addr : billingDb.getResults()) {
+                        if (addr.getAddressID() == card.getBillingAddressID()) {
+                            billingAddresses.add(addr);
+                        }
+                    }
+                }
+            }
+            // Get all payment cards for user
+            java.util.List<com.bookstore.records.PaymentCardRecords> paymentCards = new java.util.ArrayList<>();
+            for (com.bookstore.records.PaymentCardRecords card : cardDb.getResults()) {
+                if (card.getUserID() == userID) paymentCards.add(card);
+            }
+            userDb.disconnectDb();
+            billingDb.disconnectDb();
+            cardDb.disconnectDb();
+            if (user == null) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                jsonResponse.addProperty("error", "User not found");
+                response.getWriter().write(jsonResponse.toString());
+                return;
+            }
+            JsonObject userJson = new JsonObject();
+            userJson.addProperty("firstName", user.getFirstName());
+            userJson.addProperty("lastName", user.getLastName());
+            userJson.addProperty("email", user.getEmail());
+            userJson.addProperty("userID", user.getUserID());
+            // Billing addresses
+            com.google.gson.JsonArray billingArr = new com.google.gson.JsonArray();
+            for (com.bookstore.records.BillingAddressRecords addr : billingAddresses) {
+                JsonObject addrJson = new JsonObject();
+                addrJson.addProperty("addressID", addr.getAddressID());
+                addrJson.addProperty("street", addr.getStreet());
+                addrJson.addProperty("city", addr.getCity());
+                addrJson.addProperty("state", addr.getState());
+                addrJson.addProperty("zipCode", addr.getZipCode());
+                billingArr.add(addrJson);
+            }
+            // Payment cards
+            com.google.gson.JsonArray cardArr = new com.google.gson.JsonArray();
+            for (com.bookstore.records.PaymentCardRecords card : paymentCards) {
+                JsonObject cardJson = new JsonObject();
+                cardJson.addProperty("cardID", card.getCardID());
+                cardJson.addProperty("type", card.getType());
+                cardJson.addProperty("expirationDate", card.getExpirationDate());
+                cardJson.addProperty("billingAddressID", card.getBillingAddressID());
+                // Add last 4 digits of card number for display
+                try {
+                    String decrypted = SecUtils.decryptCreditCardSimple(card.getCardNo());
+                    String last4 = decrypted.length() > 4 ? decrypted.substring(decrypted.length() - 4) : decrypted;
+                    cardJson.addProperty("last4", last4);
+                } catch (Exception e) {
+                    cardJson.addProperty("last4", "ERR");
+                }
+                cardArr.add(cardJson);
+            }
+            jsonResponse.add("user", userJson);
+            jsonResponse.add("billingAddresses", billingArr);
+            jsonResponse.add("paymentCards", cardArr);
+            jsonResponse.addProperty("passwordChangeRequiresCurrent", true);
+            response.getWriter().write(jsonResponse.toString());
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            jsonResponse.addProperty("error", "Failed to load user info: " + e.getMessage());
+            response.getWriter().write(jsonResponse.toString());
+        }
+    }
+
+    @Override
     protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setHeader("Access-Control-Allow-Origin", "*");
+        resp.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+        resp.setHeader("Access-Control-Allow-Credentials", "true");
         resp.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
         resp.setHeader("Access-Control-Allow-Headers", "Content-Type");
         resp.setStatus(HttpServletResponse.SC_OK);
@@ -108,29 +210,15 @@ public class EditUserServlet extends HttpServlet {
     }
 
     private void updateBilling(JsonObject req, JsonObject res) {
-        int userID = req.get("userID").getAsInt();
         int addressID = req.get("addressID").getAsInt();
         String street = req.get("street").getAsString();
         String city = req.get("city").getAsString();
         String state = req.get("state").getAsString();
         String zipCode = req.get("zipCode").getAsString();
-        
         BillingAddressDatabase db = new BillingAddressDatabase();
         db.connectDb();
-        String result = updateBillingAddress(db, userID, addressID, street, city, state, zipCode);
-        
-        // Send email notification if update was successful
-        if (result.contains("successfully")) {
-            try {
-                Email.sendProfileChangeNotification(userID);
-            } catch (Exception e) {
-                // Log error but don't fail the request
-                System.err.println("Failed to send email notification: " + e.getMessage());
-            }
-        }
-        
+        String result = updateBillingAddress(db, addressID, street, city, state, zipCode);
         db.disconnectDb();
-        
         res.addProperty("message", result);
     }
 
@@ -252,13 +340,13 @@ public class EditUserServlet extends HttpServlet {
      * because I don't think it is required
      * if it is, can be added
      */
-    public static String updateBillingAddress(BillingAddressDatabase db, int userID, int addressID, String street, String city, String state, String zipCode) {
+    public static String updateBillingAddress(BillingAddressDatabase db, int addressID, String street, String city, String state, String zipCode) {
         if (street == null || street.trim().isEmpty() || city == null || city.trim().isEmpty() || state == null || state.trim().isEmpty() || zipCode == null || zipCode.trim().isEmpty()) {
             return "Street, city, state, and zip code cannot be empty";
         }
         
         try {
-            BillingAddressRecords address = new BillingAddressRecords(addressID, userID, street, city, state, zipCode);
+            BillingAddressRecords address = new BillingAddressRecords(addressID, street, city, state, zipCode);
             String result = db.updateBillingAddress(address);
             
             if (result.contains("Updated")) {
