@@ -244,61 +244,50 @@ public class RegistrationServlet extends HttpServlet {
             String cardNumber = getStringField(paymentData, "cardNumber");
             String cardType = getStringField(paymentData, "cardType");
             String expirationDate = getStringField(paymentData, "expirationDate");
-            
             if (cardNumber == null || cardType == null || expirationDate == null) {
                 return "All payment card fields are required: cardNumber, cardType, expirationDate";
             }
-            
             // Billing address is required for payment cards
             if (!paymentData.has("billingAddress")) {
                 return "Billing address is required for payment cards";
             }
-            
             JsonObject billingData = paymentData.getAsJsonObject("billingAddress");
             String street = getStringField(billingData, "street");
             String city = getStringField(billingData, "city");
             String state = getStringField(billingData, "state");
             String zipCode = getStringField(billingData, "zipCode");
-            
             if (street == null || city == null || state == null || zipCode == null) {
                 return "All billing address fields are required: street, city, state, zipCode";
             }
-            
             // Insert billing address first
             BillingAddressRecords billingAddress = new BillingAddressRecords(
                 0, // addressID will be auto-generated
-                userId,
                 street,
                 city,
                 state,
                 zipCode
             );
-            
             if (!billingDB.connectDb()) {
                 return "Failed to connect to billing database";
             }
-            
             String billingResult = billingDB.addAddress(billingAddress);
             if (!billingResult.contains("Added")) {
                 billingDB.disconnectDb();
                 return "Failed to add billing address: " + billingResult;
             }
-            
-            // Get the billing address ID
+            // Get the billing address ID by matching all fields
             billingDB.loadResults();
             BillingAddressRecords createdBilling = null;
             for (BillingAddressRecords addr : billingDB.getResults()) {
-                if (addr.getUserID() == userId) {
+                if (addr.getStreet().equals(street) && addr.getCity().equals(city) && addr.getState().equals(state) && addr.getZipCode().equals(zipCode)) {
                     createdBilling = addr;
                     break;
                 }
             }
             billingDB.disconnectDb();
-            
             if (createdBilling == null) {
                 return "Billing address created but could not retrieve ID";
             }
-            
             // Encrypt card number with simple encryption (no external keys needed)
             String encryptedCardNumber;
             try {
@@ -310,34 +299,25 @@ public class RegistrationServlet extends HttpServlet {
                 e.printStackTrace();
                 return "Failed to encrypt payment card: " + e.getMessage();
             }
-            
             // Insert payment card
             PaymentCardRecords paymentCard = new PaymentCardRecords(
                 0, // cardID will be auto-generated
-                encryptedCardNumber,
+                cardNumber, // <-- plain card number, not encrypted
                 userId,
                 cardType,
                 expirationDate,
                 createdBilling.getAddressID()
             );
-            
             if (!paymentDB.connectDb()) {
                 return "Failed to connect to payment database";
             }
-            
-            System.out.println("DEBUG: Attempting to add payment card to database for user " + userId);
-            String cardResult = paymentDB.addCard(paymentCard);
+            String paymentResult = paymentDB.addCard(paymentCard);
             paymentDB.disconnectDb();
-            
-            System.out.println("DEBUG: Payment card add result: " + cardResult);
-            if (!cardResult.contains("Added")) {
-                return "Failed to add payment card: " + cardResult;
+            if (!paymentResult.contains("Added")) {
+                return "Failed to add payment card: " + paymentResult;
             }
-            
             return null; // Success
         } catch (Exception e) {
-            System.err.println("ERROR in addPaymentCard: " + e.getMessage());
-            e.printStackTrace();
             return "Error adding payment card: " + e.getMessage();
         }
     }
