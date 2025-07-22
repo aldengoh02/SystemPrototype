@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 export default function LoginPage({ setIsLoggedIn }) {
   const navigate = useNavigate();
@@ -36,6 +37,17 @@ export default function LoginPage({ setIsLoggedIn }) {
         <button type="submit">Login</button>
         {error && <p style={{ color: 'red' }}>{error}</p>}
       </form>
+      <p style={{ marginTop: '10px', textAlign: 'center' }}>
+      <Link to="/forgot-password" style={{ color: '#4a90e2', textDecoration: 'none' }}>
+        Forgot Password?
+      </Link>
+      </p>
+      <p style={{ marginTop: '10px', textAlign: 'center' }}>
+        Don’t have an account?{' '}
+        <Link to="/register" style={{ color: '#4a90e2', textDecoration: 'none', fontWeight: 'bold' }}>
+          Create an account
+        </Link>
+      </p>
     </div>
   );
 }

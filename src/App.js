@@ -13,6 +13,8 @@ import ProfilePage from './pages/ProfilePage';
 import AdminPage from './pages/AdminPage';
 import WelcomePage from './pages/WelcomePage';
 import BookDetailPage from './pages/BookDetailPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 
 export default function App() {
   return (
@@ -165,6 +167,7 @@ function AppContent() {
               style={{ border: 'none', outline: 'none', marginLeft: '5px' }}
             />
           </div>
+          {/*<Link to="/reset-password?token=test123">🔧 Test Reset Password Page</Link>*/}
         </div>
         {logoutMessage && <p style={{ color: 'white', marginTop: '10px' }}>{logoutMessage}</p>}
       </header>
@@ -172,6 +175,8 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/login" element={<LoginPage setIsLoggedIn={setIsLoggedIn} />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/register" element={<RegisterPage setIsLoggedIn={setIsLoggedIn} />} />
         <Route path="/home" element={
           <Home
@@ -191,7 +196,7 @@ function AppContent() {
           isLoggedIn ? (
             <CheckoutPage cartItems={cartItems} setCartItems={setCartItems} setOrders={setOrders} />
           ) : (
-            <Navigate to="/register" replace />
+            <Navigate to="/login" replace />
           )
         } />
         <Route path="/order-history" element={isLoggedIn ? <OrderHistoryPage orders={orders} setCartItems={setCartItems} /> : <Navigate to="/register" />} />
