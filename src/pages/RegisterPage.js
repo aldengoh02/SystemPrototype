@@ -27,15 +27,10 @@ export default function RegisterPage({ setIsLoggedIn }) {
         })
       });
       const data = await res.json();
-      if (res.ok && data.success) {
-        
-        setIsLoggedIn(true);
-        navigate('/');
-        
-       /*
+      if (res.ok && data.success) {  
         alert('Registration successful! Please check your email to verify your account.');
         navigate('/login');
-        */
+        
       } else {
         setError(data.message || 'Registration failed.');
       }
