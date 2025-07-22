@@ -19,6 +19,8 @@ export default function BookDetailPage({ handleAddToCart }) {
   if (loading) return <p>Loading book...</p>;
   if (!book) return <p>Book not found</p>;
 
+  const isComingSoon = book.releaseDate && new Date(book.releaseDate) > new Date();
+
   return (
     <div style={{ maxWidth: '600px', margin: '0 auto', background: '#fff', padding: '20px', borderRadius: '10px' }}>
       <img
@@ -32,6 +34,7 @@ export default function BookDetailPage({ handleAddToCart }) {
       <p><strong>Rating:</strong> {book.rating}</p>
       <p style={{ marginTop: '15px' }}><strong>Description:</strong><br />{book.description}</p>
 
+      {book.featured && !isComingSoon && (
       <button
         onClick={() => handleAddToCart(book)}
         style={{
@@ -48,6 +51,7 @@ export default function BookDetailPage({ handleAddToCart }) {
       >
         Add to Cart
       </button>
+      )}
     </div>
   );
 }
