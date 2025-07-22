@@ -8,17 +8,17 @@ export default function ForgotPasswordPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/auth/forgot-password', {
+      const res = await fetch('/password-reset', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ email })
       });
       const data = await res.json();
-      if (res.ok && data.success) {
+      if (res.ok && data.message) {
         setMessage('Password reset link has been sent to your email.');
         setError('');
       } else {
-        setError(data.message || 'Failed to send reset link.');
+        setError(data.error || data.message || 'Failed to send reset link.');
         setMessage('');
       }
     } catch (err) {

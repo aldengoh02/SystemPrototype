@@ -54,8 +54,13 @@ public class PasswordResetServlet extends HttpServlet {
             Timestamp expiry = new Timestamp(System.currentTimeMillis() + 60 * 60 * 1000); // 1 hour
             VerificationTokenRecords tokenRecord = new VerificationTokenRecords(0, user.getUserID(), resetToken, expiry, "password_reset");
             tokenDb.addToken(tokenRecord);
-            String resetLink = req.getRequestURL().toString() + "?token=" + resetToken;
-            String baseUrl = req.getRequestURL().toString().replace(req.getRequestURI(), req.getContextPath());
+            // Construct frontend reset link
+            String scheme = req.getScheme();
+            String serverName = req.getServerName();
+            int serverPort = req.getServerPort();
+            String frontendPort = "3000"; // Change to your frontend port if needed
+            String resetLink = scheme + "://" + serverName + ":" + frontendPort + "/reset-password?token=" + resetToken;
+            String baseUrl = scheme + "://" + serverName + ":" + frontendPort;
             Email.sendPasswordResetEmail(user.getEmail(), user.getFirstName(), resetToken, baseUrl);
             tokenDb.disconnectDb();
             userDb.disconnectDb();

@@ -195,7 +195,7 @@ public class Email {
 
             String emailBody = "Hello " + userName + ",\n\n"
                 + "You requested a password reset. Click the link below to reset your password:\n\n"
-                + baseUrl + "/password-reset?token=" + resetToken + "\n\n"
+                + baseUrl + "/reset-password?token=" + resetToken + "\n\n"
                 + "If you did not request this, please ignore this email.\n";
             message.setText(emailBody);
 
