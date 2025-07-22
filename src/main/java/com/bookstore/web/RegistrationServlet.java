@@ -338,7 +338,6 @@ public class RegistrationServlet extends HttpServlet {
      */
     private String generateAndSendVerificationEmail(int userId, String userEmail, String userName) {
         try {
-
             // generate token and set expiration to 24 hours
             String verificationToken = UUID.randomUUID().toString();
             Timestamp expiryDate = new Timestamp(System.currentTimeMillis() + (24 * 60 * 60 * 1000));
@@ -366,7 +365,7 @@ public class RegistrationServlet extends HttpServlet {
             // url for verification so that clicking actually verifies
             String baseUrl = "http://localhost:8080"; 
             
-            boolean emailSent = Email.sendVerificationEmail(userEmail, userName, verificationToken, baseUrl);
+            boolean emailSent = Email.sendVerificationEmail(userEmail, userName, verificationToken, baseUrl, userId);
             if (!emailSent) {
                 return "Failed to send verification email";
             }

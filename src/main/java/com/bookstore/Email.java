@@ -118,7 +118,7 @@ public class Email {
      * Sends an email verification email to the user
      * 
      */
-    public static boolean sendVerificationEmail(String userEmail, String userName, String verificationToken, String baseUrl) {
+    public static boolean sendVerificationEmail(String userEmail, String userName, String verificationToken, String baseUrl, int userId) {
         if (userEmail == null || userEmail.trim().isEmpty()) {
             LOGGER.warning("Cannot send verification email: user email is null or empty");
             return false;
@@ -143,7 +143,7 @@ public class Email {
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(userEmail));
             message.setSubject("Verify Your Email - Bookstore Account");
             
-            String emailBody = createVerificationEmailBody(userName, verificationToken, baseUrl);
+            String emailBody = createVerificationEmailBody(userName, verificationToken, baseUrl, userId);
             message.setText(emailBody);
             
             Transport.send(message);
@@ -161,9 +161,11 @@ public class Email {
      * to the user as well as a link to verify 
      * their account
      */
-    private static String createVerificationEmailBody(String userName, String verificationToken, String baseUrl) {
+    private static String createVerificationEmailBody(String userName, String verificationToken, String baseUrl, int userId) {
         String body = "Hello " + userName + ",\n\n"
                 + "Thank you for registering with our bookstore!\n\n"
+                + "Your User ID is: " + userId + "\n\n"
+                + "Please write down and remember this ID since it can be used to login to your account\n\n"
                 + "To activate your account, please click on the following link:\n\n"
                 + baseUrl + "/api/verify-email?token=" + verificationToken + "\n\n";
         return body;
