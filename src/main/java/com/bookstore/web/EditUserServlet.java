@@ -75,6 +75,9 @@ public class EditUserServlet extends HttpServlet {
                 case "/add-payment":
                     addPayment(jsonRequest, jsonResponse);
                     break;
+                case "/delete-payment":
+                    deletePayment(jsonRequest, jsonResponse);
+                    break;
                 default:
                     System.out.println("DEBUG: Unknown endpoint: " + pathInfo);
                     response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -400,6 +403,22 @@ public class EditUserServlet extends HttpServlet {
         } catch (Exception e) {
             res.addProperty("message", "Error adding card: " + e.getMessage());
         }
+    }
+
+    /**
+     * Deletes a payment card by cardID
+     */
+    private void deletePayment(JsonObject req, JsonObject res) {
+        if (!req.has("cardID")) {
+            res.addProperty("message", "Missing cardID");
+            return;
+        }
+        int cardID = req.get("cardID").getAsInt();
+        PaymentCardDatabase db = new PaymentCardDatabase();
+        db.connectDb();
+        String result = db.deleteCard(cardID);
+        db.disconnectDb();
+        res.addProperty("message", result);
     }
 
     /*

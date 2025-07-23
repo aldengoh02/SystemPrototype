@@ -50,7 +50,8 @@ export default function ProfilePage() {
           const mappedCards = data.paymentCards.map(card => ({
             cardNo: card.cardNo,
             type: card.cardType,
-            expirationDate: card.expirationDate
+            expirationDate: card.expirationDate,
+            cardID: card.cardID
           }));
           setCards(mappedCards);
           // Pre-fill the first card's details in the form fields
@@ -161,7 +162,8 @@ export default function ProfilePage() {
             const mappedCards = data.paymentCards.map(card => ({
               cardNo: card.cardNo,
               type: card.cardType,
-              expirationDate: card.expirationDate
+              expirationDate: card.expirationDate,
+              cardID: card.cardID
             }));
             setCards(mappedCards);
           }
@@ -239,10 +241,46 @@ export default function ProfilePage() {
             <Input
               label="Card Number"
               value={maskCardNumber(card.cardNo)}
-              disabled={idx !== 0 ? true : false}
+              disabled={false}
             />
-            <Input label="Card Type" value={card.type} disabled={idx !== 0 ? true : false} />
-            <Input label="Expiration Date" value={card.expirationDate} disabled={idx !== 0 ? true : false} />
+            <Input label="Card Type" value={card.type} disabled={false} />
+            <Input label="Expiration Date" value={card.expirationDate} disabled={false} />
+            {card.cardID && (
+              <button
+                type="button"
+                style={{ ...buttonStyle, background: '#e94e77', width: 'auto', marginTop: '5px' }}
+                onClick={async () => {
+                  if (!window.confirm('Are you sure you want to remove this card?')) return;
+                  const resp = await fetch('http://localhost:8080/api/user/delete-payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cardID: card.cardID })
+                  });
+                  const result = await resp.json();
+                  if (resp.ok && result.message && result.message.toLowerCase().includes('deleted')) {
+                    // Refresh cards by refetching profile data
+                    fetch(`http://localhost:8080/api/user/${userID}`, { credentials: 'include' })
+                      .then(res => res.json())
+                      .then(data => {
+                        if (data.paymentCards) {
+                          const mappedCards = data.paymentCards.map(card => ({
+                            cardNo: card.cardNo,
+                            type: card.cardType,
+                            expirationDate: card.expirationDate,
+                            cardID: card.cardID
+                          }));
+                          setCards(mappedCards);
+                        }
+                      });
+                    alert('Card removed successfully.');
+                  } else {
+                    alert('Failed to remove card: ' + (result.message || 'Unknown error'));
+                  }
+                }}
+              >
+                Remove Card
+              </button>
+            )}
           </div>
         ))}
 
