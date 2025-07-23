@@ -33,7 +33,7 @@
  *    Example: POST http://localhost:8080/api/books/calculate
  *             Body: [{"id": 1, "quantity": 2}, {"id": 3, "quantity": 1}]
  * 
-
+ *
  */
 
 package com.bookstore.web;
@@ -85,7 +85,7 @@ public class BookServlet extends HttpServlet {
                 String requestBody = req.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
                 CartItem[] cartItems = gson.fromJson(requestBody, CartItem[].class);
 
-                Map<String, Double> result = BookActions.calculateCheckout(BookDatabase.getConnection(), cartItems);
+                Map<String, Double> result = BookActions.calculateCheckout(bookDb.getConnection(), cartItems);
                 
                 out.print(gson.toJson(result));
 
@@ -122,7 +122,7 @@ public class BookServlet extends HttpServlet {
             if (pathInfo != null && !pathInfo.equals("/")) {
                 try {
                     int bookId = Integer.parseInt(pathInfo.substring(1));
-                    BookRecords book = BookActions.getBookById(BookDatabase.getConnection(), bookId);
+                    BookRecords book = BookActions.getBookById(bookDb.getConnection(), bookId);
 
                     if (book != null) {
                         out.print(gson.toJson(book));
@@ -140,14 +140,14 @@ public class BookServlet extends HttpServlet {
                 ArrayList<BookRecords> books;
 
                 if (searchTerm != null && !searchTerm.isEmpty()) {
-                    books = BookActions.searchBooks(BookDatabase.getConnection(), searchTerm);
+                    books = BookActions.searchBooks(bookDb.getConnection(), searchTerm);
                 } else if (display != null) {
                     switch (display) {
                         case "featured":
-                            books = BookActions.getFeaturedBooks(BookDatabase.getConnection());
+                            books = BookActions.getFeaturedBooks(bookDb.getConnection());
                             break;
                         case "comingsoon":
-                            books = BookActions.getComingSoonBooks(BookDatabase.getConnection());
+                            books = BookActions.getComingSoonBooks(bookDb.getConnection());
                             break;
                         default:
                             bookDb.loadResults();

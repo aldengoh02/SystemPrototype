@@ -8,7 +8,7 @@ import com.bookstore.records.OrdersRecords;
 
 public class OrdersDatabase {
 
-    private static Connection connection;
+    private Connection connection;
     private ArrayList<OrdersRecords> results;
     private ResultSet rs;
     Boolean connected = false;
@@ -54,11 +54,6 @@ public class OrdersDatabase {
             return false;
         }
         return true;
-    }
-
-    // Getter for connection
-    public static Connection getConnection() {
-        return connection;
     }
 
     // Getter and setter for results

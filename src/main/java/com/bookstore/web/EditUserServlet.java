@@ -72,6 +72,15 @@ public class EditUserServlet extends HttpServlet {
                 case "/update-promotions":
                     updatePromotions(jsonRequest, jsonResponse);
                     break;
+                case "/add-payment":
+                    addPayment(jsonRequest, jsonResponse);
+                    break;
+                case "/delete-payment":
+                    deletePayment(jsonRequest, jsonResponse);
+                    break;
+                case "/add-shipping":
+                    addShipping(jsonRequest, jsonResponse);
+                    break;
                 default:
                     System.out.println("DEBUG: Unknown endpoint: " + pathInfo);
                     response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -118,13 +127,17 @@ public class EditUserServlet extends HttpServlet {
             shippingDb.connectDb();
             cardDb.loadResults(); // <-- Load payment cards from DB
             UserRecords user = com.bookstore.SecUtils.findUserByID(userDb, userID);
-            // Get all billing addresses for user (now, get all billing addresses linked to user's cards)
+            // Get all billing addresses referenced by user's payment cards (direct mapping, DB fetch)
             java.util.List<com.bookstore.records.BillingAddressRecords> billingAddresses = new java.util.ArrayList<>();
+            java.util.Set<Integer> addedBillingAddressIDs = new java.util.HashSet<>();
             for (com.bookstore.records.PaymentCardRecords card : cardDb.getResults()) {
                 if (card.getUserID() == userID) {
-                    for (com.bookstore.records.BillingAddressRecords addr : billingDb.getResults()) {
-                        if (addr.getAddressID() == card.getBillingAddressID()) {
+                    int billingAddressID = card.getBillingAddressID();
+                    if (!addedBillingAddressIDs.contains(billingAddressID)) {
+                        com.bookstore.records.BillingAddressRecords addr = billingDb.findByAddressID(billingAddressID);
+                        if (addr != null) {
                             billingAddresses.add(addr);
+                            addedBillingAddressIDs.add(billingAddressID);
                         }
                     }
                 }
@@ -172,6 +185,7 @@ public class EditUserServlet extends HttpServlet {
                 addrJson.addProperty("zipCode", addr.getZipCode());
                 billingArr.add(addrJson);
             }
+            jsonResponse.add("billingAddresses", billingArr);
             // Payment cards
             com.google.gson.JsonArray cardArr = new com.google.gson.JsonArray();
             for (com.bookstore.records.PaymentCardRecords card : paymentCards) {
@@ -192,7 +206,6 @@ public class EditUserServlet extends HttpServlet {
                 cardArr.add(cardJson);
             }
             jsonResponse.add("user", userJson);
-            jsonResponse.add("billingAddresses", billingArr);
             jsonResponse.add("paymentCards", cardArr);
             jsonResponse.addProperty("passwordChangeRequiresCurrent", true);
             response.getWriter().write(jsonResponse.toString());
@@ -351,6 +364,101 @@ public class EditUserServlet extends HttpServlet {
         
         System.out.println("DEBUG: updateShipping result: " + result);
         res.addProperty("message", result);
+    }
+
+    /**
+     * Adds a new payment card for a user, including billing address if needed
+     */
+    private void addPayment(JsonObject req, JsonObject res) {
+        try {
+            int userID = req.get("userID").getAsInt();
+            String cardNo = req.get("cardNo").getAsString();
+            String type = req.get("type").getAsString();
+            String expirationDate = req.get("expirationDate").getAsString();
+            // Extract billing address fields from billingAddress object if present
+            String street = null, city = null, state = null, zipCode = null;
+            if (req.has("billingAddress") && req.get("billingAddress").isJsonObject()) {
+                JsonObject billingAddr = req.getAsJsonObject("billingAddress");
+                street = billingAddr.has("street") ? billingAddr.get("street").getAsString() : null;
+                city = billingAddr.has("city") ? billingAddr.get("city").getAsString() : null;
+                state = billingAddr.has("state") ? billingAddr.get("state").getAsString() : null;
+                zipCode = billingAddr.has("zipCode") ? billingAddr.get("zipCode").getAsString() : null;
+            } else {
+                street = req.has("street") ? req.get("street").getAsString() : null;
+                city = req.has("city") ? req.get("city").getAsString() : null;
+                state = req.has("state") ? req.get("state").getAsString() : null;
+                zipCode = req.has("zipCode") ? req.get("zipCode").getAsString() : null;
+            }
+            Integer billingAddressID = req.has("billingAddressID") && !req.get("billingAddressID").isJsonNull() ? req.get("billingAddressID").getAsInt() : null;
+
+            // Build paymentData JsonObject as expected by RegistrationServlet.addPaymentCard
+            com.google.gson.JsonObject paymentData = new com.google.gson.JsonObject();
+            paymentData.addProperty("cardNumber", cardNo);
+            paymentData.addProperty("cardType", type);
+            paymentData.addProperty("expirationDate", expirationDate);
+            if (billingAddressID != null) {
+                paymentData.addProperty("billingAddressID", billingAddressID);
+            }
+            com.google.gson.JsonObject billingData = new com.google.gson.JsonObject();
+            if (street != null) billingData.addProperty("street", street);
+            if (city != null) billingData.addProperty("city", city);
+            if (state != null) billingData.addProperty("state", state);
+            if (zipCode != null) billingData.addProperty("zipCode", zipCode);
+            if (billingData.size() > 0) {
+                paymentData.add("billingAddress", billingData);
+            }
+
+            BillingAddressDatabase billingDb = new BillingAddressDatabase();
+            PaymentCardDatabase cardDb = new PaymentCardDatabase();
+            String result = com.bookstore.web.RegistrationServlet.addPaymentCard(userID, paymentData, billingDb, cardDb);
+            if (result == null || result.contains("Added")) {
+                res.addProperty("message", "Card added successfully.");
+            } else {
+                res.addProperty("message", result);
+            }
+        } catch (Exception e) {
+            res.addProperty("message", "Error adding card: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Deletes a payment card by cardID
+     */
+    private void deletePayment(JsonObject req, JsonObject res) {
+        if (!req.has("cardID")) {
+            res.addProperty("message", "Missing cardID");
+            return;
+        }
+        int cardID = req.get("cardID").getAsInt();
+        PaymentCardDatabase db = new PaymentCardDatabase();
+        db.connectDb();
+        String result = db.deleteCard(cardID);
+        db.disconnectDb();
+        res.addProperty("message", result);
+    }
+
+    private void addShipping(JsonObject req, JsonObject res) {
+        try {
+            int userID = req.get("userID").getAsInt();
+            String street = req.get("street").getAsString();
+            String city = req.get("city").getAsString();
+            String state = req.get("state").getAsString();
+            String zipCode = req.get("zipCode").getAsString();
+
+            ShippingAddressDatabase db = new ShippingAddressDatabase();
+            db.connectDb();
+            int newAddressID = db.insertAddress(userID, street, city, state, zipCode);
+            db.disconnectDb();
+
+            if (newAddressID > 0) {
+                res.addProperty("message", "Shipping address added successfully.");
+                res.addProperty("addressID", newAddressID);
+            } else {
+                res.addProperty("message", "Failed to add shipping address.");
+            }
+        } catch (Exception e) {
+            res.addProperty("message", "Error adding shipping address: " + e.getMessage());
+        }
     }
 
     /*

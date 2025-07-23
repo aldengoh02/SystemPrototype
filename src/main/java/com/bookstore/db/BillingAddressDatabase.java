@@ -7,7 +7,7 @@ import java.util.Properties;
 import com.bookstore.records.BillingAddressRecords;
 
 public class BillingAddressDatabase {
-    private static Connection connection;
+    private Connection connection;
     private ArrayList<BillingAddressRecords> results;
     private ResultSet rs;
     Boolean connected = false;
@@ -120,5 +120,26 @@ public class BillingAddressDatabase {
         }
         loadResults();
         return "Billing Address Deleted.";
+    }
+
+    public BillingAddressRecords findByAddressID(int addressID) {
+        try {
+            String query = "SELECT * FROM BillingAddress WHERE addressID = ?";
+            PreparedStatement ps = connection.prepareStatement(query);
+            ps.setInt(1, addressID);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return new BillingAddressRecords(
+                    rs.getInt("addressID"),
+                    rs.getString("street"),
+                    rs.getString("city"),
+                    rs.getString("state"),
+                    rs.getString("zipCode")
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
