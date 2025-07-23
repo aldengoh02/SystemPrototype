@@ -9,6 +9,7 @@
 # I am aware it is a security issue but it does not matter for a school project like this
 # gets user and password using grep
 # echos are for debugging purposes
+set -x
 
 USR=$(grep "^db.username=" src/main/resources/db.properties | cut -d'=' -f2)
 DBPass=$(grep "^db.password=" src/main/resources/db.properties | cut -d'=' -f2)
