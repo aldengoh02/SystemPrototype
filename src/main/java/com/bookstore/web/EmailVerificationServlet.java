@@ -118,7 +118,7 @@ public class EmailVerificationServlet extends HttpServlet {
             userDB.disconnectDb();
             
             jakarta.servlet.http.HttpSession session = request.getSession(true);
-            session.setAttribute("user_id", user.getUserID());
+            session.setAttribute("userID", user.getUserID());
             session.setAttribute("user_email", user.getEmail());
             session.setAttribute("user_name", user.getFirstName() + " " + user.getLastName());
             session.setAttribute("user_role", com.bookstore.SecUtils.getUserRoleName(user.getUserTypeID()).toLowerCase());

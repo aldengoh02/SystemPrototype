@@ -108,13 +108,13 @@ public class EditUserServlet extends HttpServlet {
         JsonObject jsonResponse = new JsonObject();
         try {
             jakarta.servlet.http.HttpSession session = request.getSession(false);
-            if (session == null || session.getAttribute("user_id") == null) {
+            if (session == null || session.getAttribute("userID") == null) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 jsonResponse.addProperty("error", "Not authenticated");
                 response.getWriter().write(jsonResponse.toString());
                 return;
             }
-            int userID = (int) session.getAttribute("user_id");
+            int userID = (int) session.getAttribute("userID");
 
             // Get user info
             UserDatabase userDb = new UserDatabase();

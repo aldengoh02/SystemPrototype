@@ -145,7 +145,7 @@ public class LoginServlet extends HttpServlet {
                 String name = user.getFirstName() + " " + user.getLastName();
                 
                 HttpSession session = request.getSession(true);
-                session.setAttribute("user_id", user.getUserID());
+                session.setAttribute("userID", user.getUserID());
                 session.setAttribute("user_email", user.getEmail());
                 session.setAttribute("user_name", name);
                 session.setAttribute("user_role", role.toLowerCase());
@@ -189,8 +189,8 @@ public class LoginServlet extends HttpServlet {
     private void sessionCheck(HttpServletRequest request, JsonObject json) {
         HttpSession session = request.getSession(false);
         
-        if (session != null && session.getAttribute("user_id") != null) {
-            Integer userId = (Integer) session.getAttribute("user_id");
+        if (session != null && session.getAttribute("userID") != null) {
+            Integer userId = (Integer) session.getAttribute("userID");
             
             UserDatabase db = new UserDatabase();
             try {

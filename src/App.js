@@ -320,7 +320,7 @@ function AppContent() {
           />
         } />
         <Route path="/book/:id" element={<BookDetailPage handleAddToCart={handleAddToCart} />} />
-        <Route path="/cart" element={<CartPage cartItems={cartItems} handleQuantityChange={handleQuantityChange} />} />
+        <Route path="/cart" element={<CartPage cartItems={cartItems} handleQuantityChange={handleQuantityChange} isLoggedIn={auth.isLoggedIn} />} />
         <Route path="/checkout" element={
           auth.isLoggedIn ? (
             <CheckoutPage cartItems={cartItems} setCartItems={setCartItems} setOrders={setOrders} />

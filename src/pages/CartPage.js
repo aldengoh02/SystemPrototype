@@ -1,8 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-export default function CartPage({ cartItems, handleQuantityChange }) {
+export default function CartPage({ cartItems, handleQuantityChange, isLoggedIn }) {
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const total = cartItems.reduce((sum, item) => sum + (item.sellingPrice * item.quantity), 0);
+
+  const handleProceedClick = (e) => {
+    if (!isLoggedIn) {
+      e.preventDefault();
+      setShowLoginPrompt(true);
+    }
+  };
 
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto' }}>
@@ -40,12 +48,17 @@ export default function CartPage({ cartItems, handleQuantityChange }) {
           <div style={{ background: '#fff', padding: '15px', borderRadius: '8px', marginTop: '20px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>
             <h3 style={{ textAlign: 'right' }}>Total: ${total.toFixed(2)}</h3>
             <div style={{ textAlign: 'right' }}>
-              <Link to="/checkout">
+              <Link to={isLoggedIn ? "/checkout" : "#"} onClick={handleProceedClick}>
                 <button style={{ background: '#50c878', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '5px', cursor: 'pointer', fontSize: '1.1em' }}>
                   Proceed to Checkout
                 </button>
               </Link>
             </div>
+            {showLoginPrompt && !isLoggedIn && (
+              <div style={{ marginTop: '15px', color: '#d9534f', textAlign: 'right' }}>
+                <span>You need to <Link to="/login" style={{ color: '#4a90e2', textDecoration: 'underline' }}>log in</Link> to complete your purchase.</span>
+              </div>
+            )}
           </div>
         </>
       )}
