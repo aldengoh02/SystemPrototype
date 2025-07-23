@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { useAuth } from '../AuthContext';
+import CartService from '../CartService';
 
 export default function CheckoutPage({ cartItems, setCartItems, setOrders }) {
   const [checkoutData, setCheckoutData] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const { auth } = useAuth();
 
   useEffect(() => {
     const calculateTotal = async () => {
@@ -32,16 +35,30 @@ export default function CheckoutPage({ cartItems, setCartItems, setOrders }) {
     calculateTotal();
   }, [cartItems]);
 
-  const handleConfirm = () => {
-    setOrders(prev => [...prev, {
-      id: Date.now(),
-      items: cartItems,
-      total: checkoutData.total,
-      date: new Date().toLocaleDateString()
-    }]);
+  const handleConfirm = async () => {
+    try {
+      setOrders(prev => [...prev, {
+        id: Date.now(),
+        items: cartItems,
+        total: checkoutData.total,
+        date: new Date().toLocaleDateString()
+      }]);
 
-    setCartItems([]);
-    window.location.href = '/order-history';
+      // Clear cart based on authentication status
+      if (auth.isLoggedIn) {
+        await CartService.clearAuthenticatedCart();
+      } else {
+        CartService.clearGuestCart();
+      }
+      
+      setCartItems([]);
+      window.location.href = '/order-history';
+    } catch (error) {
+      console.error('Error clearing cart after checkout:', error);
+      // Still proceed with checkout even if cart clear fails
+      setCartItems([]);
+      window.location.href = '/order-history';
+    }
   };
 
   if (loading) return <div style={{ textAlign: 'center', padding: '20px' }}>Calculating total...</div>;

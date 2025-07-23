@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate } f
 import { FaUser, FaShoppingCart, FaSignInAlt, FaSearch } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from "./AuthContext";
+import CartService from './CartService';
 
 // Page Components
 import Home from './pages/Home';
@@ -37,6 +38,7 @@ function AppContent() {
   const [error, setError] = useState(null);
   const [searchResults, setSearchResults] = useState(null);
   const [logoutMessage, setLogoutMessage] = useState('');
+  const [cartErrorMessage, setCartErrorMessage] = useState('');
   const { auth, setAuth } = useAuth();
   const navigate = useNavigate();
 
@@ -54,6 +56,8 @@ function AppContent() {
             userName: data.user_name,
             userEmail: data.user_email,
           });
+          // Merge guest cart with user cart and load user cart
+          handleUserLogin();
         } else {
           setAuth({
             isLoggedIn: false,
@@ -61,6 +65,8 @@ function AppContent() {
             userName: null,
             userEmail: null,
           });
+          // Load guest cart
+          loadGuestCart();
         }
       })
       .catch(() => {
@@ -70,8 +76,19 @@ function AppContent() {
           userName: null,
           userEmail: null,
         });
+        // Load guest cart
+        loadGuestCart();
       });
   }, [setAuth]);
+
+  // Watch for authentication state changes
+  useEffect(() => {
+    if (auth.isLoggedIn) {
+      loadAuthenticatedCart();
+    } else {
+      loadGuestCart();
+    }
+  }, [auth.isLoggedIn]);
 
   useEffect(() => {
     const searchBooks = async () => {
@@ -121,19 +138,96 @@ function AppContent() {
     fetchBooks();
   }, []);
 
-  const handleAddToCart = (book) => {
-    setCartItems(prev => {
-      const existing = prev.find(item => item.id === book.id);
-      if (existing) {
-        return prev.map(item => item.id === book.id ? { ...item, quantity: item.quantity + 1 } : item);
-      } else {
-        return [...prev, { ...book, quantity: 1 }];
-      }
-    });
+  // Load guest cart from localStorage
+  const loadGuestCart = () => {
+    try {
+      const guestCart = CartService.getGuestCart();
+      setCartItems(guestCart);
+    } catch (error) {
+      console.error('Error loading guest cart:', error);
+      setCartItems([]);
+    }
   };
 
-  const handleQuantityChange = (id, delta) => {
-    setCartItems(prev => prev.map(item => item.id === id ? { ...item, quantity: item.quantity + delta } : item).filter(item => item.quantity > 0));
+  // Load authenticated user cart from database
+  const loadAuthenticatedCart = async () => {
+    try {
+      const userCart = await CartService.getAuthenticatedCart();
+      setCartItems(userCart);
+    } catch (error) {
+      console.error('Error loading authenticated cart:', error);
+      setCartItems([]);
+      setCartErrorMessage(error.message || 'Failed to load authenticated cart.');
+      if (error.message && error.message.includes('Unauthorized')) {
+        setTimeout(() => {
+          setCartErrorMessage('');
+          navigate('/login');
+        }, 1500);
+      }
+    }
+  };
+
+  // Handle user login - merge guest cart and load user cart
+  const handleUserLogin = async () => {
+    try {
+      // Merge guest cart with user cart
+      await CartService.mergeGuestCart();
+      // Load the merged cart
+      await loadAuthenticatedCart();
+    } catch (error) {
+      console.error('Error handling user login:', error);
+      setCartErrorMessage(error.message || 'Error merging guest cart.');
+      // Fallback to loading authenticated cart without merge
+      await loadAuthenticatedCart();
+    }
+  };
+
+  const handleAddToCart = async (book) => {
+    try {
+      const updatedCart = await CartService.addToCart(book, auth.isLoggedIn);
+      setCartItems(updatedCart);
+      setCartErrorMessage('');
+    } catch (error) {
+      setCartErrorMessage(error.message || 'Error adding to cart.');
+      if (error.message && error.message.includes('Unauthorized')) {
+        // Show message and redirect to login after a short delay
+        setTimeout(() => {
+          setCartErrorMessage('');
+          navigate('/login');
+        }, 1500);
+        return;
+      }
+      // Fallback to current cart behavior for guests
+      if (!auth.isLoggedIn) {
+        setCartItems(prev => {
+          const existing = prev.find(item => item.id === book.id);
+          if (existing) {
+            return prev.map(item => item.id === book.id ? { ...item, quantity: item.quantity + 1 } : item);
+          } else {
+            return [...prev, { ...book, quantity: 1 }];
+          }
+        });
+      }
+    }
+  };
+
+  const handleQuantityChange = async (id, delta) => {
+    try {
+      const updatedCart = await CartService.updateCartQuantity(id, delta, auth.isLoggedIn);
+      setCartItems(updatedCart);
+      setCartErrorMessage('');
+    } catch (error) {
+      setCartErrorMessage(error.message || 'Error updating cart quantity.');
+      if (error.message && error.message.includes('Unauthorized')) {
+        setTimeout(() => {
+          setCartErrorMessage('');
+          navigate('/login');
+        }, 1500);
+        return;
+      }
+      // Fallback to current cart behavior
+      setCartItems(prev => prev.map(item => item.id === id ? { ...item, quantity: item.quantity + delta } : item).filter(item => item.quantity > 0));
+    }
   };
 
   const handleLogout = async () => {
@@ -149,6 +243,9 @@ function AppContent() {
           userName: null,
           userEmail: null,
         });
+        // Clear cart on logout and load guest cart
+        setCartItems([]);
+        CartService.clearGuestCart();
         setLogoutMessage('You have been successfully logged out.');
         navigate('/home');
         setTimeout(() => setLogoutMessage(''), 3000);
@@ -157,6 +254,9 @@ function AppContent() {
       }
     } catch (err) {
       console.error('Logout error:', err);
+      // Ensure cart is cleared even if logout request fails
+      setCartItems([]);
+      CartService.clearGuestCart();
     }
   };
 
@@ -198,6 +298,7 @@ function AppContent() {
           {/*<Link to="/reset-password?token=test123"> Test Reset Password Page</Link>*/}
         </div>
         {logoutMessage && <p style={{ color: 'white', marginTop: '10px' }}>{logoutMessage}</p>}
+        {cartErrorMessage && <p style={{ color: 'yellow', marginTop: '10px' }}>{cartErrorMessage}</p>}
       </header>
 
       <Routes>
@@ -246,6 +347,3 @@ const navStyle = {
   alignItems: 'center',
   gap: '5px',
 };
-
-
-
