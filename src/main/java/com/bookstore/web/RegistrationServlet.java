@@ -134,7 +134,7 @@ public class RegistrationServlet extends HttpServlet {
             // Handle optional payment information
             if (requestData.has("paymentCard")) {
                 JsonObject paymentData = requestData.getAsJsonObject("paymentCard");
-                String paymentResult = addPaymentCard(userId, paymentData);
+                String paymentResult = addPaymentCard(userId, paymentData, billingDB, paymentDB);
                 if (paymentResult != null) {
                     sendErrorResponse(response, 500, "User created but payment card failed: " + paymentResult);
                     return;
@@ -164,7 +164,7 @@ public class RegistrationServlet extends HttpServlet {
         }
     }
     
-    private String getStringField(JsonObject json, String fieldName) {
+    public static String getStringField(JsonObject json, String fieldName) {
         if (json.has(fieldName) && !json.get(fieldName).isJsonNull()) {
             return json.get(fieldName).getAsString().trim();
         }
@@ -239,7 +239,7 @@ public class RegistrationServlet extends HttpServlet {
         }
     }
     
-    private String addPaymentCard(int userId, JsonObject paymentData) {
+    public static String addPaymentCard(int userId, JsonObject paymentData, BillingAddressDatabase billingDB, PaymentCardDatabase paymentDB) {
         try {
             String cardNumber = getStringField(paymentData, "cardNumber");
             String cardType = getStringField(paymentData, "cardType");

@@ -16,6 +16,7 @@ export default function ProfilePage() {
   const [newPassword, setNewPassword] = useState('');
   const [promotions, setPromotions] = useState(false);
   const [shippingAddressID, setShippingAddressID] = useState(null);
+  const [showAddCardMenu, setShowAddCardMenu] = useState(false);
 
   const userID = localStorage.getItem('userID');
   const addressID = localStorage.getItem('addressID');
@@ -143,18 +144,41 @@ export default function ProfilePage() {
         type: newCard.type,
         expirationDate: newCard.expirationDate,
         billingAddressID: addressID,
+        street,
+        city,
+        state,
+        zipCode,
       }),
     });
 
     const added = await response.json();
-    if (response.ok) {
-      setCards(prev => [...prev, newCard]);
+    if (response.ok && added.message && added.message.toLowerCase().includes('success')) {
+      // Refresh cards by refetching profile data
+      fetch(`http://localhost:8080/api/user/${userID}`, { credentials: 'include' })
+        .then(res => res.json())
+        .then(data => {
+          if (data.paymentCards) {
+            const mappedCards = data.paymentCards.map(card => ({
+              cardNo: card.cardNo,
+              type: card.cardType,
+              expirationDate: card.expirationDate
+            }));
+            setCards(mappedCards);
+          }
+        });
       setNewCard({ cardNo: '', type: '', expirationDate: '' });
+      setShowAddCardMenu(false);
       alert('Card added successfully.');
     } else {
-      alert('Failed to add card: ' + added.message);
+      alert('Failed to add card: ' + (added.message || 'Unknown error'));
     }
   };
+
+  function maskCardNumber(cardNo) {
+    if (!cardNo) return '';
+    const last4 = cardNo.slice(-4);
+    return '************' + last4;
+  }
 
   return (
     <div style={{ maxWidth: '600px', margin: '0 auto' }}>
@@ -210,12 +234,51 @@ export default function ProfilePage() {
 
         {/* Payment Cards */}
         <h4>Payment Cards (Max 4)</h4>
-        {cards.length < 4 && (
-          <div style={{ marginBottom: '15px' }}>
-            <Input label="Card Number" value={newCard.cardNo} onChange={val => setNewCard({ ...newCard, cardNo: val })} />
-            <Input label="Card Type" value={newCard.type} onChange={val => setNewCard({ ...newCard, type: val })} />
-            <Input label="Expiration Date" value={newCard.expirationDate} onChange={val => setNewCard({ ...newCard, expirationDate: val })} />
+        {cards.map((card, idx) => (
+          <div key={idx} style={{ marginBottom: '15px' }}>
+            <Input
+              label="Card Number"
+              value={maskCardNumber(card.cardNo)}
+              disabled={idx !== 0 ? true : false}
+            />
+            <Input label="Card Type" value={card.type} disabled={idx !== 0 ? true : false} />
+            <Input label="Expiration Date" value={card.expirationDate} disabled={idx !== 0 ? true : false} />
+          </div>
+        ))}
+
+        {cards.length < 4 && !showAddCardMenu && (
+          <button
+            type="button"
+            onClick={() => {
+              setNewCard({ cardNo: '', type: '', expirationDate: '' });
+              setShowAddCardMenu(true);
+            }}
+          >
+            Add Card
+          </button>
+        )}
+
+        {showAddCardMenu && (
+          <div style={{ marginBottom: '15px', border: '1px solid #ccc', borderRadius: '8px', padding: '15px' }}>
+            <Input
+              label="Card Number"
+              value={newCard.cardNo}
+              onChange={val => setNewCard({ ...newCard, cardNo: val })}
+            />
+            <Input
+              label="Card Type"
+              value={newCard.type}
+              onChange={val => setNewCard({ ...newCard, type: val })}
+            />
+            <Input
+              label="Expiration Date"
+              value={newCard.expirationDate}
+              onChange={val => setNewCard({ ...newCard, expirationDate: val })}
+            />
             <button type="button" onClick={handleAddCard}>Add Card</button>
+            <button type="button" onClick={() => setShowAddCardMenu(false)} style={{ marginLeft: '10px' }}>
+              Cancel
+            </button>
           </div>
         )}
 

@@ -72,6 +72,9 @@ public class EditUserServlet extends HttpServlet {
                 case "/update-promotions":
                     updatePromotions(jsonRequest, jsonResponse);
                     break;
+                case "/add-payment":
+                    addPayment(jsonRequest, jsonResponse);
+                    break;
                 default:
                     System.out.println("DEBUG: Unknown endpoint: " + pathInfo);
                     response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -351,6 +354,52 @@ public class EditUserServlet extends HttpServlet {
         
         System.out.println("DEBUG: updateShipping result: " + result);
         res.addProperty("message", result);
+    }
+
+    /**
+     * Adds a new payment card for a user, including billing address if needed
+     */
+    private void addPayment(JsonObject req, JsonObject res) {
+        try {
+            int userID = req.get("userID").getAsInt();
+            String cardNo = req.get("cardNo").getAsString();
+            String type = req.get("type").getAsString();
+            String expirationDate = req.get("expirationDate").getAsString();
+            // Billing address fields
+            String street = req.has("street") ? req.get("street").getAsString() : null;
+            String city = req.has("city") ? req.get("city").getAsString() : null;
+            String state = req.has("state") ? req.get("state").getAsString() : null;
+            String zipCode = req.has("zipCode") ? req.get("zipCode").getAsString() : null;
+            Integer billingAddressID = req.has("billingAddressID") && !req.get("billingAddressID").isJsonNull() ? req.get("billingAddressID").getAsInt() : null;
+
+            // Build paymentData JsonObject as expected by RegistrationServlet.addPaymentCard
+            com.google.gson.JsonObject paymentData = new com.google.gson.JsonObject();
+            paymentData.addProperty("cardNumber", cardNo);
+            paymentData.addProperty("cardType", type);
+            paymentData.addProperty("expirationDate", expirationDate);
+            if (billingAddressID != null) {
+                paymentData.addProperty("billingAddressID", billingAddressID);
+            }
+            com.google.gson.JsonObject billingData = new com.google.gson.JsonObject();
+            if (street != null) billingData.addProperty("street", street);
+            if (city != null) billingData.addProperty("city", city);
+            if (state != null) billingData.addProperty("state", state);
+            if (zipCode != null) billingData.addProperty("zipCode", zipCode);
+            if (billingData.size() > 0) {
+                paymentData.add("billingAddress", billingData);
+            }
+
+            BillingAddressDatabase billingDb = new BillingAddressDatabase();
+            PaymentCardDatabase cardDb = new PaymentCardDatabase();
+            String result = com.bookstore.web.RegistrationServlet.addPaymentCard(userID, paymentData, billingDb, cardDb);
+            if (result == null || result.contains("Added")) {
+                res.addProperty("message", "Card added successfully.");
+            } else {
+                res.addProperty("message", result);
+            }
+        } catch (Exception e) {
+            res.addProperty("message", "Error adding card: " + e.getMessage());
+        }
     }
 
     /*
