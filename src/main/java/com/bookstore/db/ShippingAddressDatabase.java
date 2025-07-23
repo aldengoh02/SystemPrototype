@@ -146,4 +146,29 @@ public class ShippingAddressDatabase {
         }
         return null;
     }
+
+    public int insertAddress(int userID, String street, String city, String state, String zipCode) {
+        int newAddressID = -1;
+        try {
+            String sql = "INSERT INTO ShippingAddress (userID, street, city, state, zipCode) VALUES (?, ?, ?, ?, ?)";
+            PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            stmt.setInt(1, userID);
+            stmt.setString(2, street);
+            stmt.setString(3, city);
+            stmt.setString(4, state);
+            stmt.setString(5, zipCode);
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows > 0) {
+                ResultSet rs = stmt.getGeneratedKeys();
+                if (rs.next()) {
+                    newAddressID = rs.getInt(1);
+                }
+            }
+            stmt.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        loadResults();
+        return newAddressID;
+    }
 }
