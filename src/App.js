@@ -167,7 +167,7 @@ function AppContent() {
               style={{ border: 'none', outline: 'none', marginLeft: '5px' }}
             />
           </div>
-          {/*<Link to="/reset-password?token=test123">🔧 Test Reset Password Page</Link>*/}
+          {/*<Link to="/reset-password?token=test123"> Test Reset Password Page</Link>*/}
         </div>
         {logoutMessage && <p style={{ color: 'white', marginTop: '10px' }}>{logoutMessage}</p>}
       </header>

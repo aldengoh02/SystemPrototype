@@ -26,10 +26,10 @@ export default function ForgotPasswordPage() {
       setMessage('');
     }
   };
-
-  return (
-    <div style={{ maxWidth: '400px', margin: '0 auto' }}>
-      <h2>Forgot Password</h2>
+  
+ return (
+    <div style={{ maxWidth: '400px', margin: '40px auto', padding: '30px', borderRadius: '12px', boxShadow: '0 2px 12px rgba(0,0,0,0.15)', background: '#fff' }}>
+      <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Forgot Password</h2>
       <form onSubmit={handleSubmit}>
         <input
           type="email"
@@ -37,11 +37,29 @@ export default function ForgotPasswordPage() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          className="form-input"
+          style={{
+            width: '90%',
+            padding: '16px',
+            marginBottom: '16px',
+            borderRadius: '8px',
+            border: '1px solid #c5c5c5',
+            fontSize: '16px',
+            fontWeight: '600',
+            outline: 'none',
+            boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.1)',
+            transition: 'border-color 0.2s ease-in-out',
+        }}
+        onFocus={(e) => e.target.style.borderColor = '#0046be'}
+        onBlur={(e) => e.target.style.borderColor = '#c5c5c5'}
         />
-        <button type="submit">Send Reset Link</button>
+        <button type="submit" style={{ width: '100%', backgroundColor: '#0046be', color: 'white', padding: '12px', fontWeight: 'bold', border: 'none', borderRadius: '4px', marginTop: '15px', cursor: 'pointer' }}>
+          Send Reset Link
+        </button>
       </form>
-      {message && <p style={{ color: 'green' }}>{message}</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {message && <p style={{ color: 'green', textAlign: 'center', marginTop: '15px' }}>{message}</p>}
+      {error && <p style={{ color: 'red', textAlign: 'center', marginTop: '15px' }}>{error}</p>}
     </div>
   );
 }
+

@@ -20,7 +20,7 @@ export default function Home({
     borderRadius: '10px',
     boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
     textAlign: 'center',
-    transition: 'transform 0.2s',
+    transition: 'transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease',
     cursor: 'pointer'
   };
 
@@ -40,7 +40,7 @@ export default function Home({
   };
   const renderBooks = (books, color = '#4a90e2') =>
     books.map(book => (
-      <div key={book.id} style={cardStyle}>
+      <div key={book.id} className='book-card' style={cardStyle}>
         <Link to={`/book/${book.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
           <img
             src={`/img/${book.coverImage.split('/').pop()}`}
@@ -81,6 +81,16 @@ export default function Home({
 
   return (
     <div>
+      <style>
+        {`
+          .book-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25);
+            border-color: #4a90e2;
+          }
+        `}
+      </style>
+
       <h2 style={{ borderBottom: '3px solid #4a90e2', paddingBottom: '5px', color: '#4a90e2' }}>
         {isSearching ? `🔍 Search Results for "${searchTerm}"` : '📘 Featured Books'}
       </h2>

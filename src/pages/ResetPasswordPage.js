@@ -44,32 +44,81 @@ export default function ResetPasswordPage() {
     }
   };
 
-  return (
-    <div style={{ maxWidth: '400px', margin: '0 auto' }}>
-      <h2>Reset Password</h2>
-      <form onSubmit={handleResetPassword}>
-        {tokenFromUrl ? null : (
-          <input
+return (
+    <div
+        style={{
+        maxWidth: '400px',
+        margin: '40px auto',
+        padding: '30px',
+        borderRadius: '12px',
+        boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
+        background: '#fff',
+        }}
+    >
+        <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Reset Password</h2>
+        <form onSubmit={handleResetPassword}>
+        {!tokenFromUrl && (
+            <input
             type="text"
             value={token}
-            onChange={e => setToken(e.target.value)}
+            onChange={(e) => setToken(e.target.value)}
             placeholder="Reset Token"
             required
-          />
+            style={{
+                width: '100%',
+                padding: '16px',
+                marginBottom: '16px',
+                borderRadius: '8px',
+                border: '1px solid #ccc',
+                fontSize: '16px',
+                fontWeight: '600',
+                boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.1)',
+                outline: 'none',
+            }}
+            onFocus={(e) => (e.target.style.borderColor = '#0046be')}
+            onBlur={(e) => (e.target.style.borderColor = '#ccc')}
+            />
         )}
         <input
-          type="password"
-          value={newPassword}
-          onChange={e => setNewPassword(e.target.value)}
-          placeholder="New Password"
-          required
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            placeholder="New Password"
+            required
+            style={{
+            width: '90%',
+            padding: '16px',
+            marginBottom: '16px',
+            borderRadius: '8px',
+            border: '1px solid #ccc',
+            fontSize: '16px',
+            fontWeight: '600',
+            boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.1)',
+            outline: 'none',
+            }}
+            onFocus={(e) => (e.target.style.borderColor = '#0046be')}
+            onBlur={(e) => (e.target.style.borderColor = '#ccc')}
         />
-        <button type="submit" style={{ marginTop: '10px' }}>
-          Reset Password
+        <button
+            type="submit"
+            style={{
+            width: '100%',
+            backgroundColor: '#0046be',
+            color: 'white',
+            padding: '12px',
+            fontWeight: 'bold',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            }}
+        >
+            Reset Password
         </button>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-        {successMessage && <p style={{ color: 'green' }}>{successMessage}</p>}
-      </form>
+        {error && <p style={{ color: 'red', textAlign: 'center', marginTop: '10px' }}>{error}</p>}
+        {successMessage && (
+            <p style={{ color: 'green', textAlign: 'center', marginTop: '10px' }}>{successMessage}</p>
+        )}
+        </form>
     </div>
-  );
-}
+    );
+    }
