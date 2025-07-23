@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom'; 
 import { FaUser, FaShoppingCart, FaSignInAlt, FaSearch } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
+import { AuthProvider, useAuth } from "./AuthContext";
 
 // Page Components
 import Home from './pages/Home';
@@ -18,9 +19,11 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 
 export default function App() {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <AuthProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </AuthProvider>
   );
 }
 
@@ -33,10 +36,9 @@ function AppContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchResults, setSearchResults] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [logoutMessage, setLogoutMessage] = useState('');
-
-  const navigate = useNavigate(); 
+  const { auth, setAuth } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetch('/api/auth/check-session', {
@@ -46,13 +48,30 @@ function AppContent() {
       .then(res => res.json())
       .then(data => {
         if (data.authenticated) {
-          setIsLoggedIn(true);
+          setAuth({
+            isLoggedIn: true,
+            userRole: data.user_role,
+            userName: data.user_name,
+            userEmail: data.user_email,
+          });
         } else {
-          setIsLoggedIn(false);
+          setAuth({
+            isLoggedIn: false,
+            userRole: null,
+            userName: null,
+            userEmail: null,
+          });
         }
       })
-      .catch(() => setIsLoggedIn(false));
-  }, []);
+      .catch(() => {
+        setAuth({
+          isLoggedIn: false,
+          userRole: null,
+          userName: null,
+          userEmail: null,
+        });
+      });
+  }, [setAuth]);
 
   useEffect(() => {
     const searchBooks = async () => {
@@ -124,7 +143,12 @@ function AppContent() {
         credentials: 'include',
       });
       if (res.ok) {
-        setIsLoggedIn(false);
+        setAuth({
+          isLoggedIn: false,
+          userRole: null,
+          userName: null,
+          userEmail: null,
+        });
         setLogoutMessage('You have been successfully logged out.');
         navigate('/home');
         setTimeout(() => setLogoutMessage(''), 3000);
@@ -136,16 +160,20 @@ function AppContent() {
     }
   };
 
+  // Debug: log the userRole value
+  console.log('userRole:', auth.userRole);
   return (
     <div style={{ fontFamily: 'Arial, sans-serif', padding: '20px', background: '#f4f4f4', minHeight: '100vh' }}>
       <header style={{ background: '#4a90e2', color: '#fff', padding: '10px 20px', borderRadius: '8px', marginBottom: '20px' }}>
         <Link to="/home" style={{ textDecoration: 'none', color: 'white' }}><h1>📚 University Bookstore</h1></Link>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-          {isLoggedIn ? (
+          {auth.isLoggedIn ? (
             <>
               <Link to="/profile" style={navStyle}><FaUser /> Profile</Link>
               <Link to="/order-history" style={navStyle}>Order History</Link>
-              <Link to="/admin" style={navStyle}>Admin</Link>
+              {auth.userRole === 'admin' && (
+                <Link to="/admin" style={navStyle}>Admin</Link>
+              )}
               <button
                 onClick={handleLogout}
                 style={{ ...navStyle, background: '#fff', cursor: 'pointer', border: 'none' }}
@@ -174,10 +202,10 @@ function AppContent() {
 
       <Routes>
         <Route path="/" element={<Navigate to="/home" replace />} />
-        <Route path="/login" element={<LoginPage setIsLoggedIn={setIsLoggedIn} />} />
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="/register" element={<RegisterPage setIsLoggedIn={setIsLoggedIn} />} />
+        <Route path="/register" element={<RegisterPage />} />
         <Route path="/home" element={
           <Home
             featuredBooks={searchResults || featuredBooks}
@@ -187,21 +215,21 @@ function AppContent() {
             error={error}
             isSearching={!!searchResults}
             searchTerm={search}
-            isLoggedIn={isLoggedIn}
+            isLoggedIn={auth.isLoggedIn}
           />
         } />
         <Route path="/book/:id" element={<BookDetailPage handleAddToCart={handleAddToCart} />} />
         <Route path="/cart" element={<CartPage cartItems={cartItems} handleQuantityChange={handleQuantityChange} />} />
         <Route path="/checkout" element={
-          isLoggedIn ? (
+          auth.isLoggedIn ? (
             <CheckoutPage cartItems={cartItems} setCartItems={setCartItems} setOrders={setOrders} />
           ) : (
             <Navigate to="/login" replace />
           )
         } />
-        <Route path="/order-history" element={isLoggedIn ? <OrderHistoryPage orders={orders} setCartItems={setCartItems} /> : <Navigate to="/register" />} />
-        <Route path="/profile" element={isLoggedIn ? <ProfilePage /> : <Navigate to="/register" />} />
-        <Route path="/admin" element={isLoggedIn ? <AdminPage /> : <Navigate to="/register" />} />
+        <Route path="/order-history" element={auth.isLoggedIn ? <OrderHistoryPage orders={orders} setCartItems={setCartItems} /> : <Navigate to="/register" />} />
+        <Route path="/profile" element={auth.isLoggedIn ? <ProfilePage /> : <Navigate to="/register" />} />
+        <Route path="/admin" element={auth.isLoggedIn && auth.userRole === 'admin' ? <AdminPage /> : <Navigate to="/register" />} />
       </Routes>
     </div>
   );

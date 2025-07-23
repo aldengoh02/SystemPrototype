@@ -1,7 +1,12 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
+import { useAuth } from '../AuthContext';
 
 export default function AdminPage() {
+  const { auth } = useAuth();
+  if (auth.userRole !== 'admin') {
+    return <Navigate to="/home" />;
+  }
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto' }}>
       <h2>Admin Panel</h2>
