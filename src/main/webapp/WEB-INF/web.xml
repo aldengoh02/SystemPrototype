@@ -71,4 +71,14 @@
         <url-pattern>/api/auth/*</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>CartServlet</servlet-name>
+        <servlet-class>com.bookstore.web.CartServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>CartServlet</servlet-name>
+        <url-pattern>/api/cart/*</url-pattern>
+    </servlet-mapping>
+
 </web-app> 
