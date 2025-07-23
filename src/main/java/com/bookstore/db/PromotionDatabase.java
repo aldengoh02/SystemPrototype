@@ -8,7 +8,7 @@ import com.bookstore.records.PromotionRecords;
 
 public class PromotionDatabase {
 
-    private static Connection connection;
+    private Connection connection;
     private ArrayList<PromotionRecords> results;
     private ResultSet rs;
     Boolean connected = false;
@@ -51,10 +51,6 @@ public class PromotionDatabase {
             return false;
         }
         return true;
-    }
-
-    public static Connection getConnection() {
-        return connection;
     }
 
     public ArrayList<PromotionRecords> getResults() {

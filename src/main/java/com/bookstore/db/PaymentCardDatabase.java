@@ -8,7 +8,7 @@ import java.util.Properties;
 import com.bookstore.records.PaymentCardRecords;
 
 public class PaymentCardDatabase {
-    private static Connection connection;
+    private Connection connection;
     private ArrayList<PaymentCardRecords> results;
     private ResultSet rs;
     Boolean connected = false;

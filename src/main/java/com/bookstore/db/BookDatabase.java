@@ -11,7 +11,7 @@ import com.bookstore.records.BookRecords;
 
 public class BookDatabase {
 
-    private static Connection connection;
+    private Connection connection;
     private ArrayList<BookRecords> results;
     private ResultSet rs;
     Boolean connected = false;
@@ -60,7 +60,7 @@ public class BookDatabase {
     }
 
     // Getter for connection
-    public static Connection getConnection() {
+    public Connection getConnection() {
         return connection;
     }
 

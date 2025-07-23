@@ -8,7 +8,7 @@ import com.bookstore.records.CartRecord;
 
 public class CartDatabase {
 
-    private static Connection connection;
+    private Connection connection;
     private ArrayList<CartRecord> results;
     private ResultSet rs;
     Boolean connected = false;
@@ -54,11 +54,6 @@ public class CartDatabase {
             return false;
         }
         return true;
-    }
-
-    // Getter for connection
-    public static Connection getConnection() {
-        return connection;
     }
 
     // Getter and setter for results

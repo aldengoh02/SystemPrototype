@@ -7,7 +7,7 @@ import java.util.Properties;
 import com.bookstore.records.ShippingAddressRecords;
 
 public class ShippingAddressDatabase {
-    private static Connection connection;
+    private Connection connection;
     private ArrayList<ShippingAddressRecords> results;
     private ResultSet rs;
     Boolean connected = false;

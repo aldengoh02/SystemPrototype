@@ -7,7 +7,7 @@ import java.io.InputStream;
 
 public class VerificationTokenDatabase {
 
-    private static Connection connection;
+    private Connection connection;
     private ArrayList<VerificationTokenRecords> results;
     private ResultSet rs;
     Boolean connected = false;

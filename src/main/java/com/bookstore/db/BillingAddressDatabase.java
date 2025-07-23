@@ -7,7 +7,7 @@ import java.util.Properties;
 import com.bookstore.records.BillingAddressRecords;
 
 public class BillingAddressDatabase {
-    private static Connection connection;
+    private Connection connection;
     private ArrayList<BillingAddressRecords> results;
     private ResultSet rs;
     Boolean connected = false;

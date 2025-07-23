@@ -8,7 +8,7 @@ import com.bookstore.records.UserRecords;
 
 public class UserDatabase {
 
-    private static Connection connection;
+    private Connection connection;
     private ArrayList<UserRecords> results;
     private ResultSet rs;
     Boolean connected = false;
@@ -56,11 +56,6 @@ public class UserDatabase {
             return false;
         }
         return true;
-    }
-
-    // Getter for connection
-    public static Connection getConnection() {
-        return connection;
     }
 
     // Getter and setter for results
@@ -189,5 +184,10 @@ public class UserDatabase {
         }
         loadResults();
         return "User Deleted.";
+    }
+
+    // Getter for connection
+    public Connection getConnection() {
+        return connection;
     }
 }

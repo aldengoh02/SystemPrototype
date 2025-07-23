@@ -8,7 +8,7 @@ import com.bookstore.records.TransactionRecords;
 
 public class TransactionDatabase {
 
-    private static Connection connection;
+    private Connection connection;
     private ArrayList<TransactionRecords> results;
     private ResultSet rs;
     Boolean connected = false;
@@ -54,11 +54,6 @@ public class TransactionDatabase {
             return false;
         }
         return true;
-    }
-
-    // Getter for connection
-    public static Connection getConnection() {
-        return connection;
     }
 
     // Getter and setter for results
