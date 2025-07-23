@@ -26,7 +26,9 @@ export default function ProfilePage() {
   const [billingAddresses, setBillingAddresses] = useState([]);
   // Add state for which card is being edited and the edited billing address
   const [editingCardID, setEditingCardID] = useState(null);
+  const [editedCard, setEditedCard] = useState({ cardNo: '', type: '', expirationDate: '' });
   const [editedBilling, setEditedBilling] = useState({ street: '', city: '', state: '', zipCode: '' });
+  const [editCardStatus, setEditCardStatus] = useState({ loading: false, error: '', success: '' });
 
   const userID = localStorage.getItem('userID');
   const addressID = localStorage.getItem('addressID');
@@ -288,82 +290,122 @@ export default function ProfilePage() {
           const billing = billingAddresses.find(addr => addr.addressID === card.billingAddressID);
           const isEditing = editingCardID === card.cardID;
           return (
-            <div key={idx} style={{ marginBottom: '15px' }}>
-              <Input
-                label="Card Number"
-                value={maskCardNumber(card.cardNo)}
-              />
-              <Input label="Card Type" value={card.type} />
-              <Input label="Expiration Date" value={card.expirationDate} />
-              {billing && !isEditing && (
-                <div style={{ marginTop: '5px', marginBottom: '5px', padding: '8px', background: '#f7f7f7', borderRadius: '4px' }}>
-                  <div style={{ fontWeight: 'bold' }}>Billing Address</div>
-                  <div>{billing.street}</div>
-                  <div>{billing.city}, {billing.state} {billing.zipCode}</div>
-                  <button type="button" style={{ ...buttonStyle, width: 'auto', marginTop: '5px' }} onClick={() => {
+            <div key={idx} style={{ marginBottom: '25px', border: '1px solid #e0e0e0', borderRadius: '10px', background: isEditing ? '#f8faff' : '#fafbfc', boxShadow: isEditing ? '0 2px 8px rgba(74,144,226,0.08)' : 'none', padding: '20px' }}>
+              {!isEditing ? (
+                <>
+                  <div style={{ fontWeight: 'bold', fontSize: '1.1em', marginBottom: 10 }}>Card Details</div>
+                  <div style={{ marginBottom: 8 }}><span style={{ fontWeight: 600 }}>Card Number:</span> {maskCardNumber(card.cardNo)}</div>
+                  <div style={{ marginBottom: 8 }}><span style={{ fontWeight: 600 }}>Card Type:</span> {card.type}</div>
+                  <div style={{ marginBottom: 8 }}><span style={{ fontWeight: 600 }}>Expiration Date:</span> {card.expirationDate}</div>
+                  {billing && (
+                    <div style={{ marginTop: 18, background: '#f7f7f7', borderRadius: 6, padding: 12 }}>
+                      <div style={{ fontWeight: 'bold', marginBottom: 4 }}>Billing Address</div>
+                      <div>{billing.street}</div>
+                      <div>{billing.city}, {billing.state} {billing.zipCode}</div>
+                    </div>
+                  )}
+                  <button type="button" style={{ ...buttonStyle, width: 'auto', marginTop: 16 }} onClick={() => {
                     setEditingCardID(card.cardID);
+                    setEditedCard({
+                      cardNo: card.cardNo,
+                      type: card.type,
+                      expirationDate: card.expirationDate
+                    });
                     setEditedBilling({
                       street: billing.street,
                       city: billing.city,
                       state: billing.state,
                       zipCode: billing.zipCode
                     });
-                  }}>Edit Billing Address</button>
-                </div>
-              )}
-              {isEditing && (
-                <div style={{ marginTop: '5px', marginBottom: '5px', padding: '8px', background: '#f7f7f7', borderRadius: '4px' }}>
-                  <div style={{ fontWeight: 'bold' }}>Edit Billing Address</div>
+                    setEditCardStatus({ loading: false, error: '', success: '' });
+                  }}>Edit Card</button>
+                </>
+              ) : (
+                <form onSubmit={async e => {
+                  e.preventDefault();
+                  setEditCardStatus({ loading: true, error: '', success: '' });
+                  // 1. Update billing address
+                  const billingResp = await fetch('http://localhost:8080/api/edit/update-billing', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      addressID: billing.addressID,
+                      street: editedBilling.street,
+                      city: editedBilling.city,
+                      state: editedBilling.state,
+                      zipCode: editedBilling.zipCode
+                    })
+                  });
+                  const billingResult = await billingResp.json();
+                  if (!billingResp.ok || !billingResult.message || !billingResult.message.toLowerCase().includes('success')) {
+                    setEditCardStatus({ loading: false, error: 'Failed to update billing address: ' + (billingResult.message || 'Unknown error'), success: '' });
+                    return;
+                  }
+                  // 2. Update payment card
+                  const cardResp = await fetch('http://localhost:8080/api/edit/update-payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      userID,
+                      cardID: card.cardID,
+                      cardNo: editedCard.cardNo,
+                      type: editedCard.type,
+                      expirationDate: editedCard.expirationDate,
+                      billingAddressID: billing.addressID
+                    })
+                  });
+                  const cardResult = await cardResp.json();
+                  if (!cardResp.ok || !cardResult.message || !cardResult.message.toLowerCase().includes('success')) {
+                    setEditCardStatus({ loading: false, error: 'Failed to update card: ' + (cardResult.message || 'Unknown error'), success: '' });
+                    return;
+                  }
+                  // Refresh billing addresses and cards
+                  fetch(`http://localhost:8080/api/user/${userID}`, { credentials: 'include' })
+                    .then(res => res.json())
+                    .then(data => {
+                      if (data.paymentCards) {
+                        const mappedCards = data.paymentCards.map(card => ({
+                          cardNo: card.cardNo,
+                          type: card.cardType,
+                          expirationDate: card.expirationDate,
+                          cardID: card.cardID,
+                          billingAddressID: card.billingAddressID
+                        }));
+                        setCards(mappedCards);
+                      }
+                      if (data.billingAddresses) {
+                        setBillingAddresses(data.billingAddresses);
+                      }
+                    });
+                  setEditCardStatus({ loading: false, error: '', success: 'Card and billing address updated successfully.' });
+                  setTimeout(() => {
+                    setEditingCardID(null);
+                    setEditCardStatus({ loading: false, error: '', success: '' });
+                  }, 1200);
+                }} style={{ margin: 0 }}>
+                  <div style={{ fontWeight: 'bold', fontSize: '1.1em', marginBottom: 10 }}>Edit Card Details</div>
+                  <Input label="Card Number" value={editedCard.cardNo} onChange={val => setEditedCard(c => ({ ...c, cardNo: val }))} />
+                  <Input label="Card Type" value={editedCard.type} onChange={val => setEditedCard(c => ({ ...c, type: val }))} />
+                  <Input label="Expiration Date" value={editedCard.expirationDate} onChange={val => setEditedCard(c => ({ ...c, expirationDate: val }))} />
+                  <div style={{ fontWeight: 'bold', marginTop: 18, marginBottom: 4 }}>Billing Address</div>
                   <Input label="Street" value={editedBilling.street} onChange={val => setEditedBilling(b => ({ ...b, street: val }))} />
                   <Input label="City" value={editedBilling.city} onChange={val => setEditedBilling(b => ({ ...b, city: val }))} />
                   <Input label="State" value={editedBilling.state} onChange={val => setEditedBilling(b => ({ ...b, state: val }))} />
                   <Input label="Zip Code" value={editedBilling.zipCode} onChange={val => setEditedBilling(b => ({ ...b, zipCode: val }))} />
-                  <button type="button" style={{ ...buttonStyle, width: 'auto', marginRight: '10px' }} onClick={async () => {
-                    // Call backend to update billing address
-                    const resp = await fetch('http://localhost:8080/api/user/update-billing', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        addressID: billing.addressID,
-                        street: editedBilling.street,
-                        city: editedBilling.city,
-                        state: editedBilling.state,
-                        zipCode: editedBilling.zipCode
-                      })
-                    });
-                    const result = await resp.json();
-                    if (resp.ok && result.message && result.message.toLowerCase().includes('success')) {
-                      // Refresh billing addresses and cards
-                      fetch(`http://localhost:8080/api/user/${userID}`, { credentials: 'include' })
-                        .then(res => res.json())
-                        .then(data => {
-                          if (data.paymentCards) {
-                            const mappedCards = data.paymentCards.map(card => ({
-                              cardNo: card.cardNo,
-                              type: card.cardType,
-                              expirationDate: card.expirationDate,
-                              cardID: card.cardID,
-                              billingAddressID: card.billingAddressID
-                            }));
-                            setCards(mappedCards);
-                          }
-                          if (data.billingAddresses) {
-                            setBillingAddresses(data.billingAddresses);
-                          }
-                        });
-                      setEditingCardID(null);
-                      alert('Billing address updated successfully.');
-                    } else {
-                      alert('Failed to update billing address: ' + (result.message || 'Unknown error'));
-                    }
-                  }}>Save</button>
-                  <button type="button" style={{ ...buttonStyle, width: 'auto', background: '#aaa' }} onClick={() => setEditingCardID(null)}>Cancel</button>
-                </div>
+                  {editCardStatus.error && <div style={{ color: '#e94e77', marginTop: 8, marginBottom: 0, fontWeight: 500 }}>{editCardStatus.error}</div>}
+                  {editCardStatus.success && <div style={{ color: '#4a90e2', marginTop: 8, marginBottom: 0, fontWeight: 500 }}>{editCardStatus.success}</div>}
+                  <div style={{ display: 'flex', gap: 12, marginTop: 18 }}>
+                    <button type="submit" style={{ ...buttonStyle, width: 'auto', minWidth: 90, opacity: editCardStatus.loading ? 0.7 : 1, pointerEvents: editCardStatus.loading ? 'none' : 'auto', position: 'relative' }} disabled={editCardStatus.loading}>
+                      {editCardStatus.loading ? <span style={{ display: 'inline-block', width: 18, height: 18, border: '2px solid #fff', borderTop: '2px solid #4a90e2', borderRadius: '50%', animation: 'spin 1s linear infinite', verticalAlign: 'middle' }} /> : 'Save'}
+                    </button>
+                    <button type="button" style={{ ...buttonStyle, width: 'auto', background: '#aaa', minWidth: 90 }} onClick={() => { setEditingCardID(null); setEditCardStatus({ loading: false, error: '', success: '' }); }} disabled={editCardStatus.loading}>Cancel</button>
+                  </div>
+                </form>
               )}
-              {card.cardID && (
+              {card.cardID && !isEditing && (
                 <button
                   type="button"
-                  style={{ ...buttonStyle, background: '#e94e77', width: 'auto', marginTop: '5px' }}
+                  style={{ ...buttonStyle, background: '#e94e77', width: 'auto', marginTop: '10px' }}
                   onClick={async () => {
                     if (!window.confirm('Are you sure you want to remove this card?')) return;
                     const resp = await fetch('http://localhost:8080/api/user/delete-payment', {
@@ -500,3 +542,8 @@ const buttonStyle = {
   width: '100%',
   marginTop: '10px'
 };
+
+// Add spinner animation
+const style = document.createElement('style');
+style.innerHTML = `@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`;
+document.head.appendChild(style);
