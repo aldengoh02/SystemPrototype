@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../AuthContext';
 
-export default function LoginPage({ setIsLoggedIn }) {
+export default function LoginPage() {
   const navigate = useNavigate();
   const [loginMethod, setLoginMethod] = useState('email'); // email or userID
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const { setAuth } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -18,11 +20,17 @@ export default function LoginPage({ setIsLoggedIn }) {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(body)
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        setIsLoggedIn(true);
+        setAuth({
+          isLoggedIn: true,
+          userRole: data.user_role,
+          userName: data.user_name,
+          userEmail: data.user_email,
+        });
         navigate('/home');
       } else {
         setError(data.message || data.error || 'Login failed.');

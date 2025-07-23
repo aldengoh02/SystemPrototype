@@ -38,8 +38,8 @@ INSERT INTO Users (firstName, lastName, email, password, phone, status)
 VALUES ('Test', 'User', 'test@example.com', '$2a$12$1234567890abcdefghijkeW9xxo0jTBbAtdBUgB5yPfprdeEI4d2.', '555-555-9999', 'active');
 
 -- Password: admin123 (for Admin User)
-INSERT INTO Users (firstName, lastName, email, password, phone, status)  
-VALUES ('Admin', 'User', 'admin@example.com', '$2a$12$qwertyuiopasdfghjklzxOsM3DLFZN7Bj0m4nFnCC8BbuHSOaajUO', '555-555-0001', 'active');
+INSERT INTO Users (firstName, lastName, email, password, phone, status, userTypeID)  
+VALUES ('Admin', 'User', 'admin@example.com', '$2a$12$qwertyuiopasdfghjklzxOsM3DLFZN7Bj0m4nFnCC8BbuHSOaajUO', '555-555-0001', 'active', 1);
 
 -- Password: customer456 (for Customer User)
 INSERT INTO Users (firstName, lastName, email, password, phone, status)
