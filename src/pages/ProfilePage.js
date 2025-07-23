@@ -17,6 +17,16 @@ export default function ProfilePage() {
   const [promotions, setPromotions] = useState(false);
   const [shippingAddressID, setShippingAddressID] = useState(null);
   const [showAddCardMenu, setShowAddCardMenu] = useState(false);
+  // Add new state for billing address fields
+  const [billingStreet, setBillingStreet] = useState('');
+  const [billingCity, setBillingCity] = useState('');
+  const [billingState, setBillingState] = useState('');
+  const [billingZip, setBillingZip] = useState('');
+  // Add state for billing addresses
+  const [billingAddresses, setBillingAddresses] = useState([]);
+  // Add state for which card is being edited and the edited billing address
+  const [editingCardID, setEditingCardID] = useState(null);
+  const [editedBilling, setEditedBilling] = useState({ street: '', city: '', state: '', zipCode: '' });
 
   const userID = localStorage.getItem('userID');
   const addressID = localStorage.getItem('addressID');
@@ -51,7 +61,8 @@ export default function ProfilePage() {
             cardNo: card.cardNo,
             type: card.cardType,
             expirationDate: card.expirationDate,
-            cardID: card.cardID
+            cardID: card.cardID,
+            billingAddressID: card.billingAddressID
           }));
           setCards(mappedCards);
           // Pre-fill the first card's details in the form fields
@@ -76,6 +87,14 @@ export default function ProfilePage() {
           setCards([]);
         }
         setPromotions(userObj.enrollForPromotions || false);
+        // Store billing addresses
+        if (data.billingAddresses) {
+          setBillingAddresses(data.billingAddresses);
+        } else if (data.user && data.user.billingAddresses) {
+          setBillingAddresses(data.user.billingAddresses);
+        } else {
+          setBillingAddresses([]);
+        }
       })
       .catch(err => console.error('Failed to load user profile:', err));
   }, [userID]);
@@ -91,13 +110,28 @@ export default function ProfilePage() {
         body: JSON.stringify({ userID, firstName, lastName }),
       });
 
-      // Update shipping address
-      await fetch('http://localhost:8080/api/user/update-shipping', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ userID, addressID: shippingAddressID, street, city, state, zipCode }),
-      });
+      // Update or add shipping address
+      if (shippingAddressID) {
+        // Update existing shipping address
+        await fetch('http://localhost:8080/api/user/update-shipping', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ userID, addressID: shippingAddressID, street, city, state, zipCode }),
+        });
+      } else {
+        // Add new shipping address
+        const resp = await fetch('http://localhost:8080/api/user/add-shipping', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ userID, street, city, state, zipCode }),
+        });
+        const result = await resp.json();
+        if (resp.ok && result.addressID) {
+          setShippingAddressID(result.addressID); // update state with new addressID
+        }
+      }
 
       // Update password if fields are shown and new password is entered
       if (showPasswordFields) {
@@ -135,7 +169,11 @@ export default function ProfilePage() {
 
   const handleAddCard = async () => {
     if (cards.length >= 4) return alert('You can only store up to 4 cards.');
-
+    // Require billing address fields
+    if (!billingStreet || !billingCity || !billingState || !billingZip) {
+      alert('Please enter all billing address fields.');
+      return;
+    }
     const response = await fetch('http://localhost:8080/api/user/add-payment', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -144,11 +182,12 @@ export default function ProfilePage() {
         cardNo: newCard.cardNo,
         type: newCard.type,
         expirationDate: newCard.expirationDate,
-        billingAddressID: addressID,
-        street,
-        city,
-        state,
-        zipCode,
+        billingAddress: {
+          street: billingStreet,
+          city: billingCity,
+          state: billingState,
+          zipCode: billingZip,
+        },
       }),
     });
 
@@ -163,12 +202,20 @@ export default function ProfilePage() {
               cardNo: card.cardNo,
               type: card.cardType,
               expirationDate: card.expirationDate,
-              cardID: card.cardID
+              cardID: card.cardID,
+              billingAddressID: card.billingAddressID
             }));
             setCards(mappedCards);
           }
+          if (data.billingAddresses) {
+            setBillingAddresses(data.billingAddresses);
+          }
         });
       setNewCard({ cardNo: '', type: '', expirationDate: '' });
+      setBillingStreet('');
+      setBillingCity('');
+      setBillingState('');
+      setBillingZip('');
       setShowAddCardMenu(false);
       alert('Card added successfully.');
     } else {
@@ -236,53 +283,126 @@ export default function ProfilePage() {
 
         {/* Payment Cards */}
         <h4>Payment Cards (Max 4)</h4>
-        {cards.map((card, idx) => (
-          <div key={idx} style={{ marginBottom: '15px' }}>
-            <Input
-              label="Card Number"
-              value={maskCardNumber(card.cardNo)}
-              disabled={false}
-            />
-            <Input label="Card Type" value={card.type} disabled={false} />
-            <Input label="Expiration Date" value={card.expirationDate} disabled={false} />
-            {card.cardID && (
-              <button
-                type="button"
-                style={{ ...buttonStyle, background: '#e94e77', width: 'auto', marginTop: '5px' }}
-                onClick={async () => {
-                  if (!window.confirm('Are you sure you want to remove this card?')) return;
-                  const resp = await fetch('http://localhost:8080/api/user/delete-payment', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ cardID: card.cardID })
-                  });
-                  const result = await resp.json();
-                  if (resp.ok && result.message && result.message.toLowerCase().includes('deleted')) {
-                    // Refresh cards by refetching profile data
-                    fetch(`http://localhost:8080/api/user/${userID}`, { credentials: 'include' })
-                      .then(res => res.json())
-                      .then(data => {
-                        if (data.paymentCards) {
-                          const mappedCards = data.paymentCards.map(card => ({
-                            cardNo: card.cardNo,
-                            type: card.cardType,
-                            expirationDate: card.expirationDate,
-                            cardID: card.cardID
-                          }));
-                          setCards(mappedCards);
-                        }
-                      });
-                    alert('Card removed successfully.');
-                  } else {
-                    alert('Failed to remove card: ' + (result.message || 'Unknown error'));
-                  }
-                }}
-              >
-                Remove Card
-              </button>
-            )}
-          </div>
-        ))}
+        {cards.map((card, idx) => {
+          // Find the billing address for this card
+          const billing = billingAddresses.find(addr => addr.addressID === card.billingAddressID);
+          const isEditing = editingCardID === card.cardID;
+          return (
+            <div key={idx} style={{ marginBottom: '15px' }}>
+              <Input
+                label="Card Number"
+                value={maskCardNumber(card.cardNo)}
+              />
+              <Input label="Card Type" value={card.type} />
+              <Input label="Expiration Date" value={card.expirationDate} />
+              {billing && !isEditing && (
+                <div style={{ marginTop: '5px', marginBottom: '5px', padding: '8px', background: '#f7f7f7', borderRadius: '4px' }}>
+                  <div style={{ fontWeight: 'bold' }}>Billing Address</div>
+                  <div>{billing.street}</div>
+                  <div>{billing.city}, {billing.state} {billing.zipCode}</div>
+                  <button type="button" style={{ ...buttonStyle, width: 'auto', marginTop: '5px' }} onClick={() => {
+                    setEditingCardID(card.cardID);
+                    setEditedBilling({
+                      street: billing.street,
+                      city: billing.city,
+                      state: billing.state,
+                      zipCode: billing.zipCode
+                    });
+                  }}>Edit Billing Address</button>
+                </div>
+              )}
+              {isEditing && (
+                <div style={{ marginTop: '5px', marginBottom: '5px', padding: '8px', background: '#f7f7f7', borderRadius: '4px' }}>
+                  <div style={{ fontWeight: 'bold' }}>Edit Billing Address</div>
+                  <Input label="Street" value={editedBilling.street} onChange={val => setEditedBilling(b => ({ ...b, street: val }))} />
+                  <Input label="City" value={editedBilling.city} onChange={val => setEditedBilling(b => ({ ...b, city: val }))} />
+                  <Input label="State" value={editedBilling.state} onChange={val => setEditedBilling(b => ({ ...b, state: val }))} />
+                  <Input label="Zip Code" value={editedBilling.zipCode} onChange={val => setEditedBilling(b => ({ ...b, zipCode: val }))} />
+                  <button type="button" style={{ ...buttonStyle, width: 'auto', marginRight: '10px' }} onClick={async () => {
+                    // Call backend to update billing address
+                    const resp = await fetch('http://localhost:8080/api/user/update-billing', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        addressID: billing.addressID,
+                        street: editedBilling.street,
+                        city: editedBilling.city,
+                        state: editedBilling.state,
+                        zipCode: editedBilling.zipCode
+                      })
+                    });
+                    const result = await resp.json();
+                    if (resp.ok && result.message && result.message.toLowerCase().includes('success')) {
+                      // Refresh billing addresses and cards
+                      fetch(`http://localhost:8080/api/user/${userID}`, { credentials: 'include' })
+                        .then(res => res.json())
+                        .then(data => {
+                          if (data.paymentCards) {
+                            const mappedCards = data.paymentCards.map(card => ({
+                              cardNo: card.cardNo,
+                              type: card.cardType,
+                              expirationDate: card.expirationDate,
+                              cardID: card.cardID,
+                              billingAddressID: card.billingAddressID
+                            }));
+                            setCards(mappedCards);
+                          }
+                          if (data.billingAddresses) {
+                            setBillingAddresses(data.billingAddresses);
+                          }
+                        });
+                      setEditingCardID(null);
+                      alert('Billing address updated successfully.');
+                    } else {
+                      alert('Failed to update billing address: ' + (result.message || 'Unknown error'));
+                    }
+                  }}>Save</button>
+                  <button type="button" style={{ ...buttonStyle, width: 'auto', background: '#aaa' }} onClick={() => setEditingCardID(null)}>Cancel</button>
+                </div>
+              )}
+              {card.cardID && (
+                <button
+                  type="button"
+                  style={{ ...buttonStyle, background: '#e94e77', width: 'auto', marginTop: '5px' }}
+                  onClick={async () => {
+                    if (!window.confirm('Are you sure you want to remove this card?')) return;
+                    const resp = await fetch('http://localhost:8080/api/user/delete-payment', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ cardID: card.cardID })
+                    });
+                    const result = await resp.json();
+                    if (resp.ok && result.message && result.message.toLowerCase().includes('deleted')) {
+                      // Refresh cards by refetching profile data
+                      fetch(`http://localhost:8080/api/user/${userID}`, { credentials: 'include' })
+                        .then(res => res.json())
+                        .then(data => {
+                          if (data.paymentCards) {
+                            const mappedCards = data.paymentCards.map(card => ({
+                              cardNo: card.cardNo,
+                              type: card.cardType,
+                              expirationDate: card.expirationDate,
+                              cardID: card.cardID,
+                              billingAddressID: card.billingAddressID
+                            }));
+                            setCards(mappedCards);
+                          }
+                          if (data.billingAddresses) {
+                            setBillingAddresses(data.billingAddresses);
+                          }
+                        });
+                      alert('Card removed successfully.');
+                    } else {
+                      alert('Failed to remove card: ' + (result.message || 'Unknown error'));
+                    }
+                  }}
+                >
+                  Remove Card
+                </button>
+              )}
+            </div>
+          );
+        })}
 
         {cards.length < 4 && !showAddCardMenu && (
           <button
@@ -313,8 +433,29 @@ export default function ProfilePage() {
               value={newCard.expirationDate}
               onChange={val => setNewCard({ ...newCard, expirationDate: val })}
             />
+            <div style={{ marginTop: '10px', marginBottom: '10px', fontWeight: 'bold' }}>Billing Address</div>
+            <Input
+              label="Street"
+              value={billingStreet}
+              onChange={setBillingStreet}
+            />
+            <Input
+              label="City"
+              value={billingCity}
+              onChange={setBillingCity}
+            />
+            <Input
+              label="State"
+              value={billingState}
+              onChange={setBillingState}
+            />
+            <Input
+              label="Zip Code"
+              value={billingZip}
+              onChange={setBillingZip}
+            />
             <button type="button" onClick={handleAddCard}>Add Card</button>
-            <button type="button" onClick={() => setShowAddCardMenu(false)} style={{ marginLeft: '10px' }}>
+            <button type="button" onClick={() => { setShowAddCardMenu(false); setBillingStreet(''); setBillingCity(''); setBillingState(''); setBillingZip(''); }} style={{ marginLeft: '10px' }}>
               Cancel
             </button>
           </div>
