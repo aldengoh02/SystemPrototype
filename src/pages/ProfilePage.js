@@ -11,25 +11,69 @@ export default function ProfilePage() {
   const [cards, setCards] = useState([]);
   const [newCard, setNewCard] = useState({ cardNo: '', type: '', expirationDate: '' });
   const [password, setPassword] = useState('');
+  const [showPasswordFields, setShowPasswordFields] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const [promotions, setPromotions] = useState(false);
+  const [shippingAddressID, setShippingAddressID] = useState(null);
 
   const userID = localStorage.getItem('userID');
   const addressID = localStorage.getItem('addressID');
 
   useEffect(() => {
     // Fetch current profile info
-    fetch(`http://localhost:8080/api/user/${userID}`)
+    fetch(`http://localhost:8080/api/user/${userID}`, { credentials: 'include' })
       .then(res => res.json())
       .then(data => {
-        setFirstName(data.firstName);
-        setLastName(data.lastName);
-        setEmail(data.email);
-        setStreet(data.address?.street || '');
-        setCity(data.address?.city || '');
-        setState(data.address?.state || '');
-        setZipCode(data.address?.zipCode || '');
-        setCards(data.cards || []);
-        setPromotions(data.enrollForPromotions || false);
+        // Support both flat and nested user object
+        const userObj = data.user || data;
+        setFirstName(userObj.firstName || '');
+        setLastName(userObj.lastName || '');
+        setEmail(userObj.email || '');
+        // Autofill shipping address if present
+        if (userObj.shippingAddress) {
+          setStreet(userObj.shippingAddress.street || '');
+          setCity(userObj.shippingAddress.city || '');
+          setState(userObj.shippingAddress.state || '');
+          setZipCode(userObj.shippingAddress.zipCode || '');
+          setShippingAddressID(userObj.shippingAddress.addressID);
+        } else {
+          setStreet('');
+          setCity('');
+          setState('');
+          setZipCode('');
+          setShippingAddressID(null);
+        }
+        // Use paymentCards from backend if present
+        if (data.paymentCards) {
+          const mappedCards = data.paymentCards.map(card => ({
+            cardNo: card.cardNo,
+            type: card.cardType,
+            expirationDate: card.expirationDate
+          }));
+          setCards(mappedCards);
+          // Pre-fill the first card's details in the form fields
+          if (mappedCards.length > 0) {
+            setNewCard({
+              cardNo: mappedCards[0].cardNo,
+              type: mappedCards[0].type,
+              expirationDate: mappedCards[0].expirationDate
+            });
+          }
+        } else if (userObj.cards) {
+          setCards(userObj.cards);
+          // Pre-fill the first card's details in the form fields
+          if (userObj.cards.length > 0) {
+            setNewCard({
+              cardNo: userObj.cards[0].cardNo,
+              type: userObj.cards[0].type,
+              expirationDate: userObj.cards[0].expirationDate
+            });
+          }
+        } else {
+          setCards([]);
+        }
+        setPromotions(userObj.enrollForPromotions || false);
       })
       .catch(err => console.error('Failed to load user profile:', err));
   }, [userID]);
@@ -45,21 +89,30 @@ export default function ProfilePage() {
         body: JSON.stringify({ userID, firstName, lastName }),
       });
 
-      // Update billing address
-      await fetch('http://localhost:8080/api/user/update-billing', {
+      // Update shipping address
+      await fetch('http://localhost:8080/api/user/update-shipping', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ userID, addressID, street, city, state, zipCode }),
+        body: JSON.stringify({ userID, addressID: shippingAddressID, street, city, state, zipCode }),
       });
 
-      // Update password if entered
-      if (password.trim()) {
-        await fetch('http://localhost:8080/api/user/update-password', {
+      // Update password if fields are shown and new password is entered
+      if (showPasswordFields) {
+        if (!newPassword || !newPassword.trim()) {
+          alert('New password cannot be empty.');
+          return;
+        }
+        const resp = await fetch('http://localhost:8080/api/user/update-password', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userID, password }),
+          body: JSON.stringify({ userID, currentPassword, newPassword }),
         });
+        const result = await resp.json();
+        if (!resp.ok || (result && result.message && !result.message.toLowerCase().includes('success'))) {
+          alert(result && result.message ? result.message : 'Current password is incorrect. Password not changed.');
+          return;
+        }
       }
 
       // Update promotions status
@@ -70,6 +123,9 @@ export default function ProfilePage() {
       });
 
       alert('Profile updated successfully.');
+      setShowPasswordFields(false);
+      setCurrentPassword('');
+      setNewPassword('');
     } catch (err) {
       alert('Error updating profile: ' + err.message);
     }
@@ -111,6 +167,9 @@ export default function ProfilePage() {
         {/* Email (readonly) */}
         <Input label="Email" value={email} disabled />
 
+        {/* Shipping Address label */}
+        <div style={{ margin: '15px 0 5px 0', fontWeight: 'bold' }}>Shipping Address</div>
+
         {/* Billing Address */}
         <Input label="Street" value={street} onChange={setStreet} />
         <Input label="City" value={city} onChange={setCity} />
@@ -118,21 +177,39 @@ export default function ProfilePage() {
         <Input label="Zip Code" value={zipCode} onChange={setZipCode} />
 
         {/* Password */}
-        <Input label="New Password (optional)" type="password" value={password} onChange={setPassword} />
+        {!showPasswordFields ? (
+          <button
+            type="button"
+            style={{ ...buttonStyle, width: 'auto', marginBottom: '15px' }}
+            onClick={() => setShowPasswordFields(true)}
+          >
+            Change Password
+          </button>
+        ) : (
+          <>
+            <Input label="Current Password" type="password" value={currentPassword} onChange={setCurrentPassword} />
+            <Input label="New Password" type="password" value={newPassword} onChange={setNewPassword} />
+          </>
+        )}
 
         {/* Promotions */}
         <div style={{ marginBottom: '15px' }}>
-          <label>
-            <input type="checkbox" checked={promotions} onChange={() => setPromotions(!promotions)} />
-            {' '}Enroll in Promotions
-          </label>
+          <button
+            type="button"
+            style={{
+              ...buttonStyle,
+              background: promotions ? '#e94e77' : '#4a90e2',
+              width: 'auto',
+              marginBottom: 0
+            }}
+            onClick={() => setPromotions(!promotions)}
+          >
+            {promotions ? 'Unenroll from Promotions' : 'Enroll in Promotions'}
+          </button>
         </div>
 
         {/* Payment Cards */}
         <h4>Payment Cards (Max 4)</h4>
-        {cards.map((card, i) => (
-          <p key={i}>{card.cardType} ending in {card.cardNo.slice(-4)} (Exp: {card.expirationDate})</p>
-        ))}
         {cards.length < 4 && (
           <div style={{ marginBottom: '15px' }}>
             <Input label="Card Number" value={newCard.cardNo} onChange={val => setNewCard({ ...newCard, cardNo: val })} />

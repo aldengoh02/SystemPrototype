@@ -124,4 +124,26 @@ public class ShippingAddressDatabase {
         loadResults();
         return "Address Deleted.";
     }
+
+    public ShippingAddressRecords findFirstByUserID(int userID) {
+        try {
+            String query = "SELECT * FROM ShippingAddress WHERE userID = ? LIMIT 1";
+            PreparedStatement ps = connection.prepareStatement(query);
+            ps.setInt(1, userID);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return new ShippingAddressRecords(
+                    rs.getInt("addressID"),
+                    rs.getInt("userID"),
+                    rs.getString("street"),
+                    rs.getString("city"),
+                    rs.getString("state"),
+                    rs.getString("zipCode")
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

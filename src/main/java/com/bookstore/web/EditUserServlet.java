@@ -21,6 +21,8 @@ import com.bookstore.db.BillingAddressDatabase;
 import com.bookstore.records.BillingAddressRecords;
 import com.bookstore.db.PaymentCardDatabase;
 import com.bookstore.records.PaymentCardRecords;
+import com.bookstore.db.ShippingAddressDatabase;
+import com.bookstore.records.ShippingAddressRecords;
 import com.bookstore.SecUtils;
 import com.bookstore.Email;
 
@@ -48,6 +50,8 @@ public class EditUserServlet extends HttpServlet {
         JsonObject jsonRequest = gson.fromJson(requestBody, JsonObject.class);
         JsonObject jsonResponse = new JsonObject();
 
+        System.out.println("DEBUG: EditUserServlet received pathInfo: " + pathInfo);
+
         try {
             switch (pathInfo) {
                 case "/update-name":
@@ -56,15 +60,22 @@ public class EditUserServlet extends HttpServlet {
                 case "/update-billing":
                     updateBilling(jsonRequest, jsonResponse);
                     break;
+                case "/update-shipping":
+                    updateShipping(jsonRequest, jsonResponse);
+                    break;
                 case "/update-payment":
                     updatePayment(jsonRequest, jsonResponse);
                     break;
                 case "/update-password":
                     updatePassword(jsonRequest, jsonResponse);
                     break;
+                case "/update-promotions":
+                    updatePromotions(jsonRequest, jsonResponse);
+                    break;
                 default:
+                    System.out.println("DEBUG: Unknown endpoint: " + pathInfo);
                     response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                    jsonResponse.addProperty("error", "Not Found");
+                    jsonResponse.addProperty("error", "Not Found: " + pathInfo);
                     break;
             }
         } catch (Exception e) {
@@ -100,9 +111,11 @@ public class EditUserServlet extends HttpServlet {
             UserDatabase userDb = new UserDatabase();
             BillingAddressDatabase billingDb = new BillingAddressDatabase();
             PaymentCardDatabase cardDb = new PaymentCardDatabase();
+            com.bookstore.db.ShippingAddressDatabase shippingDb = new com.bookstore.db.ShippingAddressDatabase();
             userDb.connectDb();
             billingDb.connectDb();
             cardDb.connectDb();
+            shippingDb.connectDb();
             cardDb.loadResults(); // <-- Load payment cards from DB
             UserRecords user = com.bookstore.SecUtils.findUserByID(userDb, userID);
             // Get all billing addresses for user (now, get all billing addresses linked to user's cards)
@@ -124,6 +137,9 @@ public class EditUserServlet extends HttpServlet {
             userDb.disconnectDb();
             billingDb.disconnectDb();
             cardDb.disconnectDb();
+            // Get shipping address
+            com.bookstore.records.ShippingAddressRecords shippingAddress = shippingDb.findFirstByUserID(userID);
+            shippingDb.disconnectDb();
             if (user == null) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                 jsonResponse.addProperty("error", "User not found");
@@ -135,6 +151,16 @@ public class EditUserServlet extends HttpServlet {
             userJson.addProperty("lastName", user.getLastName());
             userJson.addProperty("email", user.getEmail());
             userJson.addProperty("userID", user.getUserID());
+            // Add shipping address to response
+            if (shippingAddress != null) {
+                JsonObject shippingJson = new JsonObject();
+                shippingJson.addProperty("addressID", shippingAddress.getAddressID());
+                shippingJson.addProperty("street", shippingAddress.getStreet());
+                shippingJson.addProperty("city", shippingAddress.getCity());
+                shippingJson.addProperty("state", shippingAddress.getState());
+                shippingJson.addProperty("zipCode", shippingAddress.getZipCode());
+                userJson.add("shippingAddress", shippingJson);
+            }
             // Billing addresses
             com.google.gson.JsonArray billingArr = new com.google.gson.JsonArray();
             for (com.bookstore.records.BillingAddressRecords addr : billingAddresses) {
@@ -151,16 +177,17 @@ public class EditUserServlet extends HttpServlet {
             for (com.bookstore.records.PaymentCardRecords card : paymentCards) {
                 JsonObject cardJson = new JsonObject();
                 cardJson.addProperty("cardID", card.getCardID());
-                cardJson.addProperty("type", card.getType());
+                cardJson.addProperty("cardType", card.getType()); // Use 'cardType' for frontend
                 cardJson.addProperty("expirationDate", card.getExpirationDate());
                 cardJson.addProperty("billingAddressID", card.getBillingAddressID());
-                // Add last 4 digits of card number for display
+                // Add masked card number for display
                 try {
                     String decrypted = SecUtils.decryptCreditCardSimple(card.getCardNo());
                     String last4 = decrypted.length() > 4 ? decrypted.substring(decrypted.length() - 4) : decrypted;
-                    cardJson.addProperty("last4", last4);
+                    String masked = "************" + last4;
+                    cardJson.addProperty("cardNo", masked); // 12 asterisks + last 4 digits
                 } catch (Exception e) {
-                    cardJson.addProperty("last4", "ERR");
+                    cardJson.addProperty("cardNo", "************ERR");
                 }
                 cardArr.add(cardJson);
             }
@@ -279,6 +306,53 @@ public class EditUserServlet extends HttpServlet {
         res.addProperty("message", result);
     }
 
+    private void updatePromotions(JsonObject req, JsonObject res) {
+        int userID = req.get("userID").getAsInt();
+        boolean enrollForPromotions = req.get("enrollForPromotions").getAsBoolean();
+        UserDatabase db = new UserDatabase();
+        db.connectDb();
+        String result;
+        try {
+            UserRecords user = com.bookstore.SecUtils.findUserByID(db, userID);
+            if (user == null) {
+                res.addProperty("error", "User not found");
+                db.disconnectDb();
+                return;
+            }
+            user.setEnrollForPromotions(enrollForPromotions);
+            String updateResult = db.updateUser(user);
+            if (updateResult.contains("Updated")) {
+                result = enrollForPromotions ? "Enrolled in promotions successfully" : "Unenrolled from promotions successfully";
+            } else {
+                result = "Failed to update promotions: " + updateResult;
+            }
+        } catch (Exception e) {
+            result = "Error updating promotions: " + e.getMessage();
+        }
+        db.disconnectDb();
+        res.addProperty("message", result);
+    }
+
+    private void updateShipping(JsonObject req, JsonObject res) {
+        int userID = req.get("userID").getAsInt();
+        int addressID = req.get("addressID").getAsInt();
+        String street = req.get("street").getAsString();
+        String city = req.get("city").getAsString();
+        String state = req.get("state").getAsString();
+        String zipCode = req.get("zipCode").getAsString();
+
+        System.out.println("DEBUG: updateShipping called with userID: " + userID + ", addressID: " + addressID);
+        System.out.println("DEBUG: Address details - street: " + street + ", city: " + city + ", state: " + state + ", zipCode: " + zipCode);
+
+        ShippingAddressDatabase db = new ShippingAddressDatabase();
+        db.connectDb();
+        String result = updateShippingAddress(db, userID, addressID, street, city, state, zipCode);
+        db.disconnectDb();
+        
+        System.out.println("DEBUG: updateShipping result: " + result);
+        res.addProperty("message", result);
+    }
+
     /*
      * Update username of user
      */
@@ -357,6 +431,26 @@ public class EditUserServlet extends HttpServlet {
             
         } catch (Exception e) {
             return "Error updating billing address: " + e.getMessage();
+        }
+    }
+
+    private static String updateShippingAddress(ShippingAddressDatabase db, int userID, int addressID, String street, String city, String state, String zipCode) {
+        if (street == null || street.trim().isEmpty() || city == null || city.trim().isEmpty() || state == null || state.trim().isEmpty() || zipCode == null || zipCode.trim().isEmpty()) {
+            return "Street, city, state, and zip code cannot be empty";
+        }
+
+        try {
+            ShippingAddressRecords shippingAddress = new ShippingAddressRecords(addressID, userID, street, city, state, zipCode);
+            String result = db.updateAddress(shippingAddress);
+
+            if (result.contains("Updated")) {
+                return "Shipping address updated successfully";
+            } else {
+                return "Failed to update shipping address: " + result;
+            }
+
+        } catch (Exception e) {
+            return "Error updating shipping address: " + e.getMessage();
         }
     }
 } 
