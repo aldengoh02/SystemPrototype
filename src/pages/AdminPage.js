@@ -21,6 +21,15 @@ export default function AdminPage() {
           </Link>
         </div>
         <div style={{ background: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)', textAlign: 'center' }}>
+          <h3>Manage Promotions</h3>
+          <p>Create and manage promotional codes and discounts</p>
+          <Link to="/admin/promotions">
+            <button style={{ background: '#28a745', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '5px', cursor: 'pointer', marginTop: '10px' }}>
+              Go to Promotions
+            </button>
+          </Link>
+        </div>
+        <div style={{ background: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)', textAlign: 'center' }}>
           <h3>Manage Users</h3>
           <p>View and manage customer accounts</p>
           <Link to="/admin/users">
