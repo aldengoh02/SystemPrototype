@@ -43,6 +43,7 @@ import com.bookstore.db.BookDatabase;
 import com.bookstore.records.BookRecords;
 import com.bookstore.db.BookNotFoundException;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -57,7 +58,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class BookServlet extends HttpServlet {
-    private final Gson gson = new Gson();
+    // Fix: Set Gson to use yyyy-MM-dd for SQL Date
+    private final Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -73,21 +75,32 @@ public class BookServlet extends HttpServlet {
         PrintWriter out = resp.getWriter();
 
         String pathInfo = req.getPathInfo();
-        if (pathInfo == null || !pathInfo.equals("/calculate")) {
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            out.print("{\"error\": \"Invalid endpoint for POST request. Use /calculate.\"}");
-            out.flush();
-            return;
-        }
-
+        
         if (bookDb.connectDb()) {
             try {
                 String requestBody = req.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
-                CartItem[] cartItems = gson.fromJson(requestBody, CartItem[].class);
-
-                Map<String, Double> result = BookActions.calculateCheckout(bookDb.getConnection(), cartItems);
                 
-                out.print(gson.toJson(result));
+                if (pathInfo != null && pathInfo.equals("/calculate")) {
+                    // Handle checkout calculation
+                    CartItem[] cartItems = gson.fromJson(requestBody, CartItem[].class);
+                    Map<String, Double> result = BookActions.calculateCheckout(bookDb.getConnection(), cartItems);
+                    out.print(gson.toJson(result));
+                } else if (pathInfo == null || pathInfo.equals("/")) {
+                    // Handle adding a new book
+                    BookRecords newBook = gson.fromJson(requestBody, BookRecords.class);
+                    String result = bookDb.addBook(newBook);
+                    
+                    if (result.equals("Book Added.")) {
+                        resp.setStatus(HttpServletResponse.SC_CREATED);
+                        out.print("{\"message\": \"" + result + "\"}");
+                    } else {
+                        resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                        out.print("{\"error\": \"" + result + "\"}");
+                    }
+                } else {
+                    resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    out.print("{\"error\": \"Invalid endpoint for POST request. Use /calculate for checkout or root for adding books.\"}");
+                }
 
             } catch (BookNotFoundException e) {
                 resp.setStatus(HttpServletResponse.SC_NOT_FOUND);

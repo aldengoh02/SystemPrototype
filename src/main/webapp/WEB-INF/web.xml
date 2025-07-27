@@ -81,4 +81,14 @@
         <url-pattern>/api/cart/*</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>PromotionServlet</servlet-name>
+        <servlet-class>com.bookstore.web.PromotionServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>PromotionServlet</servlet-name>
+        <url-pattern>/api/promotions/*</url-pattern>
+    </servlet-mapping>
+
 </web-app> 

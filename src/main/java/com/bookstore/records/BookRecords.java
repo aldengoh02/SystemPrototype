@@ -1,6 +1,7 @@
 package com.bookstore.records;
 
 import java.sql.Date;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 public class BookRecords {
     private int id;
@@ -18,7 +19,10 @@ public class BookRecords {
     private double sellingPrice;
     private float rating;
     private boolean featured;
+    
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private Date releaseDate;
+    
     private String description;
 
     //Constructor

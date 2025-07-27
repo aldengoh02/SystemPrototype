@@ -17,6 +17,11 @@ import WelcomePage from './pages/WelcomePage';
 import BookDetailPage from './pages/BookDetailPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import AdminBooksPage from './pages/AdminBooksPage';
+import AddBookPage from './pages/AddBookPage';
+import AdminPromotionsPage from './pages/AdminPromotionsPage';
+import AddPromotionPage from './pages/AddPromotionPage';
+import EditPromotionPage from './pages/EditPromotionPage';
 
 export default function App() {
   return (
@@ -331,6 +336,11 @@ function AppContent() {
         <Route path="/order-history" element={auth.isLoggedIn ? <OrderHistoryPage orders={orders} setCartItems={setCartItems} /> : <Navigate to="/register" />} />
         <Route path="/profile" element={auth.isLoggedIn ? <ProfilePage /> : <Navigate to="/register" />} />
         <Route path="/admin" element={auth.isLoggedIn && auth.userRole === 'admin' ? <AdminPage /> : <Navigate to="/register" />} />
+        <Route path="/admin/books" element={auth.isLoggedIn && auth.userRole === 'admin' ? <AdminBooksPage /> : <Navigate to="/register" />} />
+        <Route path="/admin/books/add" element={auth.isLoggedIn && auth.userRole === 'admin' ? <AddBookPage /> : <Navigate to="/register" />} />
+        <Route path="/admin/promotions" element={auth.isLoggedIn && auth.userRole === 'admin' ? <AdminPromotionsPage /> : <Navigate to="/register" />} />
+        <Route path="/admin/promotions/add" element={auth.isLoggedIn && auth.userRole === 'admin' ? <AddPromotionPage /> : <Navigate to="/register" />} />
+        <Route path="/admin/promotions/edit/:id" element={auth.isLoggedIn && auth.userRole === 'admin' ? <EditPromotionPage /> : <Navigate to="/register" />} />
       </Routes>
     </div>
   );
