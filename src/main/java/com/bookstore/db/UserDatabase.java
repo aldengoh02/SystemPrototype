@@ -112,7 +112,8 @@ public class UserDatabase {
                     rs.getString("phone"),
                     rs.getString("status"),
                     rs.getBoolean("enrollForPromotions"),
-                    rs.getInt("userTypeID")
+                    rs.getInt("userTypeID"),
+                    rs.getObject("loginUserID") != null ? rs.getInt("loginUserID") : null
                 );
             }
         } catch (SQLException e) {
@@ -137,7 +138,8 @@ public class UserDatabase {
                         rs.getString("phone"),
                         rs.getString("status"),
                         rs.getBoolean("enrollForPromotions"),
-                        rs.getInt("userTypeID")
+                        rs.getInt("userTypeID"),
+                        rs.getObject("loginUserID") != null ? rs.getInt("loginUserID") : null
                 );
                 results.add(user);
             }
@@ -204,7 +206,8 @@ public class UserDatabase {
                     rs.getString("phone"),
                     rs.getString("status"),
                     rs.getBoolean("enrollForPromotions"),
-                    rs.getInt("userTypeID")
+                    rs.getInt("userTypeID"),
+                    rs.getObject("loginUserID") != null ? rs.getInt("loginUserID") : null
                 );
                 promotionUsers.add(user);
             }

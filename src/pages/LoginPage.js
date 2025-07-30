@@ -71,10 +71,10 @@ export default function LoginPage() {
         </button>
         <button
           type="button"
-          onClick={() => { setLoginMethod('userID'); setPassword(''); setError(''); }}
+          onClick={() => { setLoginMethod('accountId'); setPassword(''); setError(''); }}
           style={{
-            background: loginMethod === 'userID' ? '#0046be' : '#f4f4f4',
-            color: loginMethod === 'userID' ? 'white' : '#333',
+            background: loginMethod === 'accountId' ? '#0046be' : '#f4f4f4',
+            color: loginMethod === 'accountId' ? 'white' : '#333',
             border: '1px solid #ccc',
             padding: '10px 16px',
             borderRadius: '4px',
@@ -82,7 +82,7 @@ export default function LoginPage() {
             fontWeight: 'bold'
           }}
         >
-          User ID
+          Account ID
         </button>
       </div>
 
@@ -91,7 +91,7 @@ export default function LoginPage() {
           type={loginMethod === 'email' ? 'email' : 'text'}
           value={identifier}
           onChange={e => setIdentifier(e.target.value)}
-          placeholder={loginMethod === 'email' ? 'Email Address' : 'User ID'}
+          placeholder={loginMethod === 'email' ? 'Email Address' : 'Account ID (7-digit number)'}
           required
           style={{
             width: '94%',
@@ -162,7 +162,7 @@ export default function LoginPage() {
       <hr style={{ margin: '20px 0' }} />
 
       <p style={{ textAlign: 'center', fontSize: '14px' }}>
-        Don’t have an account?{' '}
+        Don't have an account?{' '}
         <Link to="/register" style={{ color: '#0046be', fontWeight: 'bold', textDecoration: 'none' }}>
           Create an account
         </Link>

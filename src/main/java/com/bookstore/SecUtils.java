@@ -50,7 +50,8 @@ public class SecUtils {
             rs.getString("phone"),
             rs.getString("status"),
             rs.getBoolean("enrollForPromotions"),
-            rs.getInt("userTypeID")
+            rs.getInt("userTypeID"),
+            rs.getObject("loginUserID") != null ? rs.getInt("loginUserID") : null
         );
     }
 
@@ -67,8 +68,8 @@ public class SecUtils {
         
         if (isAccountId) {
             try {
-                int userId = Integer.parseInt(identifier.trim());
-                return findUserByID(db, userId);
+                int loginUserId = Integer.parseInt(identifier.trim());
+                return findUserByLoginUserID(db, loginUserId);
             } catch (NumberFormatException e) {
                 return null;
             }
@@ -102,6 +103,31 @@ public class SecUtils {
         
         boolean isAccountId = identifier.trim().matches("\\d+");
         return findUserForLogin(db, identifier, isAccountId);
+    }
+
+    /*
+     * Find a user by their loginUserID (7-digit unique ID)
+     * Only does so if they are an active user
+     */
+    public static UserRecords findUserByLoginUserID(com.bookstore.db.UserDatabase db, int loginUserID) {
+        try {
+            java.sql.Connection conn = db.getConnection();
+            if (conn == null) {
+                return null;
+            }
+            
+            String query = "SELECT * FROM Users WHERE loginUserID = ? AND status = 'active'";
+            java.sql.PreparedStatement ps = conn.prepareStatement(query);
+            ps.setInt(1, loginUserID);
+            java.sql.ResultSet rs = ps.executeQuery();
+            
+            if (rs.next()) {
+                return toUserRecord(rs);
+            }
+        } catch (java.sql.SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     /*

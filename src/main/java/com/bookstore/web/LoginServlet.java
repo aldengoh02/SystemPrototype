@@ -109,8 +109,8 @@ public class LoginServlet extends HttpServlet {
             return;
         }
         
-        boolean isUserId = identifier.trim().matches("\\d+");
-        if (!isUserId && (password == null || password.trim().isEmpty())) {
+        boolean isAccountId = identifier.trim().matches("\\d+");
+        if (!isAccountId && (password == null || password.trim().isEmpty())) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             json.addProperty("success", false);
             json.addProperty("error", "Password is required for email login");
@@ -131,8 +131,8 @@ public class LoginServlet extends HttpServlet {
             
             boolean authenticated = false;
             if (user != null) {
-                if (isUserId) {
-                    // Login by userID, no password required
+                if (isAccountId) {
+                    // Login by Account ID (loginUserID), no password required
                     authenticated = true;
                 } else if (SecUtils.verifyPassword(password, user.getPassword())) {
                     // Login by email + password
@@ -159,9 +159,9 @@ public class LoginServlet extends HttpServlet {
                 json.addProperty("user_role", role.toLowerCase());
             } else {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                if (isUserId) {
+                if (isAccountId) {
                     json.addProperty("success", false);
-                    json.addProperty("error", "Invalid account ID");
+                    json.addProperty("error", "Invalid Account ID");
                 } else {
                     json.addProperty("success", false);
                     json.addProperty("error", "Invalid email or password");
