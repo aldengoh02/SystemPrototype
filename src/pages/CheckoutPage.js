@@ -114,3 +114,5 @@ export default function CheckoutPage({ cartItems, setCartItems, setOrders }) {
     </div>
   );
 }
+  
+

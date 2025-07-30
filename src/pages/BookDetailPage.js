@@ -30,6 +30,10 @@ export default function BookDetailPage({ handleAddToCart }) {
       />
       <h2 style={{ marginTop: '20px' }}>{book.title}</h2>
       <p><strong>Author:</strong> {book.author}</p>
+      <p><strong>ISBN:</strong> {book.isbn}</p>
+      <p><strong>Edition:</strong> {book.edition}</p>
+      <p><strong>Publisher:</strong> {book.publisher}</p>
+      <p><strong>Publication Year:</strong> {book.publicationYear}</p>
       <p><strong>Price:</strong> ${book.sellingPrice?.toFixed(2)}</p>
       <p><strong>Rating:</strong> {book.rating}</p>
       <p style={{ marginTop: '15px' }}><strong>Description:</strong><br />{book.description}</p>
