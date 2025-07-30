@@ -147,6 +147,30 @@ public class ShippingAddressDatabase {
         return null;
     }
 
+    public ArrayList<ShippingAddressRecords> getAddressesByUserID(int userID) {
+        ArrayList<ShippingAddressRecords> userAddresses = new ArrayList<>();
+        try {
+            String query = "SELECT * FROM ShippingAddress WHERE userID = ?";
+            PreparedStatement ps = connection.prepareStatement(query);
+            ps.setInt(1, userID);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                ShippingAddressRecords addr = new ShippingAddressRecords(
+                    rs.getInt("addressID"),
+                    rs.getInt("userID"),
+                    rs.getString("street"),
+                    rs.getString("city"),
+                    rs.getString("state"),
+                    rs.getString("zipCode")
+                );
+                userAddresses.add(addr);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return userAddresses;
+    }
+
     public int insertAddress(int userID, String street, String city, String state, String zipCode) {
         int newAddressID = -1;
         try {

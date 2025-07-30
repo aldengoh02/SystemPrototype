@@ -43,7 +43,8 @@ echo "init TransactionTable"
 mysql -u "$USR" -p"$DBPass" BookStore < src/main/resources/BookStore_Schema/Transaction_Table.sql
 echo "init VerificationTable"
 mysql -u "$USR" -p"$DBPass" BookStore < src/main/resources/BookStore_Schema/VerificationToken.sql
-
+echo "init AlterUserTable"
+mysql -u "$USR" -p"$DBPass" BookStore < src/main/resources/BookStore_Schema/AlterUserTable.sql
 
 # show all tables that have been initialized.
 mysql -u "$USR" -p"$DBPass" -e "USE BookStore; SHOW TABLES;"

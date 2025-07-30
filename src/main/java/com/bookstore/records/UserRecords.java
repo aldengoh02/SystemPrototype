@@ -10,6 +10,7 @@ public class UserRecords {
     private String status;
     private boolean enrollForPromotions;
     private int userTypeID;
+    private Integer loginUserID;
 
     //Constructor
     public UserRecords(int userID, String firstName, String lastName, String email, String password,
@@ -23,6 +24,21 @@ public class UserRecords {
         this.status = status;
         this.enrollForPromotions = enrollForPromotions;
         this.userTypeID = userTypeID;
+    }
+
+    //Constructor with loginUserID
+    public UserRecords(int userID, String firstName, String lastName, String email, String password,
+                       String phone, String status, boolean enrollForPromotions, int userTypeID, Integer loginUserID) {
+        this.userID = userID;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.password = password;
+        this.phone = phone;
+        this.status = status;
+        this.enrollForPromotions = enrollForPromotions;
+        this.userTypeID = userTypeID;
+        this.loginUserID = loginUserID;
     }
 
     public int getUserID() {
@@ -97,6 +113,13 @@ public class UserRecords {
         this.userTypeID = userTypeID;
     }
 
+    public Integer getLoginUserID() {
+        return loginUserID;
+    }
+
+    public void setLoginUserID(Integer loginUserID) {
+        this.loginUserID = loginUserID;
+    }
 
 }
 

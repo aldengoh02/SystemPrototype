@@ -362,10 +362,22 @@ public class RegistrationServlet extends HttpServlet {
             
             tokenDB.disconnectDb();
             
+            // Retrieve the user to get the loginUserID (which was auto-assigned by the database trigger)
+            if (!userDB.connectDb()) {
+                return "Failed to connect to user database";
+            }
+            
+            UserRecords createdUser = userDB.findUserByEmail(userEmail);
+            userDB.disconnectDb();
+            
+            if (createdUser == null) {
+                return "Failed to retrieve created user";
+            }
+            
             // url for verification so that clicking actually verifies
             String baseUrl = "http://localhost:8080"; 
             
-            boolean emailSent = Email.sendVerificationEmail(userEmail, userName, verificationToken, baseUrl, userId);
+            boolean emailSent = Email.sendVerificationEmail(userEmail, userName, verificationToken, baseUrl, createdUser.getLoginUserID());
             if (!emailSent) {
                 return "Failed to send verification email";
             }

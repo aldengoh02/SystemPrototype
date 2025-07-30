@@ -55,6 +55,8 @@ function AppContent() {
       .then(res => res.json())
       .then(data => {
         if (data.authenticated) {
+          // Store userID in localStorage for profile updates
+          localStorage.setItem('userID', data.user_id);
           setAuth({
             isLoggedIn: true,
             userRole: data.user_role,
@@ -248,6 +250,8 @@ function AppContent() {
           userName: null,
           userEmail: null,
         });
+        // Clear localStorage on logout
+        localStorage.removeItem('userID');
         // Clear cart on logout and load guest cart
         setCartItems([]);
         CartService.clearGuestCart();
@@ -326,13 +330,7 @@ function AppContent() {
         } />
         <Route path="/book/:id" element={<BookDetailPage handleAddToCart={handleAddToCart} />} />
         <Route path="/cart" element={<CartPage cartItems={cartItems} handleQuantityChange={handleQuantityChange} isLoggedIn={auth.isLoggedIn} />} />
-        <Route path="/checkout" element={
-          auth.isLoggedIn ? (
-            <CheckoutPage cartItems={cartItems} setCartItems={setCartItems} setOrders={setOrders} />
-          ) : (
-            <Navigate to="/login" replace />
-          )
-        } />
+        <Route path="/checkout" element={<CheckoutPage cartItems={cartItems} setCartItems={setCartItems} setOrders={setOrders} />} />
         <Route path="/order-history" element={auth.isLoggedIn ? <OrderHistoryPage orders={orders} setCartItems={setCartItems} /> : <Navigate to="/register" />} />
         <Route path="/profile" element={auth.isLoggedIn ? <ProfilePage /> : <Navigate to="/register" />} />
         <Route path="/admin" element={auth.isLoggedIn && auth.userRole === 'admin' ? <AdminPage /> : <Navigate to="/register" />} />

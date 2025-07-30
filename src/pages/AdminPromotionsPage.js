@@ -8,6 +8,10 @@ export default function AdminPromotionsPage() {
   const [promotions, setPromotions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [pushModalOpen, setPushModalOpen] = useState(false);
+  const [pushMessage, setPushMessage] = useState('');
+  const [sendingPush, setSendingPush] = useState(false);
+  const [selectedPromotion, setSelectedPromotion] = useState(null);
 
   useEffect(() => {
     fetchPromotions();
@@ -59,6 +63,61 @@ export default function AdminPromotionsPage() {
     }
   };
 
+  const handlePushPromotion = (promotion) => {
+    setSelectedPromotion(promotion);
+    setPushModalOpen(true);
+    setPushMessage('');
+    setError(null);
+  };
+
+  const handlePushSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!pushMessage.trim()) {
+      setError('Message is required');
+      return;
+    }
+
+    setSendingPush(true);
+    
+    try {
+      const response = await fetch(`http://localhost:8080/api/promotions/push/${selectedPromotion.promoID}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: pushMessage
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to push promotion');
+      }
+      
+      setPushModalOpen(false);
+      alert('Promotion pushed successfully!');
+      
+      // Refresh promotions to update pushed status
+      await fetchPromotions();
+      
+    } catch (err) {
+      setError('Error pushing promotion: ' + err.message);
+      console.error('Error pushing promotion:', err);
+    } finally {
+      setSendingPush(false);
+    }
+  };
+
+  const handlePushModalClose = () => {
+    setPushModalOpen(false);
+    setPushMessage('');
+    setSelectedPromotion(null);
+    setError(null);
+  };
+
   // Move the redirect inside the render, after all hooks
   if (auth.userRole !== 'admin') {
     return <Navigate to="/home" />;
@@ -94,21 +153,23 @@ export default function AdminPromotionsPage() {
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <h2>Manage Promotions</h2>
-        <button
-          onClick={handleAddPromotionClick}
-          style={{
-            background: '#4a90e2',
-            color: 'white',
-            border: 'none',
-            padding: '12px 24px',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            fontSize: '16px',
-            fontWeight: 'bold'
-          }}
-        >
-          Add Promotion
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button
+            onClick={handleAddPromotionClick}
+            style={{
+              background: '#4a90e2',
+              color: 'white',
+              border: 'none',
+              padding: '12px 24px',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              fontSize: '16px',
+              fontWeight: 'bold'
+            }}
+          >
+            Add Promotion
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -144,12 +205,18 @@ export default function AdminPromotionsPage() {
                   <th style={tableHeaderStyle}>Start Date</th>
                   <th style={tableHeaderStyle}>End Date</th>
                   <th style={tableHeaderStyle}>Status</th>
+                  <th style={tableHeaderStyle}>Push Status</th>
                   <th style={tableHeaderStyle}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {promotions.map((promotion) => {
                   const statusInfo = getPromotionStatus(promotion.startDate, promotion.endDate);
+                  const isActive = statusInfo.status === 'Active';
+                  const isPushed = promotion.pushed;
+                  const canEdit = !(isPushed && isActive);
+                  const canDelete = !(isPushed && isActive);
+                  
                   return (
                     <tr key={promotion.promoID} style={{ borderBottom: '1px solid #eee' }}>
                       <td style={tableCellStyle}>{promotion.promoID}</td>
@@ -172,31 +239,63 @@ export default function AdminPromotionsPage() {
                         </span>
                       </td>
                       <td style={tableCellStyle}>
-                        <div style={{ display: 'flex', gap: '8px' }}>
+                        <span style={{
+                          background: isPushed ? '#28a745' : '#6c757d',
+                          color: 'white',
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                          fontSize: '12px',
+                          fontWeight: 'bold'
+                        }}>
+                          {isPushed ? 'Pushed' : 'Not Pushed'}
+                        </span>
+                      </td>
+                      <td style={tableCellStyle}>
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                          {!isPushed && (
+                            <button
+                              onClick={() => handlePushPromotion(promotion)}
+                              style={{
+                                background: '#17a2b8',
+                                color: 'white',
+                                border: 'none',
+                                padding: '6px 12px',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '12px'
+                              }}
+                            >
+                              Push to Actions
+                            </button>
+                          )}
                           <button
                             onClick={() => handleEditPromotion(promotion.promoID)}
+                            disabled={!canEdit}
                             style={{
-                              background: '#ffc107',
+                              background: canEdit ? '#ffc107' : '#6c757d',
                               color: 'white',
                               border: 'none',
                               padding: '6px 12px',
                               borderRadius: '4px',
-                              cursor: 'pointer',
-                              fontSize: '12px'
+                              cursor: canEdit ? 'pointer' : 'not-allowed',
+                              fontSize: '12px',
+                              opacity: canEdit ? 1 : 0.6
                             }}
                           >
                             Edit
                           </button>
                           <button
                             onClick={() => handleDeletePromotion(promotion.promoID)}
+                            disabled={!canDelete}
                             style={{
-                              background: '#dc3545',
+                              background: canDelete ? '#dc3545' : '#6c757d',
                               color: 'white',
                               border: 'none',
                               padding: '6px 12px',
                               borderRadius: '4px',
-                              cursor: 'pointer',
-                              fontSize: '12px'
+                              cursor: canDelete ? 'pointer' : 'not-allowed',
+                              fontSize: '12px',
+                              opacity: canDelete ? 1 : 0.6
                             }}
                           >
                             Delete
@@ -211,6 +310,97 @@ export default function AdminPromotionsPage() {
           </div>
         )}
       </div>
+      
+      {/* Push Modal */}
+      {pushModalOpen && selectedPromotion && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            padding: '30px',
+            borderRadius: '10px',
+            width: '500px',
+            maxWidth: '90vw',
+            maxHeight: '80vh',
+            overflow: 'auto'
+          }}>
+            <h3>Push Promotion to Actions</h3>
+            <div style={{ marginBottom: '20px', padding: '15px', background: '#f8f9fa', borderRadius: '5px' }}>
+              <h4 style={{ margin: '0 0 10px 0', color: '#495057' }}>Promotion Details:</h4>
+              <p style={{ margin: '5px 0' }}><strong>Code:</strong> {selectedPromotion.promoCode}</p>
+              <p style={{ margin: '5px 0' }}><strong>Discount:</strong> {selectedPromotion.discount}%</p>
+              <p style={{ margin: '5px 0' }}><strong>Valid:</strong> {formatDate(selectedPromotion.startDate)} - {formatDate(selectedPromotion.endDate)}</p>
+            </div>
+            <form onSubmit={handlePushSubmit}>
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                  Message for customers:
+                </label>
+                <textarea
+                  value={pushMessage}
+                  onChange={(e) => setPushMessage(e.target.value)}
+                  placeholder="Enter a message to customers about this promotion..."
+                  rows="6"
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    border: '1px solid #ddd',
+                    borderRadius: '5px',
+                    fontSize: '14px',
+                    resize: 'vertical'
+                  }}
+                  required
+                />
+                <small style={{ color: '#666', fontSize: '12px' }}>
+                  This message will be included in the promotional email along with the promotion code and dates.
+                </small>
+              </div>
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  onClick={handlePushModalClose}
+                  style={{
+                    background: '#6c757d',
+                    color: 'white',
+                    border: 'none',
+                    padding: '10px 20px',
+                    borderRadius: '5px',
+                    cursor: 'pointer'
+                  }}
+                  disabled={sendingPush}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  style={{
+                    background: '#17a2b8',
+                    color: 'white',
+                    border: 'none',
+                    padding: '10px 20px',
+                    borderRadius: '5px',
+                    cursor: sendingPush ? 'not-allowed' : 'pointer',
+                    opacity: sendingPush ? 0.6 : 1
+                  }}
+                  disabled={sendingPush}
+                >
+                  {sendingPush ? 'Pushing...' : 'Push to Actions'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -8,13 +8,20 @@ public class PromotionRecords {
     private float discount;  // changed to float to match SQL
     private Date startDate;
     private Date endDate;
+    private boolean pushed;
 
-    public PromotionRecords(int promoID, String promoCode, float discount, Date startDate, Date endDate) {
+    public PromotionRecords(int promoID, String promoCode, float discount, Date startDate, Date endDate, boolean pushed) {
         this.promoID = promoID;
         this.promoCode = promoCode;
         this.discount = discount;
         this.startDate = startDate;
         this.endDate = endDate;
+        this.pushed = pushed;
+    }
+
+    // Backwards compatibility constructor
+    public PromotionRecords(int promoID, String promoCode, float discount, Date startDate, Date endDate) {
+        this(promoID, promoCode, discount, startDate, endDate, false);
     }
 
     // Getters and setters
@@ -51,5 +58,12 @@ public class PromotionRecords {
     }
     public void setEndDate(Date endDate) {
         this.endDate = endDate;
+    }
+
+    public boolean isPushed() {
+        return pushed;
+    }
+    public void setPushed(boolean pushed) {
+        this.pushed = pushed;
     }
 }

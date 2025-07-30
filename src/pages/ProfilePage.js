@@ -30,8 +30,8 @@ export default function ProfilePage() {
   const [editedBilling, setEditedBilling] = useState({ street: '', city: '', state: '', zipCode: '' });
   const [editCardStatus, setEditCardStatus] = useState({ loading: false, error: '', success: '' });
 
-  const userID = localStorage.getItem('userID');
-  const addressID = localStorage.getItem('addressID');
+  const userID = parseInt(localStorage.getItem('userID'));
+  const addressID = parseInt(localStorage.getItem('addressID'));
 
   useEffect(() => {
     // Fetch current profile info

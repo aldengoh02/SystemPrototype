@@ -112,7 +112,8 @@ public class UserDatabase {
                     rs.getString("phone"),
                     rs.getString("status"),
                     rs.getBoolean("enrollForPromotions"),
-                    rs.getInt("userTypeID")
+                    rs.getInt("userTypeID"),
+                    rs.getObject("loginUserID") != null ? rs.getInt("loginUserID") : null
                 );
             }
         } catch (SQLException e) {
@@ -137,7 +138,8 @@ public class UserDatabase {
                         rs.getString("phone"),
                         rs.getString("status"),
                         rs.getBoolean("enrollForPromotions"),
-                        rs.getInt("userTypeID")
+                        rs.getInt("userTypeID"),
+                        rs.getObject("loginUserID") != null ? rs.getInt("loginUserID") : null
                 );
                 results.add(user);
             }
@@ -184,6 +186,35 @@ public class UserDatabase {
         }
         loadResults();
         return "User Deleted.";
+    }
+
+    // Get users enrolled for promotions
+    public ArrayList<UserRecords> getUsersEnrolledForPromotions() {
+        ArrayList<UserRecords> promotionUsers = new ArrayList<>();
+        try {
+            String query = "SELECT * FROM Users WHERE enrollForPromotions = true AND status = 'active'";
+            PreparedStatement ps = connection.prepareStatement(query);
+            ResultSet rs = ps.executeQuery();
+            
+            while (rs.next()) {
+                UserRecords user = new UserRecords(
+                    rs.getInt("userID"),
+                    rs.getString("firstName"),
+                    rs.getString("lastName"),
+                    rs.getString("email"),
+                    rs.getString("password"),
+                    rs.getString("phone"),
+                    rs.getString("status"),
+                    rs.getBoolean("enrollForPromotions"),
+                    rs.getInt("userTypeID"),
+                    rs.getObject("loginUserID") != null ? rs.getInt("loginUserID") : null
+                );
+                promotionUsers.add(user);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return promotionUsers;
     }
 
     // Getter for connection
