@@ -91,4 +91,24 @@
         <url-pattern>/api/promotions/*</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>CheckoutServlet</servlet-name>
+        <servlet-class>com.bookstore.web.CheckoutServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>CheckoutServlet</servlet-name>
+        <url-pattern>/api/checkout/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>OrdersServlet</servlet-name>
+        <servlet-class>com.bookstore.web.OrdersServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>OrdersServlet</servlet-name>
+        <url-pattern>/api/orders/*</url-pattern>
+    </servlet-mapping>
+
 </web-app> 

@@ -142,4 +142,25 @@ public class BillingAddressDatabase {
         }
         return null;
     }
+
+    public ArrayList<BillingAddressRecords> getAllAddresses() {
+        ArrayList<BillingAddressRecords> addresses = new ArrayList<>();
+        try {
+            Statement stmt = connection.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT * FROM BillingAddress");
+            while (rs.next()) {
+                BillingAddressRecords addr = new BillingAddressRecords(
+                    rs.getInt("addressID"),
+                    rs.getString("street"),
+                    rs.getString("city"),
+                    rs.getString("state"),
+                    rs.getString("zipCode")
+                );
+                addresses.add(addr);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return addresses;
+    }
 }
