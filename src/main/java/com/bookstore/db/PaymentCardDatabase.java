@@ -145,4 +145,28 @@ public class PaymentCardDatabase {
         loadResults();
         return "Payment Card Deleted.";
     }
+
+    public ArrayList<PaymentCardRecords> getCardsByUserID(int userID) {
+        ArrayList<PaymentCardRecords> userCards = new ArrayList<>();
+        try {
+            String query = "SELECT * FROM PaymentCard WHERE userID = ?";
+            PreparedStatement ps = connection.prepareStatement(query);
+            ps.setInt(1, userID);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                PaymentCardRecords card = new PaymentCardRecords(
+                    rs.getInt("cardID"),
+                    rs.getString("cardNo"),
+                    rs.getInt("userID"),
+                    rs.getString("type"),
+                    rs.getString("expirationDate"),
+                    rs.getInt("billingAddressID")
+                );
+                userCards.add(card);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return userCards;
+    }
 }

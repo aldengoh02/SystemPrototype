@@ -3,7 +3,14 @@ import { Link } from 'react-router-dom';
 
 export default function CartPage({ cartItems, handleQuantityChange, isLoggedIn }) {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
-  const total = cartItems.reduce((sum, item) => sum + (item.sellingPrice * item.quantity), 0);
+
+  // Safe calculation of total
+  const total = cartItems.reduce(
+    (sum, item) =>
+      sum +
+      (Number(item.sellingPrice ?? 0) * Number(item.quantity ?? 0)),
+    0
+  );
 
   const handleProceedClick = (e) => {
     if (!isLoggedIn) {
@@ -35,8 +42,12 @@ export default function CartPage({ cartItems, handleQuantityChange, isLoggedIn }
                 <p style={{ margin: '5px 0', color: '#666' }}>by {item.author}</p>
               </div>
               <div style={{ flex: 1, textAlign: 'right' }}>
-                <p style={{ margin: 0 }}>${item.sellingPrice.toFixed(2)} × {item.quantity}</p>
-                <p style={{ margin: '5px 0', fontWeight: 'bold' }}>${(item.sellingPrice * item.quantity).toFixed(2)}</p>
+                <p style={{ margin: 0 }}>
+                  ${Number(item.sellingPrice ?? 0).toFixed(2)} × {Number(item.quantity ?? 0)}
+                </p>
+                <p style={{ margin: '5px 0', fontWeight: 'bold' }}>
+                  ${(Number(item.sellingPrice ?? 0) * Number(item.quantity ?? 0)).toFixed(2)}
+                </p>
               </div>
               <div style={{ flex: 0 }}>
                 <button onClick={() => handleQuantityChange(item.id, -1)} style={{ background: '#ff4444', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', marginRight: '5px' }}>-</button>
@@ -46,7 +57,9 @@ export default function CartPage({ cartItems, handleQuantityChange, isLoggedIn }
           ))}
 
           <div style={{ background: '#fff', padding: '15px', borderRadius: '8px', marginTop: '20px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>
-            <h3 style={{ textAlign: 'right' }}>Total: ${total.toFixed(2)}</h3>
+            <h3 style={{ textAlign: 'right' }}>
+              Total: ${Number(total ?? 0).toFixed(2)}
+            </h3>
             <div style={{ textAlign: 'right' }}>
               <Link to={isLoggedIn ? "/checkout" : "#"} onClick={handleProceedClick}>
                 <button style={{ background: '#50c878', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '5px', cursor: 'pointer', fontSize: '1.1em' }}>

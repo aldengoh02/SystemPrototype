@@ -11,9 +11,6 @@ import com.bookstore.web.EditUserServlet;
 import com.bookstore.web.LoginServlet;
 import com.bookstore.web.SecurityServlet;
 import com.bookstore.web.RegistrationServlet;
-import com.bookstore.web.CartServlet;
-import com.bookstore.web.PromotionServlet;
-import com.bookstore.web.EmailVerificationServlet;
 
 /*
  * Main class for the Jetty server
@@ -55,9 +52,6 @@ public class JettyServer {
         context.addServlet(new ServletHolder(new LoginServlet()), "/api/auth/*");
         context.addServlet(new ServletHolder(new SecurityServlet()), "/api/security/*");
         context.addServlet(new ServletHolder(new RegistrationServlet()), "/api/register/*");
-        context.addServlet(new ServletHolder(new CartServlet()), "/api/cart/*");
-        context.addServlet(new ServletHolder(new PromotionServlet()), "/api/promotions/*");
-        context.addServlet(new ServletHolder(new EmailVerificationServlet()), "/api/verify-email");
         
         // Add handlers to the list
         handlers.addHandler(webappHandler);
@@ -79,9 +73,6 @@ public class JettyServer {
             System.out.println("  - Auth: /api/auth/*");
             System.out.println("  - Security: /api/security/*");
             System.out.println("  - Registration: /api/register/*");
-            System.out.println("  - Cart: /api/cart/*");
-            System.out.println("  - Promotions: /api/promotions/*");
-            System.out.println("  - Email Verification: /api/verify-email");
             server.join();
         } catch (Exception e) {
             e.printStackTrace();

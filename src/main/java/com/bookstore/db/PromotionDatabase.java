@@ -60,14 +60,19 @@ public class PromotionDatabase {
         this.results = results;
     }
 
+    public Connection getConnection() {
+        return connection;
+    }
+
     public String addPromotion(PromotionRecords promo) {
-        String query = "INSERT INTO promotion (promoCode, discount, startDate, endDate) VALUES (?, ?, ?, ?)";
+        String query = "INSERT INTO promotion (promoCode, discount, startDate, endDate, pushed) VALUES (?, ?, ?, ?, ?)";
         try {
             PreparedStatement ps = connection.prepareStatement(query);
             ps.setString(1, promo.getPromoCode());
             ps.setFloat(2, promo.getDiscount());
             ps.setDate(3, promo.getStartDate());
             ps.setDate(4, promo.getEndDate());
+            ps.setBoolean(5, promo.isPushed());
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -88,7 +93,8 @@ public class PromotionDatabase {
                         rs.getString("promoCode"),
                         rs.getFloat("discount"),
                         rs.getDate("startDate"),
-                        rs.getDate("endDate")
+                        rs.getDate("endDate"),
+                        rs.getBoolean("pushed")
                 );
                 results.add(promo);
             }
@@ -100,14 +106,15 @@ public class PromotionDatabase {
     }
 
     public String updatePromotion(PromotionRecords promo) {
-        String query = "UPDATE promotion SET promoCode=?, discount=?, startDate=?, endDate=? WHERE promoID=?";
+        String query = "UPDATE promotion SET promoCode=?, discount=?, startDate=?, endDate=?, pushed=? WHERE promoID=?";
         try {
             PreparedStatement ps = connection.prepareStatement(query);
             ps.setString(1, promo.getPromoCode());
             ps.setFloat(2, promo.getDiscount());
             ps.setDate(3, promo.getStartDate());
             ps.setDate(4, promo.getEndDate());
-            ps.setInt(5, promo.getPromoID());
+            ps.setBoolean(5, promo.isPushed());
+            ps.setInt(6, promo.getPromoID());
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -129,5 +136,20 @@ public class PromotionDatabase {
         }
         loadResults();
         return "Promotion Deleted.";
+    }
+
+    public String updatePromotionPushedStatus(int promoID, boolean pushed) {
+        String query = "UPDATE promotion SET pushed=? WHERE promoID=?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(query);
+            ps.setBoolean(1, pushed);
+            ps.setInt(2, promoID);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return e.toString();
+        }
+        loadResults();
+        return "Promotion push status updated.";
     }
 }

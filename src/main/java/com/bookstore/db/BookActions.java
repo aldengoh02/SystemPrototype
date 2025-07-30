@@ -55,12 +55,10 @@ public class BookActions {
             }
         }
 
-        double salesTax = subtotal * 0.07; // 7% sales tax
-        double total = subtotal + salesTax;
+        double total = subtotal; // No sales tax
 
         Map<String, Double> result = new HashMap<>();
         result.put("subtotal", subtotal);
-        result.put("salesTax", salesTax);
         result.put("total", total);
 
         return result;
