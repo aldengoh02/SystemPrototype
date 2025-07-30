@@ -55,6 +55,8 @@ function AppContent() {
       .then(res => res.json())
       .then(data => {
         if (data.authenticated) {
+          // Store userID in localStorage for profile updates
+          localStorage.setItem('userID', data.user_id);
           setAuth({
             isLoggedIn: true,
             userRole: data.user_role,
@@ -248,6 +250,8 @@ function AppContent() {
           userName: null,
           userEmail: null,
         });
+        // Clear localStorage on logout
+        localStorage.removeItem('userID');
         // Clear cart on logout and load guest cart
         setCartItems([]);
         CartService.clearGuestCart();

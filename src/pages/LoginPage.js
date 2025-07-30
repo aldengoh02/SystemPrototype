@@ -25,6 +25,8 @@ export default function LoginPage() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
+        // Store userID in localStorage for profile updates
+        localStorage.setItem('userID', data.user_id);
         setAuth({
           isLoggedIn: true,
           userRole: data.user_role,
