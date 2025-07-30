@@ -29,7 +29,9 @@ export default function EditPromotionPage() {
   const fetchPromotion = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:8080/api/promotions/${id}`);
+      const response = await fetch(`http://localhost:8080/api/promotions/${id}`, {
+        credentials: 'include'
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch promotion');
       }
@@ -93,6 +95,7 @@ export default function EditPromotionPage() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(formData)
       });
 

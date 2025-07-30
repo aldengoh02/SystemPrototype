@@ -86,6 +86,6 @@ INSERT INTO books (
 ('9781234567019', 'Fiction', 'Ryan Patrick', 'Buckeye', 'img/Buckeye.png', '1st Edition', 'Random House Publishing Group', 2025, 0, 0, 10.00, 17.99, 0.0, FALSE, '2025-09-02',
  'An intimate portrait of life in the American Midwest. Buckeye explores themes of hope, struggle, and the ties that hold communities together.'),
 
-('9781234567020', 'Mystery', 'G.T. Karber', 'The Case of the Seven Skulls', 'img/The_Case_of_The_Seven_Skulls.png', '1st Edition', 'St. Martin Publishing Group', 2025, 0, 0, 9.00, 15.99, 0.0, FALSE, '2025-07-29',
+('9781234567020', 'Mystery', 'G.T. Karber', 'The Case of the Seven Skulls', 'img/The_Case_of_The_Seven_Skulls.png', '1st Edition', 'St. Martin Publishing Group', 2025, 0, 0, 9.00, 15.99, 0.0, FALSE, '2025-08-29',
  'A gripping mystery that pits a determined detective against an ancient curse. The Case of the Seven Skulls is full of suspense, secrets, and unexpected revelations.')
 ON DUPLICATE KEY UPDATE title = VALUES(title);

@@ -20,7 +20,9 @@ export default function AdminPromotionsPage() {
   const fetchPromotions = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:8080/api/promotions');
+      const response = await fetch('http://localhost:8080/api/promotions', {
+        credentials: 'include'
+      });
       if (!response.ok) throw new Error('Failed to fetch promotions');
       const data = await response.json();
       setPromotions(Array.isArray(data) ? data : []);
@@ -47,7 +49,8 @@ export default function AdminPromotionsPage() {
 
     try {
       const response = await fetch(`http://localhost:8080/api/promotions/${promotionId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        credentials: 'include'
       });
       
       if (!response.ok) {
@@ -86,6 +89,7 @@ export default function AdminPromotionsPage() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           message: pushMessage
         })

@@ -39,7 +39,6 @@ import com.bookstore.Email;
 import com.google.gson.Gson;
 
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -50,18 +49,15 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
-public class PromotionServlet extends HttpServlet {
+public class PromotionServlet extends AdminSecuredServlet {
     private final Gson gson = new Gson();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        PromotionDatabase promotionDb = new PromotionDatabase();
+        System.out.println("DEBUG: GET request received for promotions");
+        setCorsHeaders(resp);
         
-        resp.setHeader("Access-Control-Allow-Origin", "*");
-        resp.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-        resp.setHeader("Access-Control-Allow-Headers", "Content-Type");
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
+        PromotionDatabase promotionDb = new PromotionDatabase();
         
         PrintWriter out = resp.getWriter();
 
@@ -113,12 +109,13 @@ public class PromotionServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setHeader("Access-Control-Allow-Origin", "*");
-        resp.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-        resp.setHeader("Access-Control-Allow-Headers", "Content-Type");
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
-
+        setCorsHeaders(resp);
+        
+        // Verify admin access for all POST operations
+        if (!verifyAdminAccess(req, resp)) {
+            return;
+        }
+        
         PrintWriter out = resp.getWriter();
         String pathInfo = req.getPathInfo();
         
@@ -183,14 +180,14 @@ public class PromotionServlet extends HttpServlet {
 
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        PromotionDatabase promotionDb = new PromotionDatabase();
+        setCorsHeaders(resp);
         
-        resp.setHeader("Access-Control-Allow-Origin", "*");
-        resp.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-        resp.setHeader("Access-Control-Allow-Headers", "Content-Type");
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
-
+        // Verify admin access for all PUT operations
+        if (!verifyAdminAccess(req, resp)) {
+            return;
+        }
+        
+        PromotionDatabase promotionDb = new PromotionDatabase();
         PrintWriter out = resp.getWriter();
         String pathInfo = req.getPathInfo();
 
@@ -247,14 +244,18 @@ public class PromotionServlet extends HttpServlet {
 
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        PromotionDatabase promotionDb = new PromotionDatabase();
+        System.out.println("DEBUG: DELETE request received for promotions");
+        setCorsHeaders(resp);
         
-        resp.setHeader("Access-Control-Allow-Origin", "*");
-        resp.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-        resp.setHeader("Access-Control-Allow-Headers", "Content-Type");
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
-
+        // Verify admin access for all DELETE operations
+        System.out.println("DEBUG: About to verify admin access");
+        if (!verifyAdminAccess(req, resp)) {
+            System.out.println("DEBUG: Admin verification failed");
+            return;
+        }
+        System.out.println("DEBUG: Admin verification passed, proceeding with delete");
+        
+        PromotionDatabase promotionDb = new PromotionDatabase();
         PrintWriter out = resp.getWriter();
         String pathInfo = req.getPathInfo();
 
@@ -297,9 +298,7 @@ public class PromotionServlet extends HttpServlet {
     @Override
     protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         // Handle pre-flight CORS requests from the browser
-        resp.setHeader("Access-Control-Allow-Origin", "*");
-        resp.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-        resp.setHeader("Access-Control-Allow-Headers", "Content-Type");
+        setCorsHeaders(resp);
         resp.setStatus(HttpServletResponse.SC_OK);
     }
 

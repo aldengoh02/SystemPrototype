@@ -111,4 +111,14 @@
         <url-pattern>/api/orders/*</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>AdminAccessServlet</servlet-name>
+        <servlet-class>com.bookstore.web.AdminAccessServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>AdminAccessServlet</servlet-name>
+        <url-pattern>/api/admin/*</url-pattern>
+    </servlet-mapping>
+
 </web-app> 

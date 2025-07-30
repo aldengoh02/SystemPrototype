@@ -57,23 +57,22 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class BookServlet extends HttpServlet {
+public class BookServlet extends AdminSecuredServlet {
     // Fix: Set Gson to use yyyy-MM-dd for SQL Date
     private final Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
        
-        BookDatabase bookDb = new BookDatabase();
+        setCorsHeaders(resp);
         
-        resp.setHeader("Access-Control-Allow-Origin", "*");
-        resp.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
-        resp.setHeader("Access-Control-Allow-Headers", "Content-Type");
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
-
+        // Verify admin access for book creation operations
+        if (!verifyAdminAccess(req, resp)) {
+            return;
+        }
+        
+        BookDatabase bookDb = new BookDatabase();
         PrintWriter out = resp.getWriter();
-
         String pathInfo = req.getPathInfo();
         
         if (bookDb.connectDb()) {
@@ -121,12 +120,9 @@ public class BookServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        BookDatabase bookDb = new BookDatabase();
-
-        resp.setHeader("Access-Control-Allow-Origin", "*");
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
+        setCorsHeaders(resp);
         
+        BookDatabase bookDb = new BookDatabase();
         PrintWriter out = resp.getWriter();
 
         if (bookDb.connectDb()) {
@@ -185,10 +181,7 @@ public class BookServlet extends HttpServlet {
 
     @Override
     protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // Handle pre-flight CORS requests from the browser
-        resp.setHeader("Access-Control-Allow-Origin", "*");
-        resp.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
-        resp.setHeader("Access-Control-Allow-Headers", "Content-Type");
+        setCorsHeaders(resp);
         resp.setStatus(HttpServletResponse.SC_OK);
     }
 } 
