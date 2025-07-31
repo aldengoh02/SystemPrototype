@@ -49,6 +49,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -66,14 +67,27 @@ public class BookServlet extends AdminSecuredServlet {
        
         setCorsHeaders(resp);
         
-        // Verify admin access for book creation operations
-        if (!verifyAdminAccess(req, resp)) {
-            return;
+        String pathInfo = req.getPathInfo();
+        
+        // For checkout calculation, only require user authentication, not admin
+        if (pathInfo != null && pathInfo.equals("/calculate")) {
+            // Check if user is logged in (not necessarily admin)
+            HttpSession session = req.getSession(false);
+            if (session == null || session.getAttribute("userID") == null) {
+                resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                resp.getWriter().print("{\"error\": \"User not authenticated\"}");
+                return;
+            }
+            // Allow any authenticated user to access checkout calculation
+        } else {
+            // For book creation operations, require admin access
+            if (!verifyAdminAccess(req, resp)) {
+                return;
+            }
         }
         
         BookDatabase bookDb = new BookDatabase();
         PrintWriter out = resp.getWriter();
-        String pathInfo = req.getPathInfo();
         
         if (bookDb.connectDb()) {
             try {

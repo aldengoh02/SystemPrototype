@@ -45,6 +45,7 @@ export default function CheckoutPage({ cartItems, setCartItems, setOrders }) {
         const response = await fetch('http://localhost:8080/api/books/calculate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify(cartItemsFormatted)
         });
 
