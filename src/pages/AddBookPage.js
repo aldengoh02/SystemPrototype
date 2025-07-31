@@ -52,6 +52,7 @@ export default function AddBookPage() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(formData) // Send as single BookRecords object, not array
       });
 
