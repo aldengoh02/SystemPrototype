@@ -7,7 +7,7 @@ import java.io.InputStream;
 import java.util.Properties;
 import com.bookstore.records.PaymentCardRecords;
 
-public class PaymentCardDatabase {
+public class PaymentCardDatabase implements DatabaseInterface {
     private Connection connection;
     private ArrayList<PaymentCardRecords> results;
     private ResultSet rs;
@@ -17,6 +17,7 @@ public class PaymentCardDatabase {
         this.results = new ArrayList<>();
     }
 
+    @Override
     public boolean connectDb() {
         try {
             Properties props = new Properties();
@@ -38,6 +39,7 @@ public class PaymentCardDatabase {
         return true;
     }
 
+    @Override
     public boolean disconnectDb() {
         try {
             connection.close();
@@ -49,6 +51,16 @@ public class PaymentCardDatabase {
         return true;
     }
 
+    @Override
+    public Connection getConnection() {
+        return connection;
+    }
+    
+    @Override
+    public boolean isConnected() {
+        return connected;
+    }
+    
     public ArrayList<PaymentCardRecords> getResults() {
         return results;
     }

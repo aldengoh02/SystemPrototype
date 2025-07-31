@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Properties;
 import java.io.InputStream;
 
-public class VerificationTokenDatabase {
+public class VerificationTokenDatabase implements DatabaseInterface {
 
     private Connection connection;
     private ArrayList<VerificationTokenRecords> results;
@@ -19,6 +19,7 @@ public class VerificationTokenDatabase {
     }
 
     //Connect to DB
+    @Override
     public boolean connectDb() {
         try {
             if (connection != null && !connection.isClosed()) {
@@ -48,6 +49,7 @@ public class VerificationTokenDatabase {
     }
 
     //Disconnect from DB
+    @Override
     public boolean disconnectDb() {
         try {
             if (connection != null && !connection.isClosed()) {
@@ -62,7 +64,16 @@ public class VerificationTokenDatabase {
     }
 
     //Getter for results
-    public ArrayList<VerificationTokenRecords> getResults() {
+    @Override
+    public Connection getConnection() {
+        return connection;
+    }
+    
+    @Override
+    public boolean isConnected() {
+        return connected;
+    }
+        public ArrayList<VerificationTokenRecords> getResults() {
         return results;
     }
 
