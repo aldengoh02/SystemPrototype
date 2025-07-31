@@ -9,6 +9,7 @@ public class DatabaseFactory {
     
     /**
      * Database types supported by the factory
+     * Open to extension whenever needed
      */
     public enum DatabaseType {
         BOOK,
