@@ -85,7 +85,7 @@ public class CheckoutServlet extends HttpServlet {
         }
 
         try {
- addFactory
+ 
             // Get user's stored payment cards, billing addresses, and shipping addresses
             DatabaseInterface cardDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.PAYMENT_CARD);
             DatabaseInterface billingDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.BILLING_ADDRESS);
@@ -100,7 +100,7 @@ public class CheckoutServlet extends HttpServlet {
                 return;
             }
 
- addFactory
+ 
             // Get user's payment cards
             ArrayList<PaymentCardRecords> paymentCards = ((PaymentCardDatabase) cardDb).getCardsByUserID(userId);
             
@@ -196,7 +196,7 @@ public class CheckoutServlet extends HttpServlet {
             JsonObject billingAddress = requestData.getAsJsonObject("billingAddress");
             JsonObject shippingAddress = requestData.has("shippingAddress") ? requestData.getAsJsonObject("shippingAddress") : null;
             double totalAmount = requestData.get("totalAmount").getAsDouble();
- addFactory
+ 
             
             // Get user information for email
             DatabaseInterface userDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.USER);
@@ -207,7 +207,7 @@ public class CheckoutServlet extends HttpServlet {
                 out.print("{\"error\": \"Database connection failed\"}");
                 return;
             }
- addFactory
+ 
             
             UserRecords user = SecUtils.findUserByID((UserDatabase) userDb, userId);
 

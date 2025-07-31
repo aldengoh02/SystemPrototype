@@ -101,6 +101,9 @@ export default function CheckoutPage({ cartItems, setCartItems, setOrders }) {
           let shippingAddresses;
           if (data.shippingAddresses) {
             shippingAddresses = data.shippingAddresses;
+          } else if (data.user && data.user.shippingAddress) {
+            // Convert single shipping address to array format
+            shippingAddresses = [data.user.shippingAddress];
           } else if (data.user && data.user.shippingAddresses) {
             shippingAddresses = data.user.shippingAddresses;
           } else {
@@ -117,7 +120,8 @@ export default function CheckoutPage({ cartItems, setCartItems, setOrders }) {
             );
             if (billingAddr) setSelectedBillingAddress(billingAddr);
           }
-          if (shippingAddresses.length > 0 && !selectedShippingAddress) {
+          // Always autofill shipping address if available and not already filled
+          if (shippingAddresses.length > 0 && (!selectedShippingAddress || !shippingInfo.street)) {
             setSelectedShippingAddress(shippingAddresses[0]);
             setShippingInfo({
               street: shippingAddresses[0].street,
@@ -146,7 +150,7 @@ export default function CheckoutPage({ cartItems, setCartItems, setOrders }) {
         );
         if (billingAddr) setSelectedBillingAddress(billingAddr);
       }
-      if (userData.shippingAddresses && userData.shippingAddresses.length > 0 && !selectedShippingAddress) {
+      if (userData.shippingAddresses && userData.shippingAddresses.length > 0 && (!selectedShippingAddress || !shippingInfo.street)) {
         setSelectedShippingAddress(userData.shippingAddresses[0]);
         setShippingInfo({
           street: userData.shippingAddresses[0].street,
