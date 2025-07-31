@@ -9,6 +9,8 @@ export default function RegisterPage({ setIsLoggedIn }) {
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [enrollForPromotions, setEnrollForPromotions] = useState(true);
+  const [successMessage, setSuccessMessage] = useState('');
+
 
   const [shipping, setShipping] = useState({
     street: '',
@@ -58,13 +60,18 @@ export default function RegisterPage({ setIsLoggedIn }) {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        alert('Registration successful! Please check your email to verify your account.');
-        navigate('/login');
+        //alert('Registration successful! Please check your email to verify your account.');
+        //navigate('/login');
+        setSuccessMessage('Registration successful! Please check your email to verify your account.');
+        setError('');
+        setTimeout(() => navigate('/login'), 3000);
       } else {
         setError(data.message || 'Registration failed.');
+        setSuccessMessage('');
       }
     } catch (err) {
       setError('Register error: ' + err.message);
+      setSuccessMessage('');
     }
   };
 
@@ -163,6 +170,7 @@ export default function RegisterPage({ setIsLoggedIn }) {
           Register
         </button>
         {error && <p style={{ color: 'red', marginTop: '10px' }}>{error}</p>}
+        {successMessage && <p style={{ color: 'green', marginTop: '10px', fontWeight: 'bold' }}>{successMessage}</p>}
       </form>
 
       <p style={{ textAlign: 'center', fontSize: '14px', marginTop: '20px' }}>

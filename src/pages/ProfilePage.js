@@ -17,6 +17,8 @@ export default function ProfilePage() {
   const [promotions, setPromotions] = useState(false);
   const [shippingAddressID, setShippingAddressID] = useState(null);
   const [showAddCardMenu, setShowAddCardMenu] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+
   // Add new state for billing address fields
   const [billingStreet, setBillingStreet] = useState('');
   const [billingCity, setBillingCity] = useState('');
@@ -103,6 +105,8 @@ export default function ProfilePage() {
 
   const handleSave = async (e) => {
     e.preventDefault();
+    setSuccessMessage('');
+
     try {
       // Update name
       await fetch('http://localhost:8080/api/user/update-name', {
@@ -160,7 +164,10 @@ export default function ProfilePage() {
         body: JSON.stringify({ userID, enrollForPromotions: promotions }),
       });
 
-      alert('Profile updated successfully.');
+      //alert('Profile updated successfully.');
+      setSuccessMessage('Profile updated successfully :)');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setTimeout(() => setSuccessMessage(''), 4000);
       setShowPasswordFields(false);
       setCurrentPassword('');
       setNewPassword('');
@@ -235,6 +242,20 @@ export default function ProfilePage() {
     <div style={{ maxWidth: '600px', margin: '0 auto' }}>
       <h2>Profile</h2>
       <form onSubmit={handleSave} style={formStyle}>
+        {successMessage && (
+          <div style={{
+            backgroundColor: '#d4edda',
+            color: '#155724',
+            border: '1px solid #c3e6cb',
+            padding: '10px',
+            borderRadius: '4px',
+            marginBottom: '15px',
+            fontWeight: 'bold',
+            textAlign: 'center'
+          }}>
+            {successMessage}
+          </div>
+        )}
         {/* Name */}
         <Input label="First Name" value={firstName} onChange={setFirstName} />
         <Input label="Last Name" value={lastName} onChange={setLastName} />
@@ -518,7 +539,7 @@ const Input = ({ label, value, onChange, type = 'text', disabled = false }) => (
       onChange={onChange ? e => onChange(e.target.value) : undefined}
       disabled={disabled}
       style={{
-        width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc',
+        width: '97%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc',
         background: disabled ? '#eee' : '#fff'
       }}
     />

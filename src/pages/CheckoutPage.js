@@ -34,6 +34,8 @@ export default function CheckoutPage({ cartItems, setCartItems, setOrders }) {
   const [promoError, setPromoError] = useState('');
   const [promoLoading, setPromoLoading] = useState(false);
   const { auth } = useAuth();
+  const [successMessage, setSuccessMessage] = useState('');
+
 
   useEffect(() => {
     const calculateTotal = async () => {
@@ -247,7 +249,11 @@ export default function CheckoutPage({ cartItems, setCartItems, setOrders }) {
       }
       
       setCartItems([]);
-      window.location.href = '/order-history';
+      setSuccessMessage('Your order has been successfully placed! Please check your email for a order confirmation.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setTimeout(() => {
+        window.location.href = '/order-history';
+      }, 3000);
     } catch (error) {
       console.error('Error processing checkout:', error);
       setError('Failed to process checkout. Please try again.');
@@ -256,11 +262,16 @@ export default function CheckoutPage({ cartItems, setCartItems, setOrders }) {
 
   if (loading) return <div style={{ textAlign: 'center', padding: '20px' }}>Calculating total...</div>;
   if (error) return <div style={{ color: 'red', textAlign: 'center', padding: '20px' }}>Error: {error}</div>;
-  if (cartItems.length === 0) return <div style={{ textAlign: 'center', padding: '20px' }}>Your cart is empty</div>;
+  if (cartItems.length === 0 && !successMessage) return <div style={{ textAlign: 'center', padding: '20px' }}>Your cart is empty</div>;
 
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
       <h2>Checkout</h2>
+      {successMessage && (
+        <div style={{ backgroundColor: '#e6ffe6', color: '#2e7d32', padding: '10px', borderRadius: '5px', marginBottom: '15px', textAlign: 'center' }}>
+          {successMessage}
+        </div>
+      )}
 
       <div style={{ marginBottom: '20px' }}>
         <h3>Order Summary</h3>

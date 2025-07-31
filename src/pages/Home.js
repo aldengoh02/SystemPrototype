@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { FaStar } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -13,6 +13,7 @@ export default function Home({
   isLoggedIn
 }) {
   const navigate = useNavigate();
+  const [cartMessage, setCartMessage] = useState('');
 
   const cardStyle = {
     background: '#fff',
@@ -37,6 +38,8 @@ export default function Home({
 */
   const handleCartClick = (book) => {
     handleAddToCart(book);
+    setCartMessage(prev => `${book.title} has been added to your cart :)`);
+    setTimeout(() => setCartMessage(''), 3000);
   };
   const renderBooks = (books, color = '#4a90e2') =>
     books.map(book => (
@@ -81,6 +84,20 @@ export default function Home({
 
   return (
     <div>
+      {cartMessage && (
+        <div style={{
+          backgroundColor: '#e6ffe6',
+          color: '#2e7d32',
+          padding: '10px 15px',
+          borderRadius: '5px',
+          textAlign: 'center',
+          marginBottom: '20px',
+          fontWeight: 'bold',
+          fontSize: '16px'
+        }}>
+          {cartMessage}
+        </div>
+      )}
       <style>
         {`
           .book-card:hover {
