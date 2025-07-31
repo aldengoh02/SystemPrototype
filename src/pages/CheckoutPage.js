@@ -171,11 +171,7 @@ export default function CheckoutPage({ cartItems, setCartItems, setOrders }) {
         cardInfo.billingStreet.trim().length > 0 &&
         cardInfo.billingCity.trim().length > 0 &&
         cardInfo.billingState.trim().length > 0 &&
-        cardInfo.billingZipCode.trim().length > 0 &&
-        shippingInfo.street.trim().length > 0 &&
-        shippingInfo.city.trim().length > 0 &&
-        shippingInfo.state.trim().length > 0 &&
-        shippingInfo.zipCode.trim().length > 0
+        cardInfo.billingZipCode.trim().length > 0
       );
     }
     return false;
@@ -232,6 +228,7 @@ export default function CheckoutPage({ cartItems, setCartItems, setOrders }) {
     return checkoutData.subtotal - discountAmount;
   };
 
+  // ----------- FIXED handleConfirm function -----------
   const handleConfirm = async () => {
     if (!isCardInfoValid()) {
       setError('Please fill in all required information before proceeding');
@@ -240,21 +237,21 @@ export default function CheckoutPage({ cartItems, setCartItems, setOrders }) {
     try {
       const finalTotal = appliedPromo ? calculateDiscountedTotal() : checkoutData.total;
       let paymentInfoToSend, billingAddressToSend, shippingAddressToSend;
-      // Always use selected card if present and not manual entry
+      // Saved card mode
       if (!useManualEntry && selectedPaymentCard && selectedBillingAddress) {
         paymentInfoToSend = {
-          cardNo: selectedPaymentCard.cardNo,
           cardID: selectedPaymentCard.cardID,
+          maskedCardNo: '**** **** **** ' + selectedPaymentCard.cardNo.slice(-4),
           type: selectedPaymentCard.type,
           expirationDate: selectedPaymentCard.expirationDate,
           billingAddressID: selectedPaymentCard.billingAddressID
         };
         billingAddressToSend = selectedBillingAddress;
         shippingAddressToSend = shippingInfo;
-      } else {
+      } else { // Manual entry mode
         paymentInfoToSend = {
-          cardNo: cardInfo.cardNo,
-          type: cardInfo.type,
+          cardNumber: cardInfo.cardNo,
+          cardType: cardInfo.type,
           expirationDate: cardInfo.expirationDate
         };
         billingAddressToSend = {
@@ -263,7 +260,7 @@ export default function CheckoutPage({ cartItems, setCartItems, setOrders }) {
           state: cardInfo.billingState,
           zipCode: cardInfo.billingZipCode
         };
-        shippingAddressToSend = shippingInfo;
+        shippingAddressToSend = null;
       }
 
       const checkoutPayload = {
@@ -271,7 +268,7 @@ export default function CheckoutPage({ cartItems, setCartItems, setOrders }) {
         totalAmount: finalTotal,
         paymentInfo: paymentInfoToSend,
         billingAddress: billingAddressToSend,
-        shippingAddress: shippingAddressToSend
+        ...(shippingAddressToSend !== null && { shippingAddress: shippingAddressToSend })
       };
 
       if (auth.isLoggedIn) {
@@ -620,71 +617,7 @@ export default function CheckoutPage({ cartItems, setCartItems, setOrders }) {
                   />
                 </div>
               </div>
-              <h4 style={{ marginTop: '20px' }}>Shipping Address</h4>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px', marginBottom: '10px' }}>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '5px' }}>Street*</label>
-                  <input
-                    type="text"
-                    placeholder="123 Main St"
-                    value={shippingInfo.street}
-                    onChange={e => handleShippingInfoChange('street', e.target.value)}
-                    style={{
-                      padding: '8px',
-                      border: '1px solid #ccc',
-                      borderRadius: '3px',
-                      width: '100%'
-                    }}
-                  />
-                </div>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '5px' }}>City*</label>
-                  <input
-                    type="text"
-                    placeholder="City"
-                    value={shippingInfo.city}
-                    onChange={e => handleShippingInfoChange('city', e.target.value)}
-                    style={{
-                      padding: '8px',
-                      border: '1px solid #ccc',
-                      borderRadius: '3px',
-                      width: '100%'
-                    }}
-                  />
-                </div>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '5px' }}>State*</label>
-                  <input
-                    type="text"
-                    placeholder="State"
-                    value={shippingInfo.state}
-                    onChange={e => handleShippingInfoChange('state', e.target.value)}
-                    style={{
-                      padding: '8px',
-                      border: '1px solid #ccc',
-                      borderRadius: '3px',
-                      width: '100%'
-                    }}
-                  />
-                </div>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '5px' }}>ZIP Code*</label>
-                  <input
-                    type="text"
-                    placeholder="12345"
-                    value={shippingInfo.zipCode}
-                    onChange={e => handleShippingInfoChange('zipCode', e.target.value)}
-                    style={{
-                      padding: '8px',
-                      border: '1px solid #ccc',
-                      borderRadius: '3px',
-                      width: '100%'
-                    }}
-                  />
-                </div>
-              </div>
+              {/* Removed extra shipping address for manual entry as requested */}
             </div>
           )}
           {!isCardInfoValid() && (
