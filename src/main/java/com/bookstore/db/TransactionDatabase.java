@@ -6,7 +6,7 @@ import java.io.InputStream;
 import java.util.Properties;
 import com.bookstore.records.TransactionRecords;
 
-public class TransactionDatabase {
+public class TransactionDatabase implements DatabaseInterface {
 
     private Connection connection;
     private ArrayList<TransactionRecords> results;
@@ -20,6 +20,7 @@ public class TransactionDatabase {
     }
 
     // Connect to DB
+    @Override
     public boolean connectDb() {
         try {
             Properties props = new Properties();
@@ -45,6 +46,7 @@ public class TransactionDatabase {
     }
 
     // Disconnect from DB
+    @Override
     public boolean disconnectDb() {
         try {
             connection.close();
@@ -57,7 +59,16 @@ public class TransactionDatabase {
     }
 
     // Getter and setter for results
-    public ArrayList<TransactionRecords> getResults() {
+    @Override
+    public Connection getConnection() {
+        return connection;
+    }
+    
+    @Override
+    public boolean isConnected() {
+        return connected;
+    }
+        public ArrayList<TransactionRecords> getResults() {
         return results;
     }
     public void setResults(ArrayList<TransactionRecords> results) {

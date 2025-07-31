@@ -17,6 +17,8 @@ import com.bookstore.db.VerificationTokenRecords;
 import com.bookstore.records.UserRecords;
 import com.bookstore.Email;
 import com.bookstore.SecUtils;
+import com.bookstore.db.DatabaseFactory;
+import com.bookstore.db.DatabaseInterface;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -39,9 +41,9 @@ public class PasswordResetServlet extends HttpServlet {
 
         if (email != null && token == null && newPassword == null) {
             // generate token and send email
-            UserDatabase userDb = new UserDatabase();
+            DatabaseInterface userDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.USER);
             userDb.connectDb();
-            UserRecords user = userDb.findUserByEmail(email);
+            UserRecords user = ((UserDatabase) userDb).findUserByEmail(email);
             if (user == null) {
                 userDb.disconnectDb();
                 resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -76,9 +78,9 @@ public class PasswordResetServlet extends HttpServlet {
                 resp.getWriter().write("{\"error\":\"Invalid or expired token\"}");
                 return;
             }
-            UserDatabase userDb = new UserDatabase();
+            DatabaseInterface userDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.USER);
             userDb.connectDb();
-            UserRecords user = SecUtils.findUserByID(userDb, tokenRecord.getUserId());
+            UserRecords user = SecUtils.findUserByID((UserDatabase) userDb, tokenRecord.getUserId());
             if (user == null) {
                 userDb.disconnectDb();
                 tokenDb.disconnectDb();
@@ -88,7 +90,7 @@ public class PasswordResetServlet extends HttpServlet {
             }
             String hashed = SecUtils.hashPassword(newPassword);
             user.setPassword(hashed);
-            userDb.updateUser(user);
+            ((UserDatabase) userDb).updateUser(user);
             tokenDb.deleteTokenByToken(token);
             tokenDb.disconnectDb();
             userDb.disconnectDb();

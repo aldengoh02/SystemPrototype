@@ -6,7 +6,7 @@ import java.io.InputStream;
 import java.util.Properties;
 import com.bookstore.records.CartRecord;
 
-public class CartDatabase {
+public class CartDatabase implements DatabaseInterface {
 
     private Connection connection;
     private ArrayList<CartRecord> results;
@@ -20,6 +20,7 @@ public class CartDatabase {
     }
 
     // Connect to DB
+    @Override
     public boolean connectDb() {
         try {
             Properties props = new Properties();
@@ -45,6 +46,7 @@ public class CartDatabase {
     }
 
     // Disconnect from DB
+    @Override
     public boolean disconnectDb() {
         try {
             connection.close();
@@ -56,6 +58,17 @@ public class CartDatabase {
         return true;
     }
 
+    // Getter for connection
+    @Override
+    public Connection getConnection() {
+        return connection;
+    }
+    
+    @Override
+    public boolean isConnected() {
+        return connected;
+    }
+    
     // Getter and setter for results
     public ArrayList<CartRecord> getResults() {
         return results;

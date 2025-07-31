@@ -13,6 +13,8 @@ package com.bookstore.web;
 
 import com.bookstore.SecUtils;
 import com.bookstore.db.UserDatabase;
+import com.bookstore.db.DatabaseFactory;
+import com.bookstore.db.DatabaseInterface;
 import com.bookstore.records.UserRecords;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -117,7 +119,7 @@ public class LoginServlet extends HttpServlet {
             return;
         }
         
-        UserDatabase db = new UserDatabase();
+        DatabaseInterface db = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.USER);
         
         try {
             if (!db.connectDb()) {
@@ -127,7 +129,7 @@ public class LoginServlet extends HttpServlet {
                 return;
             }
             
-            UserRecords user = SecUtils.findUserForLoginFlexible(db, identifier);
+            UserRecords user = SecUtils.findUserForLoginFlexible((UserDatabase) db, identifier);
             
             boolean authenticated = false;
             if (user != null) {
@@ -197,10 +199,10 @@ public class LoginServlet extends HttpServlet {
         if (session != null && session.getAttribute("userID") != null) {
             Integer userId = (Integer) session.getAttribute("userID");
             
-            UserDatabase db = new UserDatabase();
+            DatabaseInterface db = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.USER);
             try {
                 if (db.connectDb()) {
-                    UserRecords user = SecUtils.findUserByID(db, userId);
+                    UserRecords user = SecUtils.findUserByID((UserDatabase) db, userId);
                     
                     if (user != null) {
                         String role = SecUtils.getUserRoleName(user.getUserTypeID());

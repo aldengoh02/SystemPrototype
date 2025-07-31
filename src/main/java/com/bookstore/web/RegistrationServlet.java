@@ -21,11 +21,13 @@ import com.bookstore.db.*;
 import com.bookstore.records.*;
 import com.bookstore.SecUtils;
 import com.bookstore.Email;
+import com.bookstore.db.DatabaseFactory;
+import com.bookstore.db.DatabaseInterface;
 import java.sql.Timestamp;
 import java.util.UUID;
 
 public class RegistrationServlet extends HttpServlet {
-    private UserDatabase userDB = new UserDatabase();
+    private DatabaseInterface userDB = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.USER);
     private ShippingAddressDatabase shippingDB = new ShippingAddressDatabase();
     private BillingAddressDatabase billingDB = new BillingAddressDatabase();
     private PaymentCardDatabase paymentDB = new PaymentCardDatabase();
@@ -95,7 +97,7 @@ public class RegistrationServlet extends HttpServlet {
                 return;
             }
             
-            String userResult = userDB.addUser(newUser);
+            String userResult = ((UserDatabase) userDB).addUser(newUser);
             userDB.disconnectDb();
             
             if (!userResult.contains("Added")) {
@@ -110,7 +112,7 @@ public class RegistrationServlet extends HttpServlet {
             }
             
             System.out.println("DEBUG: Looking for user with email: " + email);
-            UserRecords createdUser = userDB.findUserByEmail(email);
+            UserRecords createdUser = ((UserDatabase) userDB).findUserByEmail(email);
             System.out.println("DEBUG: Found user: " + (createdUser != null ? "Yes (ID: " + createdUser.getUserID() + ")" : "No"));
             userDB.disconnectDb();
             
@@ -198,7 +200,7 @@ public class RegistrationServlet extends HttpServlet {
     }
     
     private boolean isEmailTaken(String email) {
-        UserRecords existingUser = SecUtils.findUserForLogin(userDB, email, false);
+        UserRecords existingUser = SecUtils.findUserForLogin((UserDatabase) userDB, email, false);
         return existingUser != null;
     }
     
@@ -367,7 +369,7 @@ public class RegistrationServlet extends HttpServlet {
                 return "Failed to connect to user database";
             }
             
-            UserRecords createdUser = userDB.findUserByEmail(userEmail);
+            UserRecords createdUser = ((UserDatabase) userDB).findUserByEmail(userEmail);
             userDB.disconnectDb();
             
             if (createdUser == null) {

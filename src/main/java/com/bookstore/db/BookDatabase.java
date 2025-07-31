@@ -9,7 +9,7 @@ import java.util.Properties;
 import com.bookstore.records.BookRecords;
 
 
-public class BookDatabase {
+public class BookDatabase implements DatabaseInterface {
 
     private Connection connection;
     private ArrayList<BookRecords> results;
@@ -23,6 +23,7 @@ public class BookDatabase {
     }
 
     //Connect to DB
+    @Override
     public boolean connectDb() {
         try {
             Properties props = new Properties();
@@ -48,6 +49,7 @@ public class BookDatabase {
     }
 
     //Disconnect from DB
+    @Override
     public boolean disconnectDb() {
         try {
             connection.close();
@@ -60,8 +62,15 @@ public class BookDatabase {
     }
 
     // Getter for connection
+    @Override
     public Connection getConnection() {
         return connection;
+    }
+    
+    // Check if connected
+    @Override
+    public boolean isConnected() {
+        return connected;
     }
 
     //Getter and setter for results

@@ -5,7 +5,8 @@ import com.bookstore.proxy.AdminVerificationProxyImpl;
 import com.bookstore.records.UserRecords;
 import com.bookstore.SecUtils;
 import com.bookstore.db.UserDatabase;
-
+import com.bookstore.db.DatabaseFactory;
+import com.bookstore.db.DatabaseInterface;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,11 +24,11 @@ import java.io.PrintWriter;
 public abstract class AdminSecuredServlet extends HttpServlet {
     
     protected final AdminVerificationProxy adminVerifier;
-    protected final UserDatabase userDatabase;
+    protected final DatabaseInterface userDatabase;
     
     public AdminSecuredServlet() {
         this.adminVerifier = new AdminVerificationProxyImpl();
-        this.userDatabase = new UserDatabase();
+        this.userDatabase = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.USER);
     }
     
     /**
@@ -88,7 +89,7 @@ public abstract class AdminSecuredServlet extends HttpServlet {
         }
         
         try {
-            UserRecords user = SecUtils.findUserByID(userDatabase, userId);
+            UserRecords user = SecUtils.findUserByID((UserDatabase) userDatabase, userId);
             if (user == null) {
                 sendUnauthorizedResponse(response, "User not found");
                 return null;

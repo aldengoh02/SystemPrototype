@@ -18,7 +18,8 @@
 package com.bookstore.web;
 
 import com.bookstore.db.*;
-import com.bookstore.records.*;
+import com.bookstore.db.DatabaseFactory;
+import com.bookstore.db.DatabaseInterface;import com.bookstore.records.*;
 import com.bookstore.Email;
 import com.bookstore.SecUtils;
 import com.google.gson.Gson;
@@ -84,10 +85,14 @@ public class CheckoutServlet extends HttpServlet {
         }
 
         try {
-            PaymentCardDatabase cardDb = new PaymentCardDatabase();
-            BillingAddressDatabase billingDb = new BillingAddressDatabase();
-            ShippingAddressDatabase shippingDb = new ShippingAddressDatabase();
-            UserDatabase userDb = new UserDatabase();
+ addFactory
+            // Get user's stored payment cards, billing addresses, and shipping addresses
+            DatabaseInterface cardDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.PAYMENT_CARD);
+            DatabaseInterface billingDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.BILLING_ADDRESS);
+            DatabaseInterface shippingDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.SHIPPING_ADDRESS);
+            DatabaseInterface userDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.USER);
+
+ 
             
             if (!cardDb.connectDb() || !billingDb.connectDb() || !shippingDb.connectDb() || !userDb.connectDb()) {
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -95,9 +100,17 @@ public class CheckoutServlet extends HttpServlet {
                 return;
             }
 
-            ArrayList<PaymentCardRecords> paymentCards = cardDb.getCardsByUserID(userId);
-            ArrayList<ShippingAddressRecords> shippingAddresses = shippingDb.getAddressesByUserID(userId);
-            ArrayList<BillingAddressRecords> allBillingAddresses = billingDb.getAllAddresses();
+ addFactory
+            // Get user's payment cards
+            ArrayList<PaymentCardRecords> paymentCards = ((PaymentCardDatabase) cardDb).getCardsByUserID(userId);
+            
+            // Get user's shipping addresses
+            ArrayList<ShippingAddressRecords> shippingAddresses = ((ShippingAddressDatabase) shippingDb).getAddressesByUserID(userId);
+            
+            // Get all billing addresses (cards reference billing addresses by ID)
+            ArrayList<BillingAddressRecords> allBillingAddresses = ((BillingAddressDatabase) billingDb).getAllAddresses();
+
+            
             
             JsonObject responseObj = new JsonObject();
             JsonArray paymentCardsArray = new JsonArray();
@@ -183,14 +196,21 @@ public class CheckoutServlet extends HttpServlet {
             JsonObject billingAddress = requestData.getAsJsonObject("billingAddress");
             JsonObject shippingAddress = requestData.has("shippingAddress") ? requestData.getAsJsonObject("shippingAddress") : null;
             double totalAmount = requestData.get("totalAmount").getAsDouble();
+ addFactory
+            
+            // Get user information for email
+            DatabaseInterface userDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.USER);
 
-            UserDatabase userDb = new UserDatabase();
+
             if (!userDb.connectDb()) {
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 out.print("{\"error\": \"Database connection failed\"}");
                 return;
             }
-            UserRecords user = SecUtils.findUserByID(userDb, userId);
+ addFactory
+            
+            UserRecords user = SecUtils.findUserByID((UserDatabase) userDb, userId);
+
             if (user == null) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                 out.print("{\"error\": \"User not found\"}");

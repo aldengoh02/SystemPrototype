@@ -2,7 +2,8 @@ package com.bookstore.proxy;
 
 import com.bookstore.SecUtils;
 import com.bookstore.db.UserDatabase;
-import com.bookstore.records.UserRecords;
+import com.bookstore.db.DatabaseFactory;
+import com.bookstore.db.DatabaseInterface;import com.bookstore.records.UserRecords;
 
 /**
  * Concrete implementation of AdminVerificationProxy.
@@ -11,10 +12,10 @@ import com.bookstore.records.UserRecords;
  */
 public class AdminVerificationProxyImpl implements AdminVerificationProxy {
     
-    private final UserDatabase userDatabase;
+    private final DatabaseInterface userDatabase;
     
     public AdminVerificationProxyImpl() {
-        this.userDatabase = new UserDatabase();
+        this.userDatabase = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.USER);
     }
     
     public AdminVerificationProxyImpl(UserDatabase userDatabase) {
@@ -44,7 +45,7 @@ public class AdminVerificationProxyImpl implements AdminVerificationProxy {
         }
         
         try {
-            UserRecords user = SecUtils.findUserByID(userDatabase, userId);
+            UserRecords user = SecUtils.findUserByID((UserDatabase) userDatabase, userId);
             return isAdmin(user);
         } catch (Exception e) {
             System.out.println("Admin verification failed for user ID " + userId + ": " + e.getMessage());
@@ -67,7 +68,7 @@ public class AdminVerificationProxyImpl implements AdminVerificationProxy {
         }
         
         try {
-            UserRecords user = userDatabase.findUserByEmail(email);
+            UserRecords user = ((UserDatabase) userDatabase).findUserByEmail(email);
             return isAdmin(user);
         } catch (Exception e) {
             System.out.println("Admin verification failed for email " + email + ": " + e.getMessage());

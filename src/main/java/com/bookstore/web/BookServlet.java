@@ -40,6 +40,8 @@ package com.bookstore.web;
 
 import com.bookstore.db.BookActions;
 import com.bookstore.db.BookDatabase;
+import com.bookstore.db.DatabaseFactory;
+import com.bookstore.db.DatabaseInterface;
 import com.bookstore.records.BookRecords;
 import com.bookstore.db.BookNotFoundException;
 import com.google.gson.Gson;
@@ -86,7 +88,7 @@ public class BookServlet extends AdminSecuredServlet {
             }
         }
         
-        BookDatabase bookDb = new BookDatabase();
+        DatabaseInterface bookDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.BOOK);
         PrintWriter out = resp.getWriter();
         
         if (bookDb.connectDb()) {
@@ -101,7 +103,7 @@ public class BookServlet extends AdminSecuredServlet {
                 } else if (pathInfo == null || pathInfo.equals("/")) {
                     // Handle adding a new book
                     BookRecords newBook = gson.fromJson(requestBody, BookRecords.class);
-                    String result = bookDb.addBook(newBook);
+                    String result = ((BookDatabase) bookDb).addBook(newBook);
                     
                     if (result.equals("Book Added.")) {
                         resp.setStatus(HttpServletResponse.SC_CREATED);
@@ -136,7 +138,7 @@ public class BookServlet extends AdminSecuredServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         setCorsHeaders(resp);
         
-        BookDatabase bookDb = new BookDatabase();
+        DatabaseInterface bookDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.BOOK);
         PrintWriter out = resp.getWriter();
 
         if (bookDb.connectDb()) {
@@ -173,13 +175,13 @@ public class BookServlet extends AdminSecuredServlet {
                             books = BookActions.getComingSoonBooks(bookDb.getConnection());
                             break;
                         default:
-                            bookDb.loadResults();
-                            books = bookDb.getResults();
+                            ((BookDatabase) bookDb).loadResults();
+                            books = ((BookDatabase) bookDb).getResults();
                             break;
                     }
                 } else {
-                    bookDb.loadResults();
-                    books = bookDb.getResults();
+                    ((BookDatabase) bookDb).loadResults();
+                    books = ((BookDatabase) bookDb).getResults();
                 }
                 
                 String booksJson = gson.toJson(books);

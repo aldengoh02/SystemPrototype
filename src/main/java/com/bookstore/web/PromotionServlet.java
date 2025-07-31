@@ -34,6 +34,8 @@
 package com.bookstore.web;
 
 import com.bookstore.db.PromotionDatabase;
+import com.bookstore.db.DatabaseFactory;
+import com.bookstore.db.DatabaseInterface;
 import com.bookstore.records.PromotionRecords;
 import com.bookstore.Email;
 import com.google.gson.Gson;
@@ -57,7 +59,7 @@ public class PromotionServlet extends AdminSecuredServlet {
         System.out.println("DEBUG: GET request received for promotions");
         setCorsHeaders(resp);
         
-        PromotionDatabase promotionDb = new PromotionDatabase();
+        DatabaseInterface promotionDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.PROMOTION);
         
         PrintWriter out = resp.getWriter();
 
@@ -69,8 +71,8 @@ public class PromotionServlet extends AdminSecuredServlet {
                     // Get specific promotion by ID
                     try {
                         int promoId = Integer.parseInt(pathInfo.substring(1));
-                        promotionDb.loadResults();
-                        ArrayList<PromotionRecords> promotions = promotionDb.getResults();
+                        ((PromotionDatabase) promotionDb).loadResults();
+                        ArrayList<PromotionRecords> promotions = ((PromotionDatabase) promotionDb).getResults();
                         
                         PromotionRecords promotion = promotions.stream()
                                 .filter(p -> p.getPromoID() == promoId)
@@ -89,8 +91,8 @@ public class PromotionServlet extends AdminSecuredServlet {
                     }
                 } else {
                     // Get all promotions
-                    promotionDb.loadResults();
-                    ArrayList<PromotionRecords> promotions = promotionDb.getResults();
+                    ((PromotionDatabase) promotionDb).loadResults();
+                    ArrayList<PromotionRecords> promotions = ((PromotionDatabase) promotionDb).getResults();
                     out.print(gson.toJson(promotions));
                 }
             } catch (Exception e) {
@@ -132,7 +134,7 @@ public class PromotionServlet extends AdminSecuredServlet {
         }
         
         // Original promotion creation logic
-        PromotionDatabase promotionDb = new PromotionDatabase();
+        DatabaseInterface promotionDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.PROMOTION);
 
         if (promotionDb.connectDb()) {
             try {
@@ -154,7 +156,7 @@ public class PromotionServlet extends AdminSecuredServlet {
                     endDate
                 );
                 
-                String result = promotionDb.addPromotion(newPromotion);
+                String result = ((PromotionDatabase) promotionDb).addPromotion(newPromotion);
                 
                 if (result.equals("Promotion Added.")) {
                     resp.setStatus(HttpServletResponse.SC_CREATED);
@@ -187,7 +189,7 @@ public class PromotionServlet extends AdminSecuredServlet {
             return;
         }
         
-        PromotionDatabase promotionDb = new PromotionDatabase();
+        DatabaseInterface promotionDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.PROMOTION);
         PrintWriter out = resp.getWriter();
         String pathInfo = req.getPathInfo();
 
@@ -216,7 +218,7 @@ public class PromotionServlet extends AdminSecuredServlet {
                     endDate
                 );
                 
-                String result = promotionDb.updatePromotion(updatedPromotion);
+                String result = ((PromotionDatabase) promotionDb).updatePromotion(updatedPromotion);
                 
                 if (result.equals("Promotion Updated.")) {
                     out.print("{\"message\": \"" + result + "\"}");
@@ -255,7 +257,7 @@ public class PromotionServlet extends AdminSecuredServlet {
         }
         System.out.println("DEBUG: Admin verification passed, proceeding with delete");
         
-        PromotionDatabase promotionDb = new PromotionDatabase();
+        DatabaseInterface promotionDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.PROMOTION);
         PrintWriter out = resp.getWriter();
         String pathInfo = req.getPathInfo();
 
@@ -269,7 +271,7 @@ public class PromotionServlet extends AdminSecuredServlet {
         if (promotionDb.connectDb()) {
             try {
                 int promoId = Integer.parseInt(pathInfo.substring(1));
-                String result = promotionDb.deletePromotion(promoId);
+                String result = ((PromotionDatabase) promotionDb).deletePromotion(promoId);
                 
                 if (result.equals("Promotion Deleted.")) {
                     out.print("{\"message\": \"" + result + "\"}");
@@ -323,7 +325,7 @@ public class PromotionServlet extends AdminSecuredServlet {
             }
             
             // Get promotion details
-            PromotionDatabase promotionDb = new PromotionDatabase();
+            DatabaseInterface promotionDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.PROMOTION);
             if (!promotionDb.connectDb()) {
                 resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 out.print("{\"error\": \"Failed to connect to database\"}");
@@ -331,8 +333,8 @@ public class PromotionServlet extends AdminSecuredServlet {
             }
             
             try {
-                promotionDb.loadResults();
-                ArrayList<PromotionRecords> promotions = promotionDb.getResults();
+                ((PromotionDatabase) promotionDb).loadResults();
+                ArrayList<PromotionRecords> promotions = ((PromotionDatabase) promotionDb).getResults();
                 
                 PromotionRecords promotion = promotions.stream()
                         .filter(p -> p.getPromoID() == promoId)
@@ -360,7 +362,7 @@ public class PromotionServlet extends AdminSecuredServlet {
                 
                 if (success) {
                     // Mark promotion as pushed
-                    String updateResult = promotionDb.updatePromotionPushedStatus(promoId, true);
+                    String updateResult = ((PromotionDatabase) promotionDb).updatePromotionPushedStatus(promoId, true);
                     if (updateResult.equals("Promotion push status updated.")) {
                         resp.setStatus(HttpServletResponse.SC_OK);
                         out.print("{\"message\": \"Promotion pushed successfully\"}");

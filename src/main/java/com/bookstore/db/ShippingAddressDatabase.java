@@ -6,7 +6,7 @@ import java.io.InputStream;
 import java.util.Properties;
 import com.bookstore.records.ShippingAddressRecords;
 
-public class ShippingAddressDatabase {
+public class ShippingAddressDatabase implements DatabaseInterface {
     private Connection connection;
     private ArrayList<ShippingAddressRecords> results;
     private ResultSet rs;
@@ -16,6 +16,7 @@ public class ShippingAddressDatabase {
         this.results = new ArrayList<>();
     }
 
+    @Override
     public boolean connectDb() {
         try {
             Properties props = new Properties();
@@ -37,6 +38,7 @@ public class ShippingAddressDatabase {
         return true;
     }
 
+    @Override
     public boolean disconnectDb() {
         try {
             connection.close();
@@ -48,6 +50,16 @@ public class ShippingAddressDatabase {
         return true;
     }
 
+    @Override
+    public Connection getConnection() {
+        return connection;
+    }
+    
+    @Override
+    public boolean isConnected() {
+        return connected;
+    }
+    
     public ArrayList<ShippingAddressRecords> getResults() {
         return results;
     }

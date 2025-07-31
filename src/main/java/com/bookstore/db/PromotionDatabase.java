@@ -6,7 +6,7 @@ import java.io.InputStream;
 import java.util.Properties;
 import com.bookstore.records.PromotionRecords;
 
-public class PromotionDatabase {
+public class PromotionDatabase implements DatabaseInterface {
 
     private Connection connection;
     private ArrayList<PromotionRecords> results;
@@ -18,6 +18,7 @@ public class PromotionDatabase {
         this.results = new ArrayList<>();
     }
 
+    @Override
     public boolean connectDb() {
         try {
             Properties props = new Properties();
@@ -42,6 +43,7 @@ public class PromotionDatabase {
         return true;
     }
 
+    @Override
     public boolean disconnectDb() {
         try {
             connection.close();
@@ -53,16 +55,23 @@ public class PromotionDatabase {
         return true;
     }
 
-    public ArrayList<PromotionRecords> getResults() {
+    @Override
+    public Connection getConnection() {
+        return connection;
+    }
+    
+    @Override
+    public boolean isConnected() {
+        return connected;
+    }
+        public ArrayList<PromotionRecords> getResults() {
         return results;
     }
     public void setResults(ArrayList<PromotionRecords> results) {
         this.results = results;
     }
 
-    public Connection getConnection() {
-        return connection;
-    }
+
 
     public String addPromotion(PromotionRecords promo) {
         String query = "INSERT INTO promotion (promoCode, discount, startDate, endDate, pushed) VALUES (?, ?, ?, ?, ?)";

@@ -25,6 +25,8 @@ import com.bookstore.db.ShippingAddressDatabase;
 import com.bookstore.records.ShippingAddressRecords;
 import com.bookstore.SecUtils;
 import com.bookstore.Email;
+import com.bookstore.db.DatabaseFactory;
+import com.bookstore.db.DatabaseInterface;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -117,24 +119,24 @@ public class EditUserServlet extends HttpServlet {
             int userID = (int) session.getAttribute("userID");
 
             // Get user info
-            UserDatabase userDb = new UserDatabase();
-            BillingAddressDatabase billingDb = new BillingAddressDatabase();
-            PaymentCardDatabase cardDb = new PaymentCardDatabase();
-            com.bookstore.db.ShippingAddressDatabase shippingDb = new com.bookstore.db.ShippingAddressDatabase();
+            DatabaseInterface userDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.USER);
+            DatabaseInterface billingDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.BILLING_ADDRESS);
+            DatabaseInterface cardDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.PAYMENT_CARD);
+            DatabaseInterface shippingDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.SHIPPING_ADDRESS);
             userDb.connectDb();
             billingDb.connectDb();
             cardDb.connectDb();
             shippingDb.connectDb();
-            cardDb.loadResults(); // <-- Load payment cards from DB
-            UserRecords user = com.bookstore.SecUtils.findUserByID(userDb, userID);
+            ((PaymentCardDatabase) cardDb).loadResults(); // <-- Load payment cards from DB
+            UserRecords user = com.bookstore.SecUtils.findUserByID((UserDatabase) userDb, userID);
             // Get all billing addresses referenced by user's payment cards (direct mapping, DB fetch)
             java.util.List<com.bookstore.records.BillingAddressRecords> billingAddresses = new java.util.ArrayList<>();
             java.util.Set<Integer> addedBillingAddressIDs = new java.util.HashSet<>();
-            for (com.bookstore.records.PaymentCardRecords card : cardDb.getResults()) {
+            for (com.bookstore.records.PaymentCardRecords card : ((PaymentCardDatabase) cardDb).getResults()) {
                 if (card.getUserID() == userID) {
                     int billingAddressID = card.getBillingAddressID();
                     if (!addedBillingAddressIDs.contains(billingAddressID)) {
-                        com.bookstore.records.BillingAddressRecords addr = billingDb.findByAddressID(billingAddressID);
+                        com.bookstore.records.BillingAddressRecords addr = ((BillingAddressDatabase) billingDb).findByAddressID(billingAddressID);
                         if (addr != null) {
                             billingAddresses.add(addr);
                             addedBillingAddressIDs.add(billingAddressID);
@@ -144,14 +146,14 @@ public class EditUserServlet extends HttpServlet {
             }
             // Get all payment cards for user
             java.util.List<com.bookstore.records.PaymentCardRecords> paymentCards = new java.util.ArrayList<>();
-            for (com.bookstore.records.PaymentCardRecords card : cardDb.getResults()) {
+            for (com.bookstore.records.PaymentCardRecords card : ((PaymentCardDatabase) cardDb).getResults()) {
                 if (card.getUserID() == userID) paymentCards.add(card);
             }
             userDb.disconnectDb();
             billingDb.disconnectDb();
             cardDb.disconnectDb();
             // Get shipping address
-            com.bookstore.records.ShippingAddressRecords shippingAddress = shippingDb.findFirstByUserID(userID);
+            com.bookstore.records.ShippingAddressRecords shippingAddress = ((ShippingAddressDatabase) shippingDb).findFirstByUserID(userID);
             shippingDb.disconnectDb();
             if (user == null) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -230,9 +232,9 @@ public class EditUserServlet extends HttpServlet {
         String firstName = req.get("firstName").getAsString();
         String lastName = req.get("lastName").getAsString();
         
-        UserDatabase db = new UserDatabase();
+        DatabaseInterface db = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.USER);
         db.connectDb();
-        String result = updateUserName(db, userID, firstName, lastName);
+        String result = updateUserName((UserDatabase) db, userID, firstName, lastName);
         
         // Send email notification if update was successful
         if (result.contains("successfully")) {
@@ -300,9 +302,9 @@ public class EditUserServlet extends HttpServlet {
         String currentPassword = req.get("currentPassword").getAsString();
         String newPassword = req.get("newPassword").getAsString();
 
-        UserDatabase db = new UserDatabase();
+        DatabaseInterface db = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.USER);
         db.connectDb();
-        String result = SecUtils.updatePassword(db, userID, currentPassword, newPassword);
+        String result = SecUtils.updatePassword((UserDatabase) db, userID, currentPassword, newPassword);
         
         // Send email notification if update was successful
         if (result.contains("successfully")) {
@@ -322,18 +324,18 @@ public class EditUserServlet extends HttpServlet {
     private void updatePromotions(JsonObject req, JsonObject res) {
         int userID = req.get("userID").getAsInt();
         boolean enrollForPromotions = req.get("enrollForPromotions").getAsBoolean();
-        UserDatabase db = new UserDatabase();
+        DatabaseInterface db = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.USER);
         db.connectDb();
         String result;
         try {
-            UserRecords user = com.bookstore.SecUtils.findUserByID(db, userID);
+            UserRecords user = com.bookstore.SecUtils.findUserByID((UserDatabase) db, userID);
             if (user == null) {
                 res.addProperty("error", "User not found");
                 db.disconnectDb();
                 return;
             }
             user.setEnrollForPromotions(enrollForPromotions);
-            String updateResult = db.updateUser(user);
+            String updateResult = ((UserDatabase) db).updateUser(user);
             if (updateResult.contains("Updated")) {
                 result = enrollForPromotions ? "Enrolled in promotions successfully" : "Unenrolled from promotions successfully";
             } else {
