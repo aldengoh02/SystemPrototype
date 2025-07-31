@@ -85,11 +85,14 @@ public class CheckoutServlet extends HttpServlet {
         }
 
         try {
+ addFactory
             // Get user's stored payment cards, billing addresses, and shipping addresses
             DatabaseInterface cardDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.PAYMENT_CARD);
             DatabaseInterface billingDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.BILLING_ADDRESS);
             DatabaseInterface shippingDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.SHIPPING_ADDRESS);
             DatabaseInterface userDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.USER);
+
+ 
             
             if (!cardDb.connectDb() || !billingDb.connectDb() || !shippingDb.connectDb() || !userDb.connectDb()) {
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -97,6 +100,7 @@ public class CheckoutServlet extends HttpServlet {
                 return;
             }
 
+ addFactory
             // Get user's payment cards
             ArrayList<PaymentCardRecords> paymentCards = ((PaymentCardDatabase) cardDb).getCardsByUserID(userId);
             
@@ -105,18 +109,17 @@ public class CheckoutServlet extends HttpServlet {
             
             // Get all billing addresses (cards reference billing addresses by ID)
             ArrayList<BillingAddressRecords> allBillingAddresses = ((BillingAddressDatabase) billingDb).getAllAddresses();
+
             
-            // Create response object
+            
             JsonObject responseObj = new JsonObject();
             JsonArray paymentCardsArray = new JsonArray();
             JsonArray shippingAddressesArray = new JsonArray();
             JsonArray billingAddressesArray = new JsonArray();
             
-            // Add payment cards with masked card numbers
             for (PaymentCardRecords card : paymentCards) {
                 JsonObject cardObj = new JsonObject();
                 cardObj.addProperty("cardID", card.getCardID());
-                // Mask the card number for security (show only last 4 digits)
                 String maskedCardNo = "**** **** **** " + card.getCardNo().substring(Math.max(0, card.getCardNo().length() - 4));
                 cardObj.addProperty("maskedCardNo", maskedCardNo);
                 cardObj.addProperty("type", card.getType());
@@ -125,7 +128,6 @@ public class CheckoutServlet extends HttpServlet {
                 paymentCardsArray.add(cardObj);
             }
             
-            // Add shipping addresses
             for (ShippingAddressRecords address : shippingAddresses) {
                 JsonObject addrObj = new JsonObject();
                 addrObj.addProperty("addressID", address.getAddressID());
@@ -136,7 +138,6 @@ public class CheckoutServlet extends HttpServlet {
                 shippingAddressesArray.add(addrObj);
             }
             
-            // Add billing addresses
             for (BillingAddressRecords address : allBillingAddresses) {
                 JsonObject addrObj = new JsonObject();
                 addrObj.addProperty("addressID", address.getAddressID());
@@ -187,33 +188,36 @@ public class CheckoutServlet extends HttpServlet {
         }
 
         try {
-            // Read request body
             String body = request.getReader().lines().collect(Collectors.joining("\n"));
             JsonObject requestData = gson.fromJson(body, JsonObject.class);
-            
+
             JsonArray cartItems = requestData.getAsJsonArray("cartItems");
             JsonObject paymentInfo = requestData.getAsJsonObject("paymentInfo");
             JsonObject billingAddress = requestData.getAsJsonObject("billingAddress");
-            JsonObject shippingAddress = requestData.getAsJsonObject("shippingAddress");
+            JsonObject shippingAddress = requestData.has("shippingAddress") ? requestData.getAsJsonObject("shippingAddress") : null;
             double totalAmount = requestData.get("totalAmount").getAsDouble();
+ addFactory
             
             // Get user information for email
             DatabaseInterface userDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.USER);
+
+
             if (!userDb.connectDb()) {
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 out.print("{\"error\": \"Database connection failed\"}");
                 return;
             }
+ addFactory
             
             UserRecords user = SecUtils.findUserByID((UserDatabase) userDb, userId);
+
             if (user == null) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                 out.print("{\"error\": \"User not found\"}");
                 userDb.disconnectDb();
                 return;
             }
-            
-            // Format order details for email
+
             StringBuilder orderDetails = new StringBuilder();
             for (JsonElement item : cartItems) {
                 JsonObject itemObj = item.getAsJsonObject();
@@ -222,35 +226,68 @@ public class CheckoutServlet extends HttpServlet {
                            .append(" - $").append(String.format("%.2f", itemObj.get("sellingPrice").getAsDouble() * itemObj.get("quantity").getAsInt()))
                            .append("\n");
             }
-            
-            // Format payment info for email (mask card number)
-            String paymentInfoStr;
-            if (paymentInfo.has("maskedCardNo")) {
-                paymentInfoStr = "Card: " + paymentInfo.get("maskedCardNo").getAsString() + 
-                               "\nType: " + paymentInfo.get("type").getAsString() +
-                               "\nExpiry: " + paymentInfo.get("expirationDate").getAsString();
-            } else {
-                // Manual entry - mask the card number
+
+            // ----------- FIXED payment info parsing -----------
+            String paymentInfoStr = "";
+            String billingAddressStr = "";
+
+            if (paymentInfo.has("cardID")) {
+                String maskedCardNo = paymentInfo.has("maskedCardNo")
+                    ? paymentInfo.get("maskedCardNo").getAsString()
+                    : "**** **** **** ";
+                String type = paymentInfo.has("type") ? paymentInfo.get("type").getAsString() : "";
+                String expirationDate = paymentInfo.has("expirationDate") ? paymentInfo.get("expirationDate").getAsString() : "";
+
+                paymentInfoStr = "Card: " + maskedCardNo +
+                                 "\nType: " + type +
+                                 "\nExpiry: " + expirationDate;
+
+                if (billingAddress != null) {
+                    String billingStreet = billingAddress.get("street").getAsString();
+                    String billingCity = billingAddress.get("city").getAsString();
+                    String billingState = billingAddress.get("state").getAsString();
+                    String billingZipCode = billingAddress.get("zipCode").getAsString();
+                    billingAddressStr = billingStreet + "\n" +
+                                        billingCity + ", " +
+                                        billingState + " " +
+                                        billingZipCode;
+                }
+            } else if (paymentInfo.has("cardNumber")) {
                 String cardNo = paymentInfo.get("cardNumber").getAsString().replaceAll("\\s", "");
                 String maskedCardNo = "**** **** **** " + cardNo.substring(Math.max(0, cardNo.length() - 4));
-                paymentInfoStr = "Card: " + maskedCardNo + 
-                               "\nCardholder: " + paymentInfo.get("cardholderName").getAsString() +
-                               "\nExpiry: " + paymentInfo.get("expiryDate").getAsString();
+                String cardType = paymentInfo.get("cardType").getAsString();
+                String expirationDate = paymentInfo.get("expirationDate").getAsString();
+                paymentInfoStr = "Card: " + maskedCardNo +
+                                 "\nType: " + cardType +
+                                 "\nExpiry: " + expirationDate;
+
+                if (billingAddress != null) {
+                    String billingStreet = billingAddress.get("street").getAsString();
+                    String billingCity = billingAddress.get("city").getAsString();
+                    String billingState = billingAddress.get("state").getAsString();
+                    String billingZipCode = billingAddress.get("zipCode").getAsString();
+                    billingAddressStr = billingStreet + "\n" +
+                                        billingCity + ", " +
+                                        billingState + " " +
+                                        billingZipCode;
+                }
+            } else {
+                paymentInfoStr = "Unknown payment info format";
+                billingAddressStr = "";
             }
-            
-            // Format billing address for email
-            String billingAddressStr = billingAddress.get("street").getAsString() + "\n" +
-                                     billingAddress.get("city").getAsString() + ", " +
-                                     billingAddress.get("state").getAsString() + " " +
-                                     billingAddress.get("zipCode").getAsString();
-            
-            // Format shipping address for email
-            String shippingAddressStr = shippingAddress.get("street").getAsString() + "\n" +
-                                      shippingAddress.get("city").getAsString() + ", " +
-                                      shippingAddress.get("state").getAsString() + " " +
-                                      shippingAddress.get("zipCode").getAsString();
-            
-            // Send confirmation email
+
+            String shippingAddressStr = "";
+            if (shippingAddress != null) {
+                String shippingStreet = shippingAddress.get("street").getAsString();
+                String shippingCity = shippingAddress.get("city").getAsString();
+                String shippingState = shippingAddress.get("state").getAsString();
+                String shippingZipCode = shippingAddress.get("zipCode").getAsString();
+                shippingAddressStr = shippingStreet + "\n" +
+                                      shippingCity + ", " +
+                                      shippingState + " " +
+                                      shippingZipCode;
+            }
+
             boolean emailSent = Email.sendOrderConfirmationEmail(
                 user.getEmail(),
                 user.getFirstName(),
@@ -260,16 +297,16 @@ public class CheckoutServlet extends HttpServlet {
                 shippingAddressStr,
                 totalAmount
             );
-            
+
             JsonObject responseObj = new JsonObject();
             responseObj.addProperty("success", true);
             responseObj.addProperty("emailSent", emailSent);
             responseObj.addProperty("message", "Order processed successfully");
-            
+
             out.print(gson.toJson(responseObj));
-            
+
             userDb.disconnectDb();
-            
+
         } catch (Exception e) {
             e.printStackTrace();
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

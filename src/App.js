@@ -354,4 +354,5 @@ const navStyle = {
   display: 'flex',
   alignItems: 'center',
   gap: '5px',
+  fontSize: '16px'
 };

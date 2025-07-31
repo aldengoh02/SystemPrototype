@@ -5,6 +5,7 @@ export default function BookDetailPage({ handleAddToCart }) {
   const { id } = useParams();
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [cartMessage, setCartMessage] = useState('');
 
   useEffect(() => {
     fetch(`http://localhost:8080/api/books/${id}`)
@@ -16,6 +17,14 @@ export default function BookDetailPage({ handleAddToCart }) {
       .catch(() => setLoading(false));
   }, [id]);
 
+  const handleAddClick = () => {
+    handleAddToCart(book);
+    setCartMessage(`${book.title} has been added to your cart:)`);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => setCartMessage(''), 3000);
+  };
+
+
   if (loading) return <p>Loading book...</p>;
   if (!book) return <p>Book not found</p>;
 
@@ -23,6 +32,19 @@ export default function BookDetailPage({ handleAddToCart }) {
 
   return (
     <div style={{ maxWidth: '600px', margin: '0 auto', background: '#fff', padding: '20px', borderRadius: '10px' }}>
+      {cartMessage && (
+        <div style={{
+          backgroundColor: '#e6ffe6',
+          color: '#2e7d32',
+          padding: '10px',
+          borderRadius: '5px',
+          marginBottom: '15px',
+          textAlign: 'center',
+          fontWeight: 'bold'
+        }}>
+          {cartMessage}
+        </div>
+      )}
       <img
         src={`/img/${book.coverImage?.split('/').pop()}`}
         alt={book.title}
@@ -40,7 +62,7 @@ export default function BookDetailPage({ handleAddToCart }) {
 
       {book.featured && !isComingSoon && (
       <button
-        onClick={() => handleAddToCart(book)}
+        onClick={handleAddClick}
         style={{
           background: '#4a90e2',
           color: '#fff',
