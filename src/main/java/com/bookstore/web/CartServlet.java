@@ -37,6 +37,8 @@ package com.bookstore.web;
 
 import com.bookstore.db.CartDatabase;
 import com.bookstore.db.BookDatabase;
+import com.bookstore.db.DatabaseFactory;
+import com.bookstore.db.DatabaseInterface;
 import com.bookstore.records.CartRecord;
 import com.bookstore.records.BookRecords;
 import com.google.gson.Gson;
@@ -93,8 +95,8 @@ public class CartServlet extends HttpServlet {
             return;
         }
 
-        CartDatabase cartDb = new CartDatabase();
-        BookDatabase bookDb = new BookDatabase();
+        DatabaseInterface cartDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.CART);
+        DatabaseInterface bookDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.BOOK);
         
         if (!cartDb.connectDb() || !bookDb.connectDb()) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -103,17 +105,17 @@ public class CartServlet extends HttpServlet {
         }
 
         try {
-            cartDb.loadResults();
-            List<CartRecord> userCartItems = cartDb.getResults().stream()
+            ((CartDatabase) cartDb).loadResults();
+            List<CartRecord> userCartItems = ((CartDatabase) cartDb).getResults().stream()
                 .filter(cart -> cart.getUserID() == userId)
                 .collect(Collectors.toList());
 
             // Get book details for each cart item
-            bookDb.loadResults();
+            ((BookDatabase) bookDb).loadResults();
             JsonArray cartArray = new JsonArray();
             for (CartRecord cartItem : userCartItems) {
                 // Find book by ID from loaded results
-                BookRecords book = bookDb.getResults().stream()
+                BookRecords book = ((BookDatabase) bookDb).getResults().stream()
                     .filter(b -> b.getId() == cartItem.getBookID())
                     .findFirst().orElse(null);
                 
@@ -172,7 +174,7 @@ public class CartServlet extends HttpServlet {
     private void handleMergeCart(Integer userId, String body, HttpServletResponse response, PrintWriter out) {
         try {
             JsonArray guestCartArray = gson.fromJson(body, JsonArray.class);
-            CartDatabase cartDb = new CartDatabase();
+            DatabaseInterface cartDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.CART);
             
             if (!cartDb.connectDb()) {
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -180,7 +182,7 @@ public class CartServlet extends HttpServlet {
                 return;
             }
 
-            cartDb.loadResults();
+            ((CartDatabase) cartDb).loadResults();
             
             for (JsonElement element : guestCartArray) {
                 JsonObject guestItem = element.getAsJsonObject();
@@ -188,22 +190,22 @@ public class CartServlet extends HttpServlet {
                 int quantity = guestItem.get("quantity").getAsInt();
                 
                 // Check if item already exists in user's cart
-                boolean exists = cartDb.getResults().stream()
+                boolean exists = ((CartDatabase) cartDb).getResults().stream()
                     .anyMatch(cart -> cart.getUserID() == userId && cart.getBookID() == bookId);
                 
                 if (exists) {
                     // Update existing item (add quantities)
-                    CartRecord existing = cartDb.getResults().stream()
+                    CartRecord existing = ((CartDatabase) cartDb).getResults().stream()
                         .filter(cart -> cart.getUserID() == userId && cart.getBookID() == bookId)
                         .findFirst().orElse(null);
                     if (existing != null) {
                         existing.setQuantity(existing.getQuantity() + quantity);
-                        cartDb.updateCartRecord(existing);
+                        ((CartDatabase) cartDb).updateCartRecord(existing);
                     }
                 } else {
                     // Add new item
                     CartRecord newItem = new CartRecord(userId, bookId, quantity);
-                    cartDb.addCartRecord(newItem);
+                    ((CartDatabase) cartDb).addCartRecord(newItem);
                 }
             }
             
@@ -222,7 +224,7 @@ public class CartServlet extends HttpServlet {
             int bookId = requestData.get("bookID").getAsInt();
             int quantity = requestData.get("quantity").getAsInt();
             
-            CartDatabase cartDb = new CartDatabase();
+            DatabaseInterface cartDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.CART);
             
             if (!cartDb.connectDb()) {
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -230,21 +232,21 @@ public class CartServlet extends HttpServlet {
                 return;
             }
 
-            cartDb.loadResults();
+            ((CartDatabase) cartDb).loadResults();
             
             // Check if item already exists
-            CartRecord existing = cartDb.getResults().stream()
+            CartRecord existing = ((CartDatabase) cartDb).getResults().stream()
                 .filter(cart -> cart.getUserID() == userId && cart.getBookID() == bookId)
                 .findFirst().orElse(null);
             
             if (existing != null) {
                 // Update existing item
                 existing.setQuantity(existing.getQuantity() + quantity);
-                cartDb.updateCartRecord(existing);
+                ((CartDatabase) cartDb).updateCartRecord(existing);
             } else {
                 // Add new item
                 CartRecord newItem = new CartRecord(userId, bookId, quantity);
-                cartDb.addCartRecord(newItem);
+                ((CartDatabase) cartDb).addCartRecord(newItem);
             }
             
             cartDb.disconnectDb();
@@ -275,7 +277,7 @@ public class CartServlet extends HttpServlet {
             int bookId = requestData.get("bookID").getAsInt();
             int quantity = requestData.get("quantity").getAsInt();
             
-            CartDatabase cartDb = new CartDatabase();
+            DatabaseInterface cartDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.CART);
             
             if (!cartDb.connectDb()) {
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -284,11 +286,11 @@ public class CartServlet extends HttpServlet {
             }
 
             if (quantity <= 0) {
-                cartDb.deleteCartRecord(userId, bookId);
+                ((CartDatabase) cartDb).deleteCartRecord(userId, bookId);
                 out.print("{\"success\": \"Item removed from cart\"}");
             } else {
                 CartRecord cartItem = new CartRecord(userId, bookId, quantity);
-                cartDb.updateCartRecord(cartItem);
+                ((CartDatabase) cartDb).updateCartRecord(cartItem);
                 out.print("{\"success\": \"Cart updated\"}");
             }
             
@@ -314,7 +316,7 @@ public class CartServlet extends HttpServlet {
         }
 
         String path = request.getPathInfo();
-        CartDatabase cartDb = new CartDatabase();
+        DatabaseInterface cartDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.CART);
         
         if (!cartDb.connectDb()) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -325,13 +327,13 @@ public class CartServlet extends HttpServlet {
         try {
             if (path == null || path.equals("/")) {
                 // Clear entire cart
-                cartDb.loadResults();
-                List<CartRecord> userItems = cartDb.getResults().stream()
+                ((CartDatabase) cartDb).loadResults();
+                List<CartRecord> userItems = ((CartDatabase) cartDb).getResults().stream()
                     .filter(cart -> cart.getUserID() == userId)
                     .collect(Collectors.toList());
                 
                 for (CartRecord item : userItems) {
-                    cartDb.deleteCartRecord(userId, item.getBookID());
+                    ((CartDatabase) cartDb).deleteCartRecord(userId, item.getBookID());
                 }
                 
                 out.print("{\"success\": \"Cart cleared\"}");
@@ -339,7 +341,7 @@ public class CartServlet extends HttpServlet {
                 // Remove specific item
                 String bookIdStr = path.substring(1); // Remove leading "/"
                 int bookId = Integer.parseInt(bookIdStr);
-                cartDb.deleteCartRecord(userId, bookId);
+                ((CartDatabase) cartDb).deleteCartRecord(userId, bookId);
                 out.print("{\"success\": \"Item removed from cart\"}");
             }
             

@@ -12,6 +12,8 @@ import com.google.gson.JsonObject;
 import com.bookstore.db.*;
 import com.bookstore.records.*;
 import com.bookstore.SecUtils;
+import com.bookstore.db.DatabaseFactory;
+import com.bookstore.db.DatabaseInterface;
 
 /**
  * Handles email verification for user account activation.
@@ -20,7 +22,7 @@ import com.bookstore.SecUtils;
  */
 public class EmailVerificationServlet extends HttpServlet {
     private VerificationTokenDatabase tokenDB = new VerificationTokenDatabase();
-    private UserDatabase userDB = new UserDatabase();
+    private DatabaseInterface userDB = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.USER);
     private Gson gson = new Gson();
 
     @Override
@@ -70,7 +72,7 @@ public class EmailVerificationServlet extends HttpServlet {
             }
             
             // Get the user record
-            UserRecords user = SecUtils.findUserForVerification(userDB, userId);
+            UserRecords user = SecUtils.findUserForVerification((UserDatabase) userDB, userId);
             if (user == null) {
                 tokenDB.disconnectDb();
                 userDB.disconnectDb();
@@ -99,7 +101,7 @@ public class EmailVerificationServlet extends HttpServlet {
                 user.getUserTypeID()
             );
             
-            String updateResult = userDB.updateUser(updatedUser);
+            String updateResult = ((UserDatabase) userDB).updateUser(updatedUser);
             if (!updateResult.contains("Updated")) {
                 tokenDB.disconnectDb();
                 userDB.disconnectDb();

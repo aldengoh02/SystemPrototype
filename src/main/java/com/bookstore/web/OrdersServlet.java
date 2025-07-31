@@ -18,6 +18,8 @@
 package com.bookstore.web;
 
 import com.bookstore.db.*;
+import com.bookstore.db.DatabaseFactory;
+import com.bookstore.db.DatabaseInterface;
 import com.bookstore.records.*;
 import com.bookstore.SecUtils;
 import com.google.gson.Gson;
@@ -77,10 +79,10 @@ public class OrdersServlet extends HttpServlet {
 
         try {
             // Get user's orders from database
-            OrdersDatabase ordersDb = new OrdersDatabase();
-            UserDatabase userDb = new UserDatabase();
-            BookDatabase bookDb = new BookDatabase();
-            TransactionDatabase transactionDb = new TransactionDatabase();
+            DatabaseInterface ordersDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.ORDERS);
+            DatabaseInterface userDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.USER);
+            DatabaseInterface bookDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.BOOK);
+            DatabaseInterface transactionDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.TRANSACTION);
             
             if (!ordersDb.connectDb() || !userDb.connectDb() || !bookDb.connectDb() || !transactionDb.connectDb()) {
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -89,8 +91,8 @@ public class OrdersServlet extends HttpServlet {
             }
 
             // Load all orders and filter by user ID
-            ordersDb.loadResults();
-            ArrayList<OrdersRecords> allOrders = ordersDb.getResults();
+            ((OrdersDatabase) ordersDb).loadResults();
+            ArrayList<OrdersRecords> allOrders = ((OrdersDatabase) ordersDb).getResults();
             
             JsonArray ordersArray = new JsonArray();
             
@@ -103,8 +105,8 @@ public class OrdersServlet extends HttpServlet {
                     orderObj.addProperty("status", "Processed"); // Default status
                     
                     // Get transaction items for this order
-                    transactionDb.loadResults();
-                    ArrayList<TransactionRecords> allTransactions = transactionDb.getResults();
+                    ((TransactionDatabase) transactionDb).loadResults();
+                    ArrayList<TransactionRecords> allTransactions = ((TransactionDatabase) transactionDb).getResults();
                     JsonArray itemsArray = new JsonArray();
                     
                     for (TransactionRecords transaction : allTransactions) {
@@ -165,8 +167,8 @@ public class OrdersServlet extends HttpServlet {
                                      ? requestData.getAsJsonObject("appliedPromo") : null;
             
             // Connect to databases
-            OrdersDatabase ordersDb = new OrdersDatabase();
-            TransactionDatabase transactionDb = new TransactionDatabase();
+            DatabaseInterface ordersDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.ORDERS);
+            DatabaseInterface transactionDb = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.TRANSACTION);
             
             if (!ordersDb.connectDb() || !transactionDb.connectDb()) {
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -190,7 +192,7 @@ public class OrdersServlet extends HttpServlet {
             );
             
             // Add order to database
-            String orderResult = ordersDb.addOrder(order);
+            String orderResult = ((OrdersDatabase) ordersDb).addOrder(order);
             if (!orderResult.equals("Order Added.")) {
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 out.print("{\"error\": \"Failed to save order: " + orderResult + "\"}");
@@ -198,8 +200,8 @@ public class OrdersServlet extends HttpServlet {
             }
             
             // Get the order ID of the newly created order
-            ordersDb.loadResults();
-            ArrayList<OrdersRecords> orders = ordersDb.getResults();
+            ((OrdersDatabase) ordersDb).loadResults();
+            ArrayList<OrdersRecords> orders = ((OrdersDatabase) ordersDb).getResults();
             int newOrderId = orders.get(orders.size() - 1).getOrderID(); // Get last order ID
             
             // Create transaction records for each cart item
@@ -215,7 +217,7 @@ public class OrdersServlet extends HttpServlet {
                     quantity
                 );
                 
-                String transactionResult = transactionDb.addTransaction(transaction);
+                String transactionResult = ((TransactionDatabase) transactionDb).addTransaction(transaction);
                 if (!transactionResult.equals("Transaction Added.")) {
                     System.err.println("Failed to add transaction: " + transactionResult);
                 }

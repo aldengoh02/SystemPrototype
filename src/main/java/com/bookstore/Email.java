@@ -7,7 +7,8 @@ import jakarta.mail.internet.*;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 import com.bookstore.db.UserDatabase;
-import com.bookstore.records.UserRecords;
+import com.bookstore.db.DatabaseFactory;
+import com.bookstore.db.DatabaseInterface;import com.bookstore.records.UserRecords;
 import com.bookstore.SecUtils;
 
 /**
@@ -35,14 +36,14 @@ public class Email {
      * Sends a profile change notification email to the user by user ID
      */
     public static boolean sendProfileChangeNotification(int userID) {
-        UserDatabase db = new UserDatabase();
+        DatabaseInterface db = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.USER);
         try {
             if (!db.connectDb()) {
                 LOGGER.warning("Cannot send email: database connection failed");
                 return false;
             }
             
-            UserRecords user = SecUtils.findUserByID(db, userID);
+            UserRecords user = SecUtils.findUserByID((UserDatabase) db, userID);
             if (user == null) {
                 LOGGER.warning("Cannot send email: user not found with ID: " + userID);
                 return false;
@@ -223,7 +224,7 @@ public class Email {
      * @return true if all emails were sent successfully, false if any failed
      */
     public static boolean sendPromotionalEmails(String promotionMessage, String subject) {
-        UserDatabase userDB = new UserDatabase();
+        DatabaseInterface userDB = DatabaseFactory.createDatabase(DatabaseFactory.DatabaseType.USER);
         boolean allEmailsSent = true;
         int successCount = 0;
         int failCount = 0;
@@ -234,7 +235,7 @@ public class Email {
                 return false;
             }
             
-            ArrayList<UserRecords> promotionUsers = userDB.getUsersEnrolledForPromotions();
+            ArrayList<UserRecords> promotionUsers = ((UserDatabase) userDB).getUsersEnrolledForPromotions();
             LOGGER.info("Found " + promotionUsers.size() + " users enrolled for promotions");
             
             if (promotionUsers.isEmpty()) {
