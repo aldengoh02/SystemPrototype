@@ -218,8 +218,8 @@ export default function AdminPromotionsPage() {
                   const statusInfo = getPromotionStatus(promotion.startDate, promotion.endDate);
                   const isActive = statusInfo.status === 'Active';
                   const isPushed = promotion.pushed;
-                  const canEdit = !(isPushed && isActive);
-                  const canDelete = !(isPushed && isActive);
+                  const canEdit = !isPushed;
+                  const canDelete = !isPushed;
                   
                   return (
                     <tr key={promotion.promoID} style={{ borderBottom: '1px solid #eee' }}>
@@ -275,6 +275,7 @@ export default function AdminPromotionsPage() {
                           <button
                             onClick={() => handleEditPromotion(promotion.promoID)}
                             disabled={!canEdit}
+                            title={!canEdit ? 'Cannot edit a promotion that has been pushed to customers' : 'Edit this promotion'}
                             style={{
                               background: canEdit ? '#ffc107' : '#6c757d',
                               color: 'white',
@@ -291,6 +292,7 @@ export default function AdminPromotionsPage() {
                           <button
                             onClick={() => handleDeletePromotion(promotion.promoID)}
                             disabled={!canDelete}
+                            title={!canDelete ? 'Cannot delete a promotion that has been pushed to customers' : 'Delete this promotion'}
                             style={{
                               background: canDelete ? '#dc3545' : '#6c757d',
                               color: 'white',
